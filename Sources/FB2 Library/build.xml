@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project basedir="." name="FB2 Library" default="all">
+
+	<property file="build.properties" />
+
+	<tstamp>
+		<format property="project.version" pattern="${project.version.template}" />
+		<format property="TODAY" pattern="yyyy.MM.dd HH:mm:ss" />
+	</tstamp>
+
+	<property name="dist" location="dist" />
+	<property name="dist.classes" location="${dist}/classes" />
+
+	<property name="jar.file" value="${jar.name}-${project.version}.jar" />
+
+	<path id="libs">
+	</path>
+
+	<target name="clean" description="cleanup all">
+		<delete dir="${dist}" />
+	</target>
+
+	<target name="init">
+		<mkdir dir="${dist.classes}" />
+	</target>
+
+	<target name="compile" depends="init">
+
+		<javac srcdir="src" destdir="${dist.classes}" debug="true" fork="true" source="${javac.source}" target="${javac.target}">
+			<compilerarg value="${compiler.args}" />
+			<classpath refid="libs" />
+		</javac>
+
+		<copy todir="${dist.classes}">
+			<fileset dir="resources">
+				<include name="**/*" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="jar" depends="compile">
+
+		<jar basedir="${dist.classes}" jarfile="${dist}/${jar.file}">
+			<manifest>
+
+				<attribute name="Main-class" value="org.ak2.fb2.library.Main" />
+
+				<section name="${project.name}">
+					<attribute name="Version" value="${project.version}" />
+					<attribute name="Compiled-At" value="${TODAY}" />
+					<attribute name="Source-Compatibility" value="${javac.source}" />
+					<attribute name="Target-JVM" value="${javac.target}" />
+				</section>
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="all" depends="clean, jar" description="build all">
+<!--		
+		<copy todir="${packages}">
+			<fileset dir="${dist}">
+				<include name="${jar.file}" />
+			</fileset>
+		</copy>
+-->		
+	</target>
+</project>
