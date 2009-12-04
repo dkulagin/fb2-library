@@ -145,9 +145,10 @@ public class RenameFiles implements ICommand {
             System.out.println("Book name   : " + bookName);
         }
 
-        if (LengthUtils.isNotEmpty(seq) && LengthUtils.isEmpty(seqNo)) {
-            seqNo = "001";
-        }
+// 		I commented this out because of some sequences without numbers. For example collections of short stories. AK.
+//        if (LengthUtils.isNotEmpty(seq) && LengthUtils.isEmpty(seqNo)) {
+//            seqNo = "001";
+//        }
         if (LengthUtils.isNotEmpty(seqNo)) {
             while (seqNo.length() < 3) {
                 seqNo = "0" + seqNo;
