@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.ak2.fb2.library.book.FictionBook;
 import org.ak2.fb2.library.commands.CommandArgs;
@@ -134,6 +136,21 @@ public class RenameFiles implements ICommand {
         String seq = book.getSequence();
         String seqNo = book.getSequenceNo();
         String bookName = book.getBookName();
+        
+        // Lib.rus.ec has a lot of books with name format: "Book title (Sequence name - sequence No)"
+        Pattern p = Pattern.compile("(.*)\\((.*)\\s-\\s([1-9][0-9]*)\\)");
+        Matcher m = p.matcher(bookName);
+        if (LengthUtils.isEmpty(seq) && LengthUtils.isEmpty(seqNo) && m.matches()) {
+        	// Here we assign correct values for proper file naming 
+        	bookName = m.group(1);
+        	seq = m.group(2);
+        	seqNo = m.group(3);
+        	
+        	// Now we fixing the book
+        	book.setBookName(bookName);
+        	book.setSequence(seq);
+        	book.setSequenceNo(seqNo);
+        }
         if (showInfo) {
             System.out.println("Author      : " + author);
             if (LengthUtils.isNotEmpty(seq)) {
