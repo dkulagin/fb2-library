@@ -117,7 +117,7 @@ public class FixEncoding implements ICommand {
         RenameFiles renameCmd = new RenameFiles();
         File realFile = file.getRealFile();
 
-        File newFile = renameCmd.createBookFile(inStream, tempFolder, outFormat, OutputPath.Simple, false);
+        File newFile = renameCmd.createBookFile(inStream, tempFolder, outFormat, OutputPath.Simple, false, false);
         if (!newFile.exists()) {
             throw new LibraryException("Replacement not created for " + file.getName());
         }

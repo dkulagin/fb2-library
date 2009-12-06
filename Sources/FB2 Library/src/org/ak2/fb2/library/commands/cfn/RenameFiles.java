@@ -1,8 +1,10 @@
 package org.ak2.fb2.library.commands.cfn;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,7 +33,13 @@ public class RenameFiles implements ICommand {
 
     private final Properties series = new Properties();
 
+    private PrintStream errors = null;
     public RenameFiles() {
+        try {
+			errors = new PrintStream(new File("errors.out"));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
         try {
             authors.load(RenameFiles.class.getResourceAsStream("Authors.properties"));
         } catch (IOException ex) {
@@ -107,6 +115,8 @@ public class RenameFiles implements ICommand {
                     } catch (Exception ex) {
                         System.err.println("Error on processing " + file.getName() + ":");
                         ex.printStackTrace();
+                        errors.println("Error on processing " + file.getName() + ":");
+                        ex.printStackTrace(errors);
                         counters.increment(ProcessingResult.FAILED);
                     }
                 }
@@ -122,16 +132,22 @@ public class RenameFiles implements ICommand {
 
     public ProcessingResult processFile(IFile file, final File outFile, final OutputFormat outFormat, final OutputPath outPath) throws Exception,
             IOException {
-        File newFile = createBookFile(file.open(), outFile, outFormat, outPath, true);
+        File newFile = null;
+        
+    	try {
+    		newFile = createBookFile(file.open(), outFile, outFormat, outPath, true, false);
+    	} catch (Exception e) {
+    		System.out.println("First attempt error. Trying to filter book stream");
+    		newFile = createBookFile(file.open(), outFile, outFormat, outPath, true, true);
+    	}
         ProcessingResult result = newFile != null ? ProcessingResult.CREATED : ProcessingResult.DUPLICATED;
         return result;
     }
 
     public File createBookFile(InputStream inStream, File outputFolder, OutputFormat outFormat, final OutputPath outPath,
-            boolean showInfo) throws Exception {
-
-        FictionBook book = new FictionBook(inStream);
-
+            boolean showInfo, boolean filter) throws Exception {
+    	FictionBook book = new FictionBook(inStream, filter);
+    	
         String author = book.getAuthor();
         String seq = book.getSequence();
         String seqNo = book.getSequenceNo();
