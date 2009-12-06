@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.CharArrayWriter;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -16,6 +18,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.ak2.utils.XmlUtils;
+import org.ak2.utils.streams.REFilterInputStream;
 import org.ak2.utils.threadlocal.ThreadLocalPattern;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -30,11 +33,21 @@ public class FictionBook {
 
     private String fieldAuthor;
 
-    public FictionBook(InputStream inStream) throws Exception {
+    public FictionBook(InputStream inStream, boolean filter) throws Exception {
         DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
         DocumentBuilder b;
         b = f.newDocumentBuilder();
-        fieldDocument = b.parse(inStream);
+        InputStream stream = inStream;
+        if (filter) {
+	        Map<String, String> replacements = new LinkedHashMap<String, String>();
+	        replacements.put("&", "&amp;");
+	        replacements.put("[\u0000-\u001f]", "");
+	        replacements.put("<<", "&lt;<");
+	        replacements.put("<([^a-zA-Z\\?\\/<])", "&lt;$1");
+	        replacements.put("([^a-zA-Z\\?\\\"\\/])>", "$1&gt;");
+			stream = new REFilterInputStream(inStream, replacements );
+        }
+        fieldDocument = b.parse(stream);
     }
 
     public String getBookName() {
