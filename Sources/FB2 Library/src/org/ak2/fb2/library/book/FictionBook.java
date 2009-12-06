@@ -169,4 +169,50 @@ public class FictionBook {
         }
         return text;
     }
+
+	public void setBookName(String bookName) {
+        if (fieldDocument == null)
+            return;
+
+        fieldBookName = bookName.trim();
+
+        try {
+            Element element = (Element) XmlUtils.selectNode(fieldDocument, "/FictionBook/description/title-info/book-title");
+            element.getFirstChild().setNodeValue(fieldBookName);
+
+        } catch (Throwable th) {
+            th.printStackTrace();
+        }
+		
+	}
+	
+    public void setSequence(String seq) {
+        try {
+            Element seqElement = (Element) XmlUtils.selectNode(fieldDocument, "/FictionBook/description/title-info/sequence");
+            if (seqElement == null) {
+            	// Now we try to create sequence element, but we assume that title-info exist
+            	Element titleInfo = (Element) XmlUtils.selectNode(fieldDocument, "/FictionBook/description/title-info");
+            	seqElement = fieldDocument.createElement("sequence");
+            	titleInfo.appendChild(seqElement);
+            }
+            seqElement.setAttribute("name", seq.trim());
+        } catch (Throwable th) {
+        }
+
+    }
+    
+    public void setSequenceNo(String seqNo) {
+        try {
+            Element seqElement = (Element) XmlUtils.selectNode(fieldDocument, "/FictionBook/description/title-info/sequence");
+            if (seqElement == null) {
+            	// Now we try to create sequence element, but we assume that title-info exist
+            	Element titleInfo = (Element) XmlUtils.selectNode(fieldDocument, "/FictionBook/description/title-info");
+            	seqElement = fieldDocument.createElement("sequence");
+            	titleInfo.appendChild(seqElement);
+            }
+            seqElement.setAttribute("number", seqNo.trim());
+        } catch (Throwable th) {
+        }
+
+    }
 }
