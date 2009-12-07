@@ -15,7 +15,7 @@ public enum Encoding {
 
     private final int[] pattern;
 
-    private Encoding(String xmlName, int... pattern) {
+    private Encoding(final String xmlName, final int... pattern) {
         this.xmlName = xmlName;
         this.pattern = pattern;
     }

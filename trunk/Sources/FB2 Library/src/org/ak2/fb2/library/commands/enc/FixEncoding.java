@@ -31,7 +31,7 @@ public class FixEncoding implements ICommand {
     }
 
     @Override
-    public void execute(CommandArgs args) throws LibraryException {
+    public void execute(final CommandArgs args) throws LibraryException {
         System.out.println("The 'Fix XML encoding' command is selected:\n\t" + args);
 
         final String inputFolder = args.getValue("input");
@@ -55,13 +55,13 @@ public class FixEncoding implements ICommand {
 
         FileScanner.enumerate(inFolder, new IFileFilter() {
             @Override
-            public boolean accept(IFile file) {
+            public boolean accept(final IFile file) {
                 if (file.getName().endsWith(".fb2")) {
                     try {
                         System.out.println("--------------------------------");
-                        ProcessingResult result = fixEncoding(tempFolder, file, outFormat);
+                        final ProcessingResult result = fixEncoding(tempFolder, file, outFormat);
                         counters.increment(result);
-                    } catch (Exception ex) {
+                    } catch (final Exception ex) {
                         System.err.println("Error on processing " + file.getName() + ":\n\t" + ex.getMessage());
                         counters.increment(ProcessingResult.FAILED);
                     }
@@ -81,26 +81,26 @@ public class FixEncoding implements ICommand {
 
     private File createTempFolder(final File inFolder) throws LibraryException {
         try {
-            File tempFolder = File.createTempFile("temp.", "", inFolder);
+            final File tempFolder = File.createTempFile("temp.", "", inFolder);
             tempFolder.delete();
             tempFolder.mkdirs();
             if (!tempFolder.exists()) {
                 throw new IOException("Temp folder '" + tempFolder.getAbsolutePath() + "' not created");
             }
             return tempFolder;
-        } catch (IOException ex1) {
+        } catch (final IOException ex1) {
             throw new LibraryException("Temp folder cannot be created: " + ex1.getMessage());
         }
     }
 
-    private ProcessingResult fixEncoding(File tempFolder, IFile file, OutputFormat outFormat) throws Exception {
-        Encoding encoding = getEncoding(file);
+    private ProcessingResult fixEncoding(final File tempFolder, final IFile file, final OutputFormat outFormat) throws Exception {
+        final Encoding encoding = getEncoding(file);
         if (encoding == null) {
             return ProcessingResult.SKIPPED;
         }
-        StringBuilder text = loadText(file, encoding.name());
-        String oldEncoding = FictionBook.getXmlEncoding(text, null);
-        String newEncoding = encoding.getXmlName();
+        final StringBuilder text = loadText(file, encoding.name());
+        final String oldEncoding = FictionBook.getXmlEncoding(text, null);
+        final String newEncoding = encoding.getXmlName();
 
         System.out.println("File               : " + file.getFullName());
         System.out.println("Formal XML encoding: " + oldEncoding);
@@ -111,23 +111,23 @@ public class FixEncoding implements ICommand {
         }
 
         FictionBook.fixXmlEncoding(text, newEncoding);
-        byte[] content = text.toString().getBytes(encoding.name());
-        ByteArrayInputStream inStream = new ByteArrayInputStream(content);
+        final byte[] content = text.toString().getBytes(encoding.name());
+        final ByteArrayInputStream inStream = new ByteArrayInputStream(content);
 
-        RenameFiles renameCmd = new RenameFiles();
-        File realFile = file.getRealFile();
+        final RenameFiles renameCmd = new RenameFiles();
+        final File realFile = file.getRealFile();
 
-        File newFile = renameCmd.createBookFile(inStream, tempFolder, outFormat, OutputPath.Simple, false, false);
+        final File newFile = renameCmd.createBookFile(inStream, tempFolder, outFormat, OutputPath.Simple, false, false);
         if (!newFile.exists()) {
             throw new LibraryException("Replacement not created for " + file.getName());
         }
 
-        File cf = new File(tempFolder, "Old." + realFile.getName());
+        final File cf = new File(tempFolder, "Old." + realFile.getName());
         if (!realFile.renameTo(cf)) {
             throw new LibraryException("Original file cannot be removed: " + realFile.getName());
         }
 
-        File replace = new File(realFile.getParentFile(), newFile.getName());
+        final File replace = new File(realFile.getParentFile(), newFile.getName());
         if (!newFile.renameTo(replace)) {
             throw new LibraryException("Replacement file could not be copied: " + newFile.getAbsolutePath());
         }
@@ -137,22 +137,22 @@ public class FixEncoding implements ICommand {
         return ProcessingResult.CREATED;
     }
 
-    public Encoding getEncoding(IFile file) throws IOException {
-        InputStream inStream = file.open();
+    public Encoding getEncoding(final IFile file) throws IOException {
+        final InputStream inStream = file.open();
         try {
             return getEncoding(inStream);
         } finally {
             try {
                 inStream.close();
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
             }
         }
     }
 
-    public Encoding getEncoding(InputStream inStream) throws IOException {
-        int utf8Length = Encoding.UTF8.getPattern().length;
-        int winLength = Encoding.CP1251.getPattern().length;
-        int[] buf = new int[Math.max(utf8Length, winLength)];
+    public Encoding getEncoding(final InputStream inStream) throws IOException {
+        final int utf8Length = Encoding.UTF8.getPattern().length;
+        final int winLength = Encoding.CP1251.getPattern().length;
+        final int[] buf = new int[Math.max(utf8Length, winLength)];
 
         int head = 0;
         int tail = 0;
@@ -160,11 +160,11 @@ public class FixEncoding implements ICommand {
         for (int val = inStream.read(); val != -1; val = inStream.read()) {
             buf[tail] = val;
             tail = (tail + 1) % buf.length;
-            int bufLength = (buf.length + tail - head) % buf.length;
+            final int bufLength = (buf.length + tail - head) % buf.length;
 
-            for (Encoding enc : Encoding.values()) {
-                int[] pattern = enc.getPattern();
-                int encLength = pattern.length;
+            for (final Encoding enc : Encoding.values()) {
+                final int[] pattern = enc.getPattern();
+                final int encLength = pattern.length;
                 if (bufLength >= encLength) {
                     boolean exact = true;
                     for (int i = 0; i < encLength && exact; i++) {
@@ -182,9 +182,9 @@ public class FixEncoding implements ICommand {
         return null;
     }
 
-    public StringBuilder loadText(IFile file, final String encoding) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(file.open(), encoding));
-        StringBuilder text = new StringBuilder();
+    public StringBuilder loadText(final IFile file, final String encoding) throws IOException {
+        final BufferedReader reader = new BufferedReader(new InputStreamReader(file.open(), encoding));
+        final StringBuilder text = new StringBuilder();
         try {
             for (String s = reader.readLine(); s != null; s = reader.readLine()) {
                 text.append(s).append("\n");
@@ -193,7 +193,7 @@ public class FixEncoding implements ICommand {
         } finally {
             try {
                 reader.close();
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
             }
         }
     }
