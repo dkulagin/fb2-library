@@ -2,7 +2,7 @@ package org.ak2.fb2.library.exceptions;
 
 /**
  * @author Alexander Kasatkin
- *
+ * 
  */
 public class BadCmdArguments extends LibraryException {
 
@@ -13,11 +13,11 @@ public class BadCmdArguments extends LibraryException {
 
     private final boolean showReadme;
 
-    public BadCmdArguments(String message) {
+    public BadCmdArguments(final String message) {
         this(message, false);
     }
 
-    public BadCmdArguments(String message, boolean showReadme) {
+    public BadCmdArguments(final String message, final boolean showReadme) {
         super(message);
         this.showReadme = showReadme;
     }

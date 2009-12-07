@@ -34,20 +34,21 @@ public class RenameFiles implements ICommand {
     private final Properties series = new Properties();
 
     private PrintStream errors = null;
+
     public RenameFiles() {
         try {
-			errors = new PrintStream(new File("errors.out"));
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
+            errors = new PrintStream(new File("errors.out"));
+        } catch (final FileNotFoundException e) {
+            e.printStackTrace();
+        }
         try {
             authors.load(RenameFiles.class.getResourceAsStream("Authors.properties"));
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             ex.printStackTrace();
         }
         try {
             series.load(RenameFiles.class.getResourceAsStream("Series.properties"));
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             ex.printStackTrace();
         }
     }
@@ -61,7 +62,7 @@ public class RenameFiles implements ICommand {
     }
 
     @Override
-    public void execute(CommandArgs args) throws LibraryException {
+    public void execute(final CommandArgs args) throws LibraryException {
         System.out.println("The 'Convert File Names' command is selected:\n\t" + args);
 
         // parsing parameters
@@ -106,13 +107,13 @@ public class RenameFiles implements ICommand {
 
         FileScanner.enumerate(inFile, new IFileFilter() {
             @Override
-            public boolean accept(IFile file) {
+            public boolean accept(final IFile file) {
                 if (file.getName().endsWith(".fb2")) {
                     try {
                         System.out.println("--------------------------------");
-                        ProcessingResult result = processFile(file, outFile, outFormat, outPath);
+                        final ProcessingResult result = processFile(file, outFile, outFormat, outPath);
                         counters.increment(result);
-                    } catch (Exception ex) {
+                    } catch (final Exception ex) {
                         System.err.println("Error on processing " + file.getName() + ":");
                         ex.printStackTrace();
                         errors.println("Error on processing " + file.getName() + ":");
@@ -130,42 +131,42 @@ public class RenameFiles implements ICommand {
         System.out.println("Failed     : " + counters.get(ProcessingResult.FAILED));
     }
 
-    public ProcessingResult processFile(IFile file, final File outFile, final OutputFormat outFormat, final OutputPath outPath) throws Exception,
+    public ProcessingResult processFile(final IFile file, final File outFile, final OutputFormat outFormat, final OutputPath outPath) throws Exception,
             IOException {
         File newFile = null;
-        
-    	try {
-    		newFile = createBookFile(file.open(), outFile, outFormat, outPath, true, false);
-    	} catch (Exception e) {
-    		System.out.println("First attempt error. Trying to filter book stream");
-    		newFile = createBookFile(file.open(), outFile, outFormat, outPath, true, true);
-    	}
-        ProcessingResult result = newFile != null ? ProcessingResult.CREATED : ProcessingResult.DUPLICATED;
+
+        try {
+            newFile = createBookFile(file.open(), outFile, outFormat, outPath, true, false);
+        } catch (final Exception e) {
+            System.out.println("First attempt error. Trying to filter book stream");
+            newFile = createBookFile(file.open(), outFile, outFormat, outPath, true, true);
+        }
+        final ProcessingResult result = newFile != null ? ProcessingResult.CREATED : ProcessingResult.DUPLICATED;
         return result;
     }
 
-    public File createBookFile(InputStream inStream, File outputFolder, OutputFormat outFormat, final OutputPath outPath,
-            boolean showInfo, boolean filter) throws Exception {
-    	FictionBook book = new FictionBook(inStream, filter);
-    	
+    public File createBookFile(final InputStream inStream, final File outputFolder, final OutputFormat outFormat, final OutputPath outPath,
+            final boolean showInfo, final boolean filter) throws Exception {
+        final FictionBook book = new FictionBook(inStream, filter);
+
         String author = book.getAuthor();
         String seq = book.getSequence();
         String seqNo = book.getSequenceNo();
         String bookName = book.getBookName();
-        
+
         // Lib.rus.ec has a lot of books with name format: "Book title (Sequence name - sequence No)"
-        Pattern p = Pattern.compile("(.*)\\((.*)\\s-\\s([1-9][0-9]*)\\)");
-        Matcher m = p.matcher(bookName);
+        final Pattern p = Pattern.compile("(.*)\\((.*)\\s-\\s([1-9][0-9]*)\\)");
+        final Matcher m = p.matcher(bookName);
         if (LengthUtils.isEmpty(seq) && LengthUtils.isEmpty(seqNo) && m.matches()) {
-        	// Here we assign correct values for proper file naming 
-        	bookName = m.group(1);
-        	seq = m.group(2);
-        	seqNo = m.group(3);
-        	
-        	// Now we fixing the book
-        	book.setBookName(bookName);
-        	book.setSequence(seq);
-        	book.setSequenceNo(seqNo);
+            // Here we assign correct values for proper file naming
+            bookName = m.group(1);
+            seq = m.group(2);
+            seqNo = m.group(3);
+
+            // Now we fixing the book
+            book.setBookName(bookName);
+            book.setSequence(seq);
+            book.setSequenceNo(seqNo);
         }
         if (showInfo) {
             System.out.println("Author      : " + author);
@@ -178,10 +179,10 @@ public class RenameFiles implements ICommand {
             System.out.println("Book name   : " + bookName);
         }
 
-// 		I commented this out because of some sequences without numbers. For example collections of short stories. AK.
-//        if (LengthUtils.isNotEmpty(seq) && LengthUtils.isEmpty(seqNo)) {
-//            seqNo = "001";
-//        }
+        // I commented this out because of some sequences without numbers. For example collections of short stories. AK.
+        // if (LengthUtils.isNotEmpty(seq) && LengthUtils.isEmpty(seqNo)) {
+        // seqNo = "001";
+        // }
         if (LengthUtils.isNotEmpty(seqNo)) {
             while (seqNo.length() < 3) {
                 seqNo = "0" + seqNo;
@@ -195,8 +196,8 @@ public class RenameFiles implements ICommand {
         author = authors.getProperty(author, author);
         seq = series.getProperty(seq, seq);
 
-        File bookFolder = outPath.getFolder(outputFolder, author, seq);
-        String bookFileName = bookName + ".fb2";
+        final File bookFolder = outPath.getFolder(outputFolder, author, seq);
+        final String bookFileName = bookName + ".fb2";
         return outFormat.createFile(bookFolder, bookFileName, book);
     }
 

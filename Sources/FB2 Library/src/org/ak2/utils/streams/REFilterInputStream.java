@@ -9,24 +9,23 @@ import java.util.Map;
 
 public class REFilterInputStream extends FilterInputStream {
 
-	public REFilterInputStream(InputStream stream,
-			Map<String, String> replacements) throws IOException {
-		super(stream);
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		int len = stream.available();
-		while (len > 0) {
-			byte[] buffer = new byte[len];
-			stream.read(buffer);
-			baos.write(buffer);
-			len = stream.available();
-		}
+    public REFilterInputStream(final InputStream stream, final Map<String, String> replacements) throws IOException {
+        super(stream);
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        int len = stream.available();
+        while (len > 0) {
+            final byte[] buffer = new byte[len];
+            stream.read(buffer);
+            baos.write(buffer);
+            len = stream.available();
+        }
 
-		String text = baos.toString();
-		for (String expr : replacements.keySet()) {
-			text = text.replaceAll(expr, replacements.get(expr));
-		}
-		
-		in = new ByteArrayInputStream(text.getBytes());
-	}
+        String text = baos.toString();
+        for (final String expr : replacements.keySet()) {
+            text = text.replaceAll(expr, replacements.get(expr));
+        }
+
+        in = new ByteArrayInputStream(text.getBytes());
+    }
 
 }

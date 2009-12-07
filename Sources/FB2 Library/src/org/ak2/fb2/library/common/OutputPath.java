@@ -12,7 +12,7 @@ public enum OutputPath {
          * @see org.ak2.fb2.library.common.OutputPath#getFolder(java.io.File, java.lang.String, java.lang.String)
          */
         @Override
-        public File getFolder(File outFolder, String author, String sequence) {
+        public File getFolder(final File outFolder, final String author, final String sequence) {
             return outFolder;
         }
     },
@@ -22,7 +22,7 @@ public enum OutputPath {
          * @see org.ak2.fb2.library.common.OutputPath#getFolder(java.io.File, java.lang.String, java.lang.String)
          */
         @Override
-        public File getFolder(File outFolder, String author, String sequence) throws IOException {
+        public File getFolder(final File outFolder, final String author, final String sequence) throws IOException {
             return createFolder(outFolder, author, sequence);
         }
     },
@@ -32,9 +32,9 @@ public enum OutputPath {
          * @see org.ak2.fb2.library.common.OutputPath#getFolder(java.io.File, java.lang.String, java.lang.String)
          */
         @Override
-        public File getFolder(File outFolder, String author, String sequence) throws IOException {
+        public File getFolder(final File outFolder, final String author, final String sequence) throws IOException {
             String subTree = "";
-            char first = author.charAt(0);
+            final char first = author.charAt(0);
             if (Character.isDigit(first)) {
                 subTree = "0-9";
             } else if (Character.isLetter(first)) {
@@ -48,9 +48,9 @@ public enum OutputPath {
 
     public abstract File getFolder(File outFolder, String author, String sequence) throws IOException;
 
-    private static File createFolder(File outFolder, String... segments) throws IOException {
+    private static File createFolder(final File outFolder, final String... segments) throws IOException {
         File current = outFolder;
-        for (String segment : segments) {
+        for (final String segment : segments) {
             if (LengthUtils.isNotEmpty(segment)) {
                 current = new File(current, segment);
                 current.mkdir();

@@ -8,14 +8,13 @@ import org.ak2.utils.enums.EnumUtils;
 
 public class CommandArgs {
 
-    private Map<String, String> m_args = new LinkedHashMap<String, String>();
+    private final Map<String, String> m_args = new LinkedHashMap<String, String>();
 
     public CommandArgs(final String... args) {
-
         for (int i = 0; i < args.length; i++) {
             if (args[i].startsWith("-") && (i + 1 < args.length)) {
-                String name = args[i].substring(1);
-                String value = args[i + 1];
+                final String name = args[i].substring(1);
+                final String value = args[i + 1];
                 m_args.put(name, value);
             }
         }
@@ -30,7 +29,7 @@ public class CommandArgs {
     }
 
     public <T extends Enum<T>> T getValue(final String name, final Class<T> valueClass, final T defaultValue) {
-        String value = getValue(name);
+        final String value = getValue(name);
         if (LengthUtils.isNotEmpty(value)) {
             return EnumUtils.valueOf(valueClass, value);
         }

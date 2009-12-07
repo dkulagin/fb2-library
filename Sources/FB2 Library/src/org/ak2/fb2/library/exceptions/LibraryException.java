@@ -2,7 +2,7 @@ package org.ak2.fb2.library.exceptions;
 
 /**
  * @author Alexander Kasatkin
- *
+ * 
  */
 public class LibraryException extends Exception {
 
@@ -15,15 +15,15 @@ public class LibraryException extends Exception {
         super();
     }
 
-    public LibraryException(String message, Throwable cause) {
+    public LibraryException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public LibraryException(String message) {
+    public LibraryException(final String message) {
         super(message);
     }
 
-    public LibraryException(Throwable cause) {
+    public LibraryException(final Throwable cause) {
         super(cause);
     }
 }

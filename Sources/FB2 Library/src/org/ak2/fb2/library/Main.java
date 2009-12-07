@@ -26,8 +26,7 @@ public class Main {
     private static final ICommand[] COMMANDS = { new RenameFiles(), new FixEncoding() };
 
     public static void main(final String[] args) {
-        System.setProperty("com.sun.org.apache.xalan.internal.serialize.encodings", Main.class.getResource(
-                "Encodings.properties").toString());
+        System.setProperty("com.sun.org.apache.xalan.internal.serialize.encodings", Main.class.getResource("Encodings.properties").toString());
         try {
             final String consoleEnc = System.getProperty("console.encoding", "cp866");
             System.setOut(new PrintStream(System.out, true, consoleEnc));
@@ -46,7 +45,7 @@ public class Main {
             commands.put(cmd.getName(), cmd);
         }
 
-        CommandArgs cmdArgs = new CommandArgs(args);
+        final CommandArgs cmdArgs = new CommandArgs(args);
 
         for (int i = 0; i < args.length; i++) {
             final String cmdArg = args[i];
@@ -80,8 +79,7 @@ public class Main {
      */
     private static void showReadme() {
         try {
-            final BufferedReader readme = new BufferedReader(new InputStreamReader(Main.class.getClassLoader()
-                    .getResourceAsStream("readme.txt")));
+            final BufferedReader readme = new BufferedReader(new InputStreamReader(Main.class.getClassLoader().getResourceAsStream("readme.txt")));
             for (String s = readme.readLine(); s != null; s = readme.readLine()) {
                 System.out.println(s);
             }
