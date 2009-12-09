@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
+@Deprecated
 public class REFilterInputStream extends FilterInputStream {
 
     public REFilterInputStream(final InputStream stream, final Map<String, String> replacements) throws IOException {

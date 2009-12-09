@@ -1,15 +1,8 @@
 package org.ak2.fb2.library.book;
 
-import java.io.ByteArrayInputStream;
 import java.io.CharArrayWriter;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -17,37 +10,24 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.ak2.fb2.library.common.Encoding;
 import org.ak2.utils.XmlUtils;
-import org.ak2.utils.streams.REFilterInputStream;
-import org.ak2.utils.threadlocal.ThreadLocalPattern;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 public class FictionBook {
 
-    private static final ThreadLocalPattern ENCODING_PATTERN = new ThreadLocalPattern("encoding=\"([^\"]+)\"");
-
     private final Document fieldDocument;
+
+    private final String fieldEncoding;
 
     private String fieldBookName;
 
     private String fieldAuthor;
 
-    public FictionBook(final InputStream inStream, final boolean filter) throws Exception {
-        final DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
-        DocumentBuilder b;
-        b = f.newDocumentBuilder();
-        InputStream stream = inStream;
-        if (filter) {
-            final Map<String, String> replacements = new LinkedHashMap<String, String>();
-            replacements.put("&", "&amp;");
-            replacements.put("[\u0000-\u001f]", "");
-            replacements.put("<<", "&lt;<");
-            replacements.put("<([^a-zA-Z\\?\\/<])", "&lt;$1");
-            replacements.put("([^a-zA-Z\\?\\\"\\/])>", "$1&gt;");
-            stream = new REFilterInputStream(inStream, replacements);
-        }
-        fieldDocument = b.parse(stream);
+    public FictionBook(final XmlContent content) throws Exception {
+        fieldDocument = content.getDocument();
+        fieldEncoding = content.getEncoding();
     }
 
     public String getBookName() {
@@ -172,40 +152,12 @@ public class FictionBook {
         return toBytes(buffer);
     }
 
-    public InputStream getBookStream() throws TransformerFactoryConfigurationError, TransformerException {
-        return new ByteArrayInputStream(getBytes());
-    }
-
     private byte[] toBytes(final CharArrayWriter output) {
         final String text = output.toString();
-        final String encoding = getXmlEncoding(text, getEncoding());
         try {
-            return text.getBytes(encoding);
+            return text.getBytes(fieldEncoding);
         } catch (final UnsupportedEncodingException ex) {
-            return output.toString().getBytes();
+            return text.getBytes();
         }
-    }
-
-    public String getEncoding() {
-        return fieldDocument.getInputEncoding();
-    }
-
-    public static String getXmlEncoding(final CharSequence text, final String defaultEncoding) {
-        final Matcher m = ENCODING_PATTERN.matcher(text.subSequence(0, 1024));
-        if (m.find()) {
-            return m.group(1);
-        }
-        return defaultEncoding;
-    }
-
-    public static StringBuilder fixXmlEncoding(final StringBuilder text, final String encoding) {
-        final Matcher m = ENCODING_PATTERN.matcher(text.subSequence(0, 1024));
-        if (m.find()) {
-            final int start = m.start(1);
-            final int end = m.end(1);
-            text.delete(start, end);
-            text.insert(start, encoding);
-        }
-        return text;
     }
 }

@@ -39,12 +39,9 @@
 	</target>
 
 	<target name="jar" depends="compile">
-
 		<jar basedir="${dist.classes}" jarfile="${dist}/${jar.file}">
 			<manifest>
-
 				<attribute name="Main-class" value="org.ak2.fb2.library.Main" />
-
 				<section name="${project.name}">
 					<attribute name="Version" value="${project.version}" />
 					<attribute name="Compiled-At" value="${TODAY}" />
@@ -55,13 +52,25 @@
 		</jar>
 	</target>
 
-	<target name="all" depends="clean, jar" description="build all">
-<!--		
+	<target name="generate" depends="jar" >
+		<filter token="jar.file" value="${jar.file}" />
+		<copy file="scripts/cfn.cmd" tofile="${dist}/cfn.cmd" filtering="true" />
+		<copy file="scripts/cfn.sh" tofile="${dist}/cfn.sh" filtering="true" />
+	</target>
+
+
+	<target name="all" depends="clean, jar, generate" description="build all">
 		<copy todir="${packages}">
 			<fileset dir="${dist}">
 				<include name="${jar.file}" />
+				<include name="*.cmd" />
+				<include name="*.sh" />
 			</fileset>
 		</copy>
--->		
+
+		<fixcrlf srcdir="${packages}" eol="dos" includes="*.cmd" />
+		<fixcrlf srcdir="${packages}" eol="unix" includes="*.sh" />
+		<chmod perm="+x" dir="${packages}" includes="*.sh" />
+
 	</target>
 </project>
