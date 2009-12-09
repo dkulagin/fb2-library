@@ -1,17 +1,12 @@
 package org.ak2.fb2.library.commands.enc;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 
-import org.ak2.fb2.library.book.FictionBook;
+import org.ak2.fb2.library.book.XmlContent;
 import org.ak2.fb2.library.commands.CommandArgs;
 import org.ak2.fb2.library.commands.ICommand;
 import org.ak2.fb2.library.commands.cfn.RenameFiles;
-import org.ak2.fb2.library.common.Encoding;
 import org.ak2.fb2.library.common.OutputFormat;
 import org.ak2.fb2.library.common.OutputPath;
 import org.ak2.fb2.library.common.ProcessingResult;
@@ -94,30 +89,20 @@ public class FixEncoding implements ICommand {
     }
 
     private ProcessingResult fixEncoding(final File tempFolder, final IFile file, final OutputFormat outFormat) throws Exception {
-        final Encoding encoding = getEncoding(file);
-        if (encoding == null) {
-            return ProcessingResult.SKIPPED;
-        }
-        final StringBuilder text = loadText(file, encoding.name());
-        final String oldEncoding = FictionBook.getXmlEncoding(text, null);
-        final String newEncoding = encoding.getXmlName();
+        XmlContent content = new XmlContent(file);
 
         System.out.println("File               : " + file.getFullName());
-        System.out.println("Formal XML encoding: " + oldEncoding);
-        System.out.println("Real   XML encoding: " + newEncoding);
+        System.out.println("Formal XML encoding: " + content.getXmlEncoding());
+        System.out.println("Real   XML encoding: " + content.getRealEncoding());
 
-        if (LengthUtils.equalsIgnoreCase(oldEncoding, newEncoding)) {
+        if (!content.isWrongEncoding()) {
             return ProcessingResult.SKIPPED;
         }
-
-        FictionBook.fixXmlEncoding(text, newEncoding);
-        final byte[] content = text.toString().getBytes(encoding.name());
-        final ByteArrayInputStream inStream = new ByteArrayInputStream(content);
 
         final RenameFiles renameCmd = new RenameFiles();
         final File realFile = file.getRealFile();
 
-        final File newFile = renameCmd.createBookFile(inStream, tempFolder, outFormat, OutputPath.Simple, false, false);
+        final File newFile = renameCmd.createBookFile(content, tempFolder, outFormat, OutputPath.Simple, false);
         if (!newFile.exists()) {
             throw new LibraryException("Replacement not created for " + file.getName());
         }
@@ -136,66 +121,4 @@ public class FixEncoding implements ICommand {
         cf.delete();
         return ProcessingResult.CREATED;
     }
-
-    public Encoding getEncoding(final IFile file) throws IOException {
-        final InputStream inStream = file.open();
-        try {
-            return getEncoding(inStream);
-        } finally {
-            try {
-                inStream.close();
-            } catch (final Exception ex) {
-            }
-        }
-    }
-
-    public Encoding getEncoding(final InputStream inStream) throws IOException {
-        final int utf8Length = Encoding.UTF8.getPattern().length;
-        final int winLength = Encoding.CP1251.getPattern().length;
-        final int[] buf = new int[Math.max(utf8Length, winLength)];
-
-        int head = 0;
-        int tail = 0;
-
-        for (int val = inStream.read(); val != -1; val = inStream.read()) {
-            buf[tail] = val;
-            tail = (tail + 1) % buf.length;
-            final int bufLength = (buf.length + tail - head) % buf.length;
-
-            for (final Encoding enc : Encoding.values()) {
-                final int[] pattern = enc.getPattern();
-                final int encLength = pattern.length;
-                if (bufLength >= encLength) {
-                    boolean exact = true;
-                    for (int i = 0; i < encLength && exact; i++) {
-                        exact = pattern[i] == buf[head + i];
-                    }
-                    if (exact) {
-                        return enc;
-                    }
-                }
-            }
-            if (bufLength == buf.length) {
-                head = (head + 1) % buf.length;
-            }
-        }
-        return null;
-    }
-
-    public StringBuilder loadText(final IFile file, final String encoding) throws IOException {
-        final BufferedReader reader = new BufferedReader(new InputStreamReader(file.open(), encoding));
-        final StringBuilder text = new StringBuilder();
-        try {
-            for (String s = reader.readLine(); s != null; s = reader.readLine()) {
-                text.append(s).append("\n");
-            }
-            return text;
-        } finally {
-            try {
-                reader.close();
-            } catch (final Exception ex) {
-            }
-        }
-    }
-
 }

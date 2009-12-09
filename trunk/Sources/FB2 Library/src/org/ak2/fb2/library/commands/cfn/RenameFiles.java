@@ -3,13 +3,13 @@ package org.ak2.fb2.library.commands.cfn;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.ak2.fb2.library.book.FictionBook;
+import org.ak2.fb2.library.book.XmlContent;
 import org.ak2.fb2.library.commands.CommandArgs;
 import org.ak2.fb2.library.commands.ICommand;
 import org.ak2.fb2.library.common.OutputFormat;
@@ -133,21 +133,15 @@ public class RenameFiles implements ICommand {
 
     public ProcessingResult processFile(final IFile file, final File outFile, final OutputFormat outFormat, final OutputPath outPath) throws Exception,
             IOException {
-        File newFile = null;
-
-        try {
-            newFile = createBookFile(file.open(), outFile, outFormat, outPath, true, false);
-        } catch (final Exception e) {
-            System.out.println("First attempt error. Trying to filter book stream");
-            newFile = createBookFile(file.open(), outFile, outFormat, outPath, true, true);
-        }
+        final XmlContent content = new XmlContent(file);
+        final File newFile = createBookFile(content, outFile, outFormat, outPath, true);
         final ProcessingResult result = newFile != null ? ProcessingResult.CREATED : ProcessingResult.DUPLICATED;
         return result;
     }
 
-    public File createBookFile(final InputStream inStream, final File outputFolder, final OutputFormat outFormat, final OutputPath outPath,
-            final boolean showInfo, final boolean filter) throws Exception {
-        final FictionBook book = new FictionBook(inStream, filter);
+    public File createBookFile(final XmlContent content, final File outputFolder, final OutputFormat outFormat, final OutputPath outPath,
+            final boolean showInfo) throws Exception {
+        final FictionBook book = new FictionBook(content);
 
         String author = book.getAuthor();
         String seq = book.getSequence();
