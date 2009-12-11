@@ -10,13 +10,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.ak2.fb2.library.common.Encoding;
 import org.ak2.utils.LengthUtils;
 import org.ak2.utils.files.IFile;
+import org.ak2.utils.threadlocal.ThreadLocalDocumentBuilder;
 import org.ak2.utils.threadlocal.ThreadLocalPattern;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -98,16 +97,14 @@ public class XmlContent {
     public Document getDocument() throws IOException, ParserConfigurationException, SAXException {
         Document doc = document != null ? document.get() : null;
         if (doc == null) {
-            final DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
-            final DocumentBuilder b = f.newDocumentBuilder();
             String str = getContent();
             try {
-                doc = b.parse(new InputSource(new StringReader(str)));
+                doc = ThreadLocalDocumentBuilder.parse(new InputSource(new StringReader(str)));
             } catch (final SAXException ex) {
                 String msg = ex.getMessage();
                 System.err.println("Xml parser error: " + msg);
                 str = fixXmlContent(str);
-                doc = b.parse(new InputSource(new StringReader(str)));
+                doc = ThreadLocalDocumentBuilder.parse(new InputSource(new StringReader(str)));
             }
         }
         return doc;
