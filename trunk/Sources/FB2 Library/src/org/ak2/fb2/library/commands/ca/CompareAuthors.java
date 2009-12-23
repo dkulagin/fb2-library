@@ -2,13 +2,11 @@ package org.ak2.fb2.library.commands.ca;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.ak2.fb2.library.commands.CommandArgs;
 import org.ak2.fb2.library.commands.ICommand;
@@ -16,13 +14,14 @@ import org.ak2.fb2.library.exceptions.BadCmdArguments;
 import org.ak2.fb2.library.exceptions.LibraryException;
 import org.ak2.utils.CompareUtils;
 import org.ak2.utils.LengthUtils;
+import org.ak2.utils.files.FolderScanner;
 
 public class CompareAuthors implements ICommand {
 
-    private List<Set<String>> clusters = new LinkedList<Set<String>>();
+    private final List<Set<String>> clusters = new LinkedList<Set<String>>();
 
     @Override
-    public void execute(CommandArgs args) throws LibraryException {
+    public void execute(final CommandArgs args) throws LibraryException {
         System.out.println("The 'Compare authors' command is selected:\n\t" + args);
 
         // parsing parameters
@@ -39,7 +38,7 @@ public class CompareAuthors implements ICommand {
             throw new BadCmdArguments("Output file is missing.");
         }
 
-        File folder = new File(inputFolder);
+        final File folder = new File(inputFolder);
         if (folder.isDirectory()) {
             processFolder(folder, depth.intValue(), distance.intValue());
         } else {
@@ -47,54 +46,24 @@ public class CompareAuthors implements ICommand {
         }
         System.out.println("Printing clusters:");
         System.out.println("==================");
-        for (Set<String> c : clusters) {
-            for (Iterator<String> iterator = c.iterator(); iterator.hasNext();) {
-                String name = iterator.next();
-                System.out.print(name + (iterator.hasNext() ? ", " : ""));
-            }
-            System.out.println("");
+        for (final Set<String> c : clusters) {
+            System.out.println(c);
         }
 
     }
 
-    private void processFolder(File folder, int depth, int dist) {
-        File[] subFolders = folder.listFiles(new FileFilter() {
-
-            @Override
-            public boolean accept(File pathname) {
-                return pathname.isDirectory();
-            }
-        });
-        if (depth > 0) {
-            for (File subFolder : subFolders) {
-                processFolder(subFolder, depth - 1, dist);
-            }
-            return;
-        }
-        Arrays.sort(subFolders, new Comparator<File>() {
-
-            @Override
-            public int compare(File o1, File o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
-
-        System.out.println("Processing " + folder.getAbsolutePath());
+    private void processFolder(final File folder, final int depth, final int dist) {
+        final File[] subFolders = getSubFolders(folder, depth);
         for (int i = 0; i < subFolders.length; i++) {
-            Set<String> cluster = null;
-            String nameI = subFolders[i].getName();
-            for (Set<String> c : clusters) {
-                if (c.contains(nameI)) {
-                    cluster = c;
-                    break;
-                }
-            }
+            System.out.println("Processing '" + subFolders[i].getAbsolutePath() + "' ...");
+            final String nameI = subFolders[i].getName();
+            Set<String> cluster = getCluster(nameI);
             for (int j = 0; j < subFolders.length; j++) {
-                String nameJ = subFolders[j].getName();
-                if ((i != j) && CompareUtils.levensteinDistance(nameI, nameJ) <= dist) {
+                final String nameJ = subFolders[j].getName();
+                if (i != j && CompareUtils.levensteinDistance(nameI, nameJ) <= dist) {
                     System.out.println("Adding '" + nameJ + "' to existing cluster");
                     if (cluster == null) {
-                        cluster = new HashSet<String>();
+                        cluster = new TreeSet<String>();
                         cluster.add(nameI);
                         clusters.add(cluster);
                     }
@@ -102,6 +71,34 @@ public class CompareAuthors implements ICommand {
                 }
             }
         }
+    }
+
+    private File[] getSubFolders(final File folder, final int depth) {
+        final Set<File> folders = new TreeSet<File>(new Comparator<File>() {
+            @Override
+            public int compare(final File o1, final File o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
+        FolderScanner.enumerateDepth(folder, new FileFilter() {
+            @Override
+            public boolean accept(final File f) {
+                folders.add(f);
+                return true;
+            }
+        }, depth);
+
+        final File[] subFolders = folders.toArray(new File[folders.size()]);
+        return subFolders;
+    }
+
+    private Set<String> getCluster(final String nameI) {
+        for (final Set<String> c : clusters) {
+            if (c.contains(nameI)) {
+                return c;
+            }
+        }
+        return null;
     }
 
     @Override
