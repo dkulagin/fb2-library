@@ -12,6 +12,10 @@ public interface ICommand {
 
     String PARAM_OUTPATH = "outpath";
 
+    String PARAM_DEPTH = "depth";
+
+    String PARAM_DISTANCE = "distance";
+
     String getName();
 
     void execute(CommandArgs args) throws LibraryException;
