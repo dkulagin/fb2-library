@@ -4,7 +4,11 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.ak2.fb2.library.commands.CommandArgs;
 import org.ak2.fb2.library.commands.ICommand;
@@ -14,6 +18,8 @@ import org.ak2.utils.CompareUtils;
 import org.ak2.utils.LengthUtils;
 
 public class CompareAuthors implements ICommand {
+
+    private List<Set<String>> clusters = new LinkedList<Set<String>>();
 
     @Override
     public void execute(CommandArgs args) throws LibraryException {
@@ -39,6 +45,16 @@ public class CompareAuthors implements ICommand {
         } else {
             throw new BadCmdArguments("Input folder is invalid.");
         }
+        System.out.println("Printing clusters:");
+        System.out.println("==================");
+        for (Set<String> c : clusters) {
+            for (Iterator<String> iterator = c.iterator(); iterator.hasNext();) {
+                String name = iterator.next();
+                System.out.print(name + (iterator.hasNext() ? ", " : ""));
+            }
+            System.out.println("");
+        }
+
     }
 
     private void processFolder(File folder, int depth, int dist) {
@@ -65,9 +81,24 @@ public class CompareAuthors implements ICommand {
 
         System.out.println("Processing " + folder.getAbsolutePath());
         for (int i = 0; i < subFolders.length; i++) {
-            for (int j = i + 1; j < subFolders.length; j++) {
-                if (CompareUtils.levensteinDistance(subFolders[i].getName(), subFolders[j].getName()) <= dist) {
-                    System.out.println("'" + subFolders[i].getName() + "' is similiar to '" + subFolders[j].getName() + "'");
+            Set<String> cluster = null;
+            String nameI = subFolders[i].getName();
+            for (Set<String> c : clusters) {
+                if (c.contains(nameI)) {
+                    cluster = c;
+                    break;
+                }
+            }
+            for (int j = 0; j < subFolders.length; j++) {
+                String nameJ = subFolders[j].getName();
+                if ((i != j) && CompareUtils.levensteinDistance(nameI, nameJ) <= dist) {
+                    System.out.println("Adding '" + nameJ + "' to existing cluster");
+                    if (cluster == null) {
+                        cluster = new HashSet<String>();
+                        cluster.add(nameI);
+                        clusters.add(cluster);
+                    }
+                    cluster.add(nameJ);
                 }
             }
         }
