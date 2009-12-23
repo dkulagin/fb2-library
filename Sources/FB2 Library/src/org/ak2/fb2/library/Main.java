@@ -13,6 +13,7 @@ import java.util.Map;
 
 import org.ak2.fb2.library.commands.CommandArgs;
 import org.ak2.fb2.library.commands.ICommand;
+import org.ak2.fb2.library.commands.ca.CompareAuthors;
 import org.ak2.fb2.library.commands.cfn.RenameFiles;
 import org.ak2.fb2.library.commands.enc.FixEncoding;
 import org.ak2.fb2.library.exceptions.BadCmdArguments;
@@ -23,7 +24,7 @@ import org.ak2.fb2.library.exceptions.LibraryException;
  */
 public class Main {
 
-    private static final ICommand[] COMMANDS = { new RenameFiles(), new FixEncoding() };
+    private static final ICommand[] COMMANDS = { new RenameFiles(), new FixEncoding(), new CompareAuthors() };
 
     public static void main(final String[] args) {
         System.setProperty("com.sun.org.apache.xalan.internal.serialize.encodings", Main.class.getResource("Encodings.properties").toString());
