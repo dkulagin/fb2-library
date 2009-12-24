@@ -75,7 +75,7 @@ public final class CompareUtils {
      * @return
      */
     public static int levensteinDistance(final String s1, final String s2) {
-        int m = s1.length(), n = s2.length();
+        final int m = s1.length(), n = s2.length();
         int[] D1 = new int[n + 1];
         int[] D2 = new int[n + 1];
 
@@ -87,10 +87,10 @@ public final class CompareUtils {
             D1 = D2;
             D2 = new int[n + 1];
             for (int j = 0; j <= n; j++) {
-                if (j == 0)
+                if (j == 0) {
                     D2[j] = i;
-                else {
-                    int cost = (s1.charAt(i - 1) != s2.charAt(j - 1)) ? 1 : 0;
+                } else {
+                    final int cost = compare(s1.charAt(i - 1), s2.charAt(j - 1)) ? 1 : 0;
                     if (D2[j - 1] < D1[j] && D2[j - 1] < D1[j - 1] + cost) {
                         D2[j] = D2[j - 1] + 1;
                     } else if (D1[j] < D1[j - 1] + cost) {
@@ -102,6 +102,10 @@ public final class CompareUtils {
             }
         }
         return D2[n];
+    }
+
+    private static boolean compare(final char ch1, final char ch2) {
+        return (Character.toLowerCase(ch1) != Character.toLowerCase(ch2));
     }
 
 }

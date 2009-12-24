@@ -3,6 +3,7 @@ package org.ak2.fb2.library.commands;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.ak2.fb2.library.exceptions.BadCmdArguments;
 import org.ak2.utils.LengthUtils;
 import org.ak2.utils.enums.EnumUtils;
 
@@ -26,6 +27,18 @@ public class CommandArgs {
 
     public String getValue(final String name, final String defaultValue) {
         return LengthUtils.safeString(m_args.get(name), defaultValue);
+    }
+
+    public int getValue(final String name, final int defaultValue) throws BadCmdArguments {
+        String val = getValue(name);
+        if (LengthUtils.isEmpty(val)) {
+            return defaultValue;
+        }
+        try {
+            return Integer.parseInt(val);
+        } catch (NumberFormatException ex) {
+            throw new BadCmdArguments("The following argument could not be parsed: " + name + "=" + val);
+        }
     }
 
     public <T extends Enum<T>> T getValue(final String name, final Class<T> valueClass, final T defaultValue) {
