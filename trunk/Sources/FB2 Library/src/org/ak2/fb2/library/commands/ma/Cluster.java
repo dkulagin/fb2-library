@@ -14,8 +14,12 @@ import org.ak2.fb2.library.commands.cfn.RenameFiles;
 import org.ak2.fb2.library.commands.del.DeleteFolder;
 import org.ak2.fb2.library.common.OutputFormat;
 import org.ak2.fb2.library.common.OutputPath;
+import org.ak2.utils.jlog.JLogLevel;
+import org.ak2.utils.jlog.JLogMessage;
 
 public class Cluster extends DefaultRenameHelper {
+
+    private static final JLogMessage MSG_MERGE = new JLogMessage(JLogLevel.DEBUG, "Merge cluster: {0}");
 
     private final Author targetAuthor;
 
@@ -38,8 +42,7 @@ public class Cluster extends DefaultRenameHelper {
 
     public void merge(final File outFolder, final OutputFormat outFormat, final OutputPath outPath, final boolean delete) {
 
-        System.out.println("Merge cluster: " + this);
-        System.out.println("==================");
+        MSG_MERGE.log(this);
 
         final RenameFiles mCmd = new RenameFiles(this);
         final DeleteFolder dCmd = new DeleteFolder();

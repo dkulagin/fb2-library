@@ -9,6 +9,7 @@ import org.ak2.fb2.library.commands.CommandArgs;
 import org.ak2.fb2.library.commands.cfn.RenameFiles;
 import org.ak2.fb2.library.common.OutputFormat;
 import org.ak2.fb2.library.common.OutputPath;
+import org.ak2.fb2.library.common.ProcessingException;
 import org.ak2.fb2.library.common.ProcessingResult;
 import org.ak2.fb2.library.exceptions.BadCmdArguments;
 import org.ak2.fb2.library.exceptions.LibraryException;
@@ -17,8 +18,12 @@ import org.ak2.utils.collections.CountersMap;
 import org.ak2.utils.files.FileScanner;
 import org.ak2.utils.files.IFile;
 import org.ak2.utils.files.IFileFilter;
+import org.ak2.utils.jlog.JLogLevel;
+import org.ak2.utils.jlog.JLogMessage;
 
 public class FixEncoding extends AbstractCommand {
+
+    private static final JLogMessage MSG_REPLACED = new JLogMessage(JLogLevel.DEBUG, "Replaced successfully");
 
     public FixEncoding() {
         super("enc");
@@ -26,7 +31,7 @@ public class FixEncoding extends AbstractCommand {
 
     @Override
     public void execute(final CommandArgs args) throws LibraryException {
-        System.out.println("The 'Fix XML encoding' command is selected:\n\t" + args);
+        MSG_ARGS.log(this.getClass().getSimpleName(), args);
 
         final String inputFolder = args.getValue("input");
         final OutputFormat outFormat = args.getValue(PARAM_OUTFORMAT, OutputFormat.class, OutputFormat.Zip);
@@ -39,8 +44,10 @@ public class FixEncoding extends AbstractCommand {
             throw new BadCmdArguments("Output format is wrong.", true);
         }
 
-        System.out.println("Processing input folder : " + inputFolder);
-        System.out.println("Output book format      : " + outFormat);
+        logBoldLine(MSG_INFO_VALUE.getLevel());
+        MSG_INFO_VALUE.log("Processing input folder ", inputFolder);
+        MSG_INFO_VALUE.log("Output book format      ", outFormat);
+        logBoldLine(MSG_INFO_VALUE.getLevel());
 
         final File inFolder = new File(inputFolder);
         final File tempFolder = createTempFolder(inFolder);
@@ -52,11 +59,17 @@ public class FixEncoding extends AbstractCommand {
             public boolean accept(final IFile file) {
                 if (file.getName().endsWith(".fb2")) {
                     try {
-                        System.out.println("--------------------------------");
+                        logLine(JLogLevel.DEBUG);
                         final ProcessingResult result = fixEncoding(tempFolder, file, outFormat);
                         counters.increment(result);
+                    } catch (ProcessingException ex) {
+                        final ProcessingResult pr = ex.getResult();
+                        if (pr == ProcessingResult.FAILED) {
+                            MSG_ERROR.log(ex, file.getName());
+                        }
+                        counters.increment(pr);
                     } catch (final Exception ex) {
-                        System.err.println("Error on processing " + file.getName() + ":\n\t" + ex.getMessage());
+                        MSG_ERROR.log(ex, file.getName());
                         counters.increment(ProcessingResult.FAILED);
                     }
                 }
@@ -66,11 +79,12 @@ public class FixEncoding extends AbstractCommand {
 
         tempFolder.delete();
 
-        System.out.println("================================");
-        System.out.println("Skipped    : " + counters.get(ProcessingResult.SKIPPED));
-        System.out.println("Fixed      : " + counters.get(ProcessingResult.CREATED));
-        System.out.println("Duplicated : " + counters.get(ProcessingResult.DUPLICATED));
-        System.out.println("Failed     : " + counters.get(ProcessingResult.FAILED));
+        logBoldLine(JLogLevel.INFO);
+        MSG_INFO_VALUE.log("Skipped   ", counters.get(ProcessingResult.SKIPPED));
+        MSG_INFO_VALUE.log("Fixed     ", counters.get(ProcessingResult.CREATED));
+        MSG_INFO_VALUE.log("Duplicated", counters.get(ProcessingResult.DUPLICATED));
+        MSG_INFO_VALUE.log("Failed    ", counters.get(ProcessingResult.FAILED));
+        logBoldLine(JLogLevel.INFO);
     }
 
     private File createTempFolder(final File inFolder) throws LibraryException {
@@ -90,9 +104,9 @@ public class FixEncoding extends AbstractCommand {
     private ProcessingResult fixEncoding(final File tempFolder, final IFile file, final OutputFormat outFormat) throws Exception {
         XmlContent content = new XmlContent(file);
 
-        System.out.println("File               : " + file.getFullName());
-        System.out.println("Formal XML encoding: " + content.getXmlEncoding());
-        System.out.println("Real   XML encoding: " + content.getRealEncoding());
+        MSG_DEBUG_VALUE.log("File               ", file.getFullName());
+        MSG_DEBUG_VALUE.log("Formal XML encoding", content.getXmlEncoding());
+        MSG_DEBUG_VALUE.log("Real   XML encoding", content.getRealEncoding());
 
         if (!content.isWrongEncoding()) {
             return ProcessingResult.SKIPPED;
@@ -116,7 +130,7 @@ public class FixEncoding extends AbstractCommand {
             throw new LibraryException("Replacement file could not be copied: " + newFile.getAbsolutePath());
         }
 
-        System.out.println("Replaced successfully");
+        MSG_REPLACED.log();
         cf.delete();
         return ProcessingResult.CREATED;
     }

@@ -14,8 +14,17 @@ import org.ak2.fb2.library.exceptions.BadCmdArguments;
 import org.ak2.fb2.library.exceptions.LibraryException;
 import org.ak2.utils.LengthUtils;
 import org.ak2.utils.files.FolderScanner;
+import org.ak2.utils.jlog.JLog;
+import org.ak2.utils.jlog.JLogLevel;
+import org.ak2.utils.jlog.JLogMessage;
 
 public class CompareAuthors extends AbstractCommand {
+
+    private static final JLogMessage MSG_SCAN = new JLogMessage(JLogLevel.INFO, "Scan folders:");
+
+    private static final JLogMessage MSG_CHECK = new JLogMessage(JLogLevel.INFO, "Check authors:");
+
+    private static final JLogMessage MSG_CLUSTERS = new JLogMessage(JLogLevel.INFO, "Printing clusters:");
 
     public CompareAuthors() {
         super("ca");
@@ -23,7 +32,7 @@ public class CompareAuthors extends AbstractCommand {
 
     @Override
     public void execute(final CommandArgs args) throws LibraryException {
-        System.out.println("The 'Compare authors' command is selected:\n\t" + args);
+        MSG_ARGS.log(this.getClass().getSimpleName(), args);
 
         // parsing parameters
         final String inputFolder = args.getValue(PARAM_INPUT);
@@ -44,22 +53,29 @@ public class CompareAuthors extends AbstractCommand {
             throw new BadCmdArguments("Input folder is invalid.");
         }
 
-        System.out.println("Scan folders:");
-        System.out.println("==================");
+        logBoldLine(MSG_INFO_VALUE.getLevel());
+        MSG_INFO_VALUE.log("Processing folder ", inputFolder);
+        MSG_INFO_VALUE.log("Output file       ", outputFile);
+        MSG_INFO_VALUE.log("Scanning depth    ", depth);
+        MSG_INFO_VALUE.log("Comparing distance", distance);
+        logBoldLine(MSG_INFO_VALUE.getLevel());
+        
+        MSG_SCAN.log();
+        logBoldLine(JLogLevel.DEBUG);
         final Author[] authors = getAuthors(folder, depth);
 
-        System.out.println("Check authors:");
-        System.out.println("==================");
+        MSG_CHECK.log();
+        logBoldLine(JLogLevel.DEBUG);
         Clusters clusters = new Clusters(authors, distance);
 
-        System.out.println("Printing clusters:");
-        System.out.println("==================");
+        MSG_CLUSTERS.log();
+        logBoldLine(JLogLevel.INFO);
 
         try {
             PrintWriter out = new PrintWriter(new FileWriter(outputFile));
             for (final Set<Author> cluster : clusters.getClusters()) {
                 String str = Clusters.toString(cluster);
-                System.out.println(str);
+                JLog.log(JLogLevel.INFO.getLevel(), str);
                 out.println(str);
             }
             try {

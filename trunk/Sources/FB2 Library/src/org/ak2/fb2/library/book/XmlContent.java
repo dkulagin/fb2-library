@@ -15,6 +15,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.ak2.fb2.library.common.Encoding;
 import org.ak2.utils.LengthUtils;
 import org.ak2.utils.files.IFile;
+import org.ak2.utils.jlog.JLogLevel;
+import org.ak2.utils.jlog.JLogMessage;
 import org.ak2.utils.threadlocal.ThreadLocalDocumentBuilder;
 import org.ak2.utils.threadlocal.ThreadLocalPattern;
 import org.w3c.dom.Document;
@@ -22,6 +24,8 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 public class XmlContent {
+
+    private static final JLogMessage MSG_PARSER_ERROR = new JLogMessage(JLogLevel.ERROR, "Xml parser error: {0}");
 
     private static final ThreadLocalPattern ENCODING_PATTERN = new ThreadLocalPattern("encoding=\"([^\"]+)\"");
 
@@ -102,7 +106,7 @@ public class XmlContent {
                 doc = ThreadLocalDocumentBuilder.parse(new InputSource(new StringReader(str)));
             } catch (final SAXException ex) {
                 String msg = ex.getMessage();
-                System.err.println("Xml parser error: " + msg);
+                MSG_PARSER_ERROR.log(msg);
                 str = fixXmlContent(str);
                 doc = ThreadLocalDocumentBuilder.parse(new InputSource(new StringReader(str)));
             }

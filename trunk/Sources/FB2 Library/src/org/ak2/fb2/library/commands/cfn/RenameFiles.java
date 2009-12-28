@@ -23,10 +23,11 @@ import org.ak2.utils.collections.CountersMap;
 import org.ak2.utils.files.FileScanner;
 import org.ak2.utils.files.IFile;
 import org.ak2.utils.files.IFileFilter;
+import org.ak2.utils.jlog.JLogLevel;
 
 /**
  * @author Alexander Kasatkin
- *
+ * 
  */
 public class RenameFiles extends AbstractCommand {
 
@@ -59,7 +60,7 @@ public class RenameFiles extends AbstractCommand {
 
     @Override
     public void execute(final CommandArgs args) throws LibraryException {
-        System.out.println("The 'Convert File Names' command is selected:\n\t" + args);
+        MSG_ARGS.log(this.getClass().getSimpleName(), args);
 
         // parsing parameters
         final String inputFolder = args.getValue(PARAM_INPUT);
@@ -83,10 +84,12 @@ public class RenameFiles extends AbstractCommand {
             throw new BadCmdArguments("Output path type is wrong.", true);
         }
 
-        System.out.println("Processing input folder: " + inputFolder);
-        System.out.println("Writing output into    : " + outputFolder);
-        System.out.println("Output book format     : " + outFormat);
-        System.out.println("Output book path type  : " + outPath);
+        logBoldLine(MSG_INFO_VALUE.getLevel());
+        MSG_INFO_VALUE.log("Processing input folder", inputFolder);
+        MSG_INFO_VALUE.log("Writing output into    ", outputFolder);
+        MSG_INFO_VALUE.log("Output book format     ", outFormat);
+        MSG_INFO_VALUE.log("Output book path type  ", outPath);
+        logBoldLine(MSG_INFO_VALUE.getLevel());
 
         final File inFile = new File(inputFolder);
         final File outFolder = new File(outputFolder);
@@ -113,15 +116,14 @@ public class RenameFiles extends AbstractCommand {
             public boolean accept(final IFile file) {
                 if (file.getName().endsWith(".fb2")) {
                     try {
-                        System.out.println("--------------------------------");
+                        logLine(JLogLevel.DEBUG);
                         final File newFile = processFile(file, outFile, outFormat, outPath);
                         result.add(newFile);
                         counters.increment(ProcessingResult.CREATED);
                     } catch (final ProcessingException ex) {
                         final ProcessingResult pr = ex.getResult();
                         if (pr == ProcessingResult.FAILED) {
-                            System.err.println("Error on processing " + file.getName() + ":");
-                            ex.printStackTrace();
+                            MSG_ERROR.log(ex, file.getName());
                         } else {
                             final File outFile = ex.getFile();
                             if (outFile != null) {
@@ -130,28 +132,28 @@ public class RenameFiles extends AbstractCommand {
                         }
                         counters.increment(pr);
                     } catch (final Throwable th) {
-                        System.err.println("Error on processing " + file.getName() + ":");
-                        th.printStackTrace();
+                        MSG_ERROR.log(th, file.getName());
                         counters.increment(ProcessingResult.FAILED);
                     }
                 }
                 return true;
             }
+
         }, new FileScanner.Options(true, true));
 
         return result;
     }
 
     public void printResults() {
-        System.out.println("================================");
-        System.out.println("Created new: " + counters.get(ProcessingResult.CREATED));
-        System.out.println("Duplicated : " + counters.get(ProcessingResult.DUPLICATED));
-        System.out.println("Failed     : " + counters.get(ProcessingResult.FAILED));
-        System.out.println("================================");
+        logBoldLine(MSG_INFO_VALUE.getLevel());
+        MSG_INFO_VALUE.log("Created new", counters.get(ProcessingResult.CREATED));
+        MSG_INFO_VALUE.log("Duplicated ", counters.get(ProcessingResult.DUPLICATED));
+        MSG_INFO_VALUE.log("Failed     ", counters.get(ProcessingResult.FAILED));
+        logBoldLine(MSG_INFO_VALUE.getLevel());
     }
 
     public File processFile(final IFile file, final File outFile, final OutputFormat outFormat, final OutputPath outPath) throws ProcessingException {
-        System.out.println("File        : " + file.getFullName());
+        MSG_DEBUG_VALUE.log("File        ", file.getFullName());
         try {
             final XmlContent content = new XmlContent(file);
             return createBookFile(content, outFile, outFormat, outPath, true);
@@ -175,14 +177,14 @@ public class RenameFiles extends AbstractCommand {
             helper.setBookProperties(book, properties);
 
             if (showInfo) {
-                System.out.println("Author      : " + author);
+                MSG_DEBUG_VALUE.log("Author      ", author);
                 if (LengthUtils.isNotEmpty(seq)) {
-                    System.out.println("Sequence    : " + seq);
+                    MSG_DEBUG_VALUE.log("Sequence    ", seq);
                 }
                 if (LengthUtils.isNotEmpty(seqNo)) {
-                    System.out.println("SequenceNo  : " + seqNo);
+                    MSG_DEBUG_VALUE.log("SequenceNo  ", seqNo);
                 }
-                System.out.println("Book name   : " + bookName);
+                MSG_DEBUG_VALUE.log("Book name   ", bookName);
             }
 
             if (LengthUtils.isNotEmpty(seqNo)) {

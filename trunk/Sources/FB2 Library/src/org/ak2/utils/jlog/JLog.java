@@ -5,6 +5,7 @@ import java.io.StringWriter;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.logging.ConsoleHandler;
+import java.util.logging.FileHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -25,23 +26,39 @@ public class JLog {
      */
     private static JLogLevel s_level = JLogLevel.DEBUG;
 
+    private static ConsoleHandler s_consoleHandler;
+
+    private static LogFormatter s_formatter;
     static {
         LOG = Logger.getLogger("org.ak2.utils.jlog");
         LOG.setUseParentHandlers(false);
         LOG.setLevel(s_level.getLevel());
 
-        final LogFormatter formatter = new LogFormatter();
-        final ConsoleHandler handler = new ConsoleHandler();
+        s_formatter = new LogFormatter();
+        s_consoleHandler = new ConsoleHandler();
+        s_consoleHandler.setLevel(s_level.getLevel());
+        s_consoleHandler.setFormatter(s_formatter);
 
-        handler.setLevel(s_level.getLevel());
-        handler.setFormatter(formatter);
+        LOG.addHandler(s_consoleHandler);
+    }
 
-        LOG.addHandler(handler);
+    public static void setConsoleLevel(JLogLevel level) {
+        s_consoleHandler.setLevel(level.getLevel());
+    }
+
+    public static void addLogFile(String pattern, JLogLevel level) {
+        try {
+            final FileHandler handler = new FileHandler(pattern);
+            handler.setLevel(level.getLevel());
+            handler.setFormatter(s_formatter);
+            LOG.addHandler(handler);
+        } catch (Exception ex) {
+        }
     }
 
     /**
-     * Get the log Level that has been specified for this Logger. The result may be null, which means that this logger's
-     * effective level will be inherited from its parent.
+     * Get the log Level that has been specified for this Logger. The result may be null, which means that this logger's effective level will be inherited from
+     * its parent.
      * 
      * @return this Logger's level
      */
@@ -50,11 +67,10 @@ public class JLog {
     }
 
     /**
-     * Set the log level specifying which message levels will be logged by this logger. Message levels lower than this
-     * value will be discarded. The level value Level.OFF can be used to turn off logging.
+     * Set the log level specifying which message levels will be logged by this logger. Message levels lower than this value will be discarded. The level value
+     * Level.OFF can be used to turn off logging.
      * <p>
-     * If the new level is null, it means that this node should inherit its level from its nearest ancestor with a
-     * specific (non-null) level value.
+     * If the new level is null, it means that this node should inherit its level from its nearest ancestor with a specific (non-null) level value.
      * 
      * @param level the new value for the log level (may be null)
      */
@@ -64,8 +80,8 @@ public class JLog {
     }
 
     /**
-     * Check if a message of the given level would actually be logged by this logger. This check is based on the Loggers
-     * effective level, which may be inherited from its parent.
+     * Check if a message of the given level would actually be logged by this logger. This check is based on the Loggers effective level, which may be inherited
+     * from its parent.
      * 
      * @param level a message logging level
      * @return true if the given message level is currently being logged.
@@ -78,8 +94,7 @@ public class JLog {
     /**
      * Log a SEVERE message.
      * <p>
-     * If the logger is currently enabled for the SEVERE message level then the given message is forwarded to all the
-     * registered output Handler objects.
+     * If the logger is currently enabled for the SEVERE message level then the given message is forwarded to all the registered output Handler objects.
      * <p>
      * 
      * @param msg The string message (or a key in the message catalog)
@@ -92,8 +107,7 @@ public class JLog {
     /**
      * Log a WARNING message.
      * <p>
-     * If the logger is currently enabled for the WARNING message level then the given message is forwarded to all the
-     * registered output Handler objects.
+     * If the logger is currently enabled for the WARNING message level then the given message is forwarded to all the registered output Handler objects.
      * <p>
      * 
      * @param msg The string message (or a key in the message catalog)
@@ -106,8 +120,7 @@ public class JLog {
     /**
      * Log an INFO message.
      * <p>
-     * If the logger is currently enabled for the INFO message level then the given message is forwarded to all the
-     * registered output Handler objects.
+     * If the logger is currently enabled for the INFO message level then the given message is forwarded to all the registered output Handler objects.
      * <p>
      * 
      * @param msg The string message (or a key in the message catalog)
@@ -120,8 +133,7 @@ public class JLog {
     /**
      * Log a FINE message.
      * <p>
-     * If the logger is currently enabled for the FINE message level then the given message is forwarded to all the
-     * registered output Handler objects.
+     * If the logger is currently enabled for the FINE message level then the given message is forwarded to all the registered output Handler objects.
      * <p>
      * 
      * @param msg The string message (or a key in the message catalog)
@@ -134,8 +146,7 @@ public class JLog {
     /**
      * Log a FINER message.
      * <p>
-     * If the logger is currently enabled for the FINER message level then the given message is forwarded to all the
-     * registered output Handler objects.
+     * If the logger is currently enabled for the FINER message level then the given message is forwarded to all the registered output Handler objects.
      * <p>
      * 
      * @param msg The string message (or a key in the message catalog)
@@ -148,8 +159,7 @@ public class JLog {
     /**
      * Log a FINEST message.
      * <p>
-     * If the logger is currently enabled for the FINEST message level then the given message is forwarded to all the
-     * registered output Handler objects.
+     * If the logger is currently enabled for the FINEST message level then the given message is forwarded to all the registered output Handler objects.
      * <p>
      * 
      * @param msg The string message (or a key in the message catalog)
@@ -162,8 +172,7 @@ public class JLog {
     /**
      * Log a message, with no arguments.
      * <p>
-     * If the logger is currently enabled for the given message level then the given message is forwarded to all the
-     * registered output Handler objects.
+     * If the logger is currently enabled for the given message level then the given message is forwarded to all the registered output Handler objects.
      * <p>
      * 
      * @param level One of the message level identifiers, e.g. SEVERE
@@ -177,8 +186,8 @@ public class JLog {
     /**
      * Log a message, with one object parameter.
      * <p>
-     * If the logger is currently enabled for the given message level then a corresponding LogRecord is created and
-     * forwarded to all the registered output Handler objects.
+     * If the logger is currently enabled for the given message level then a corresponding LogRecord is created and forwarded to all the registered output
+     * Handler objects.
      * <p>
      * 
      * @param level One of the message level identifiers, e.g. SEVERE
@@ -193,8 +202,8 @@ public class JLog {
     /**
      * Log a message, with an array of object arguments.
      * <p>
-     * If the logger is currently enabled for the given message level then a corresponding LogRecord is created and
-     * forwarded to all the registered output Handler objects.
+     * If the logger is currently enabled for the given message level then a corresponding LogRecord is created and forwarded to all the registered output
+     * Handler objects.
      * <p>
      * 
      * @param level One of the message level identifiers, e.g. SEVERE
@@ -209,12 +218,11 @@ public class JLog {
     /**
      * Log a message, with associated Throwable information.
      * <p>
-     * If the logger is currently enabled for the given message level then the given arguments are stored in a LogRecord
-     * which is forwarded to all registered output handlers.
+     * If the logger is currently enabled for the given message level then the given arguments are stored in a LogRecord which is forwarded to all registered
+     * output handlers.
      * <p>
-     * Note that the thrown argument is stored in the LogRecord thrown property, rather than the LogRecord parameters
-     * property. Thus is it processed specially by output Formatters and is not treated as a formatting parameter to the
-     * LogRecord message property.
+     * Note that the thrown argument is stored in the LogRecord thrown property, rather than the LogRecord parameters property. Thus is it processed specially
+     * by output Formatters and is not treated as a formatting parameter to the LogRecord message property.
      * <p>
      * 
      * @param level One of the message level identifiers, e.g. SEVERE
@@ -229,8 +237,7 @@ public class JLog {
     /**
      * Log a message, specifying source class and method, with no arguments.
      * <p>
-     * If the logger is currently enabled for the given message level then the given message is forwarded to all the
-     * registered output Handler objects.
+     * If the logger is currently enabled for the given message level then the given message is forwarded to all the registered output Handler objects.
      * <p>
      * 
      * @param level One of the message level identifiers, e.g. SEVERE
@@ -246,8 +253,8 @@ public class JLog {
     /**
      * Log a message, specifying source class and method, with a single object parameter to the log message.
      * <p>
-     * If the logger is currently enabled for the given message level then a corresponding LogRecord is created and
-     * forwarded to all the registered output Handler objects.
+     * If the logger is currently enabled for the given message level then a corresponding LogRecord is created and forwarded to all the registered output
+     * Handler objects.
      * <p>
      * 
      * @param level One of the message level identifiers, e.g. SEVERE
@@ -255,19 +262,17 @@ public class JLog {
      * @param sourceMethod name of method that issued the logging request
      * @param msg The string message (or a key in the message catalog)
      * @param param1 Parameter to the log message.
-     * @see java.util.logging.Logger#logp(java.util.logging.Level, java.lang.String, java.lang.String, java.lang.String,
-     *      java.lang.Object)
+     * @see java.util.logging.Logger#logp(java.util.logging.Level, java.lang.String, java.lang.String, java.lang.String, java.lang.Object)
      */
-    public static void logp(final Level level, final String sourceClass, final String sourceMethod, final String msg,
-            final Object param1) {
+    public static void logp(final Level level, final String sourceClass, final String sourceMethod, final String msg, final Object param1) {
         LOG.logp(level, sourceClass, sourceMethod, msg, param1);
     }
 
     /**
      * Log a message, specifying source class and method, with an array of object arguments.
      * <p>
-     * If the logger is currently enabled for the given message level then a corresponding LogRecord is created and
-     * forwarded to all the registered output Handler objects.
+     * If the logger is currently enabled for the given message level then a corresponding LogRecord is created and forwarded to all the registered output
+     * Handler objects.
      * <p>
      * 
      * @param level One of the message level identifiers, e.g. SEVERE
@@ -275,23 +280,20 @@ public class JLog {
      * @param sourceMethod name of method that issued the logging request
      * @param msg The string message (or a key in the message catalog)
      * @param params Array of parameters to the message
-     * @see java.util.logging.Logger#logp(java.util.logging.Level, java.lang.String, java.lang.String, java.lang.String,
-     *      java.lang.Object[])
+     * @see java.util.logging.Logger#logp(java.util.logging.Level, java.lang.String, java.lang.String, java.lang.String, java.lang.Object[])
      */
-    public static void logp(final Level level, final String sourceClass, final String sourceMethod, final String msg,
-            final Object[] params) {
+    public static void logp(final Level level, final String sourceClass, final String sourceMethod, final String msg, final Object[] params) {
         LOG.logp(level, sourceClass, sourceMethod, msg, params);
     }
 
     /**
      * Log a message, specifying source class and method, with associated Throwable information.
      * <p>
-     * If the logger is currently enabled for the given message level then the given arguments are stored in a LogRecord
-     * which is forwarded to all registered output handlers.
+     * If the logger is currently enabled for the given message level then the given arguments are stored in a LogRecord which is forwarded to all registered
+     * output handlers.
      * <p>
-     * Note that the thrown argument is stored in the LogRecord thrown property, rather than the LogRecord parameters
-     * property. Thus is it processed specially by output Formatters and is not treated as a formatting parameter to the
-     * LogRecord message property.
+     * Note that the thrown argument is stored in the LogRecord thrown property, rather than the LogRecord parameters property. Thus is it processed specially
+     * by output Formatters and is not treated as a formatting parameter to the LogRecord message property.
      * <p>
      * 
      * @param level One of the message level identifiers, e.g. SEVERE
@@ -299,23 +301,20 @@ public class JLog {
      * @param sourceMethod name of method that issued the logging request
      * @param msg The string message (or a key in the message catalog)
      * @param thrown Throwable associated with log message.
-     * @see java.util.logging.Logger#logp(java.util.logging.Level, java.lang.String, java.lang.String, java.lang.String,
-     *      java.lang.Throwable)
+     * @see java.util.logging.Logger#logp(java.util.logging.Level, java.lang.String, java.lang.String, java.lang.String, java.lang.Throwable)
      */
-    public static void logp(final Level level, final String sourceClass, final String sourceMethod, final String msg,
-            final Throwable thrown) {
+    public static void logp(final Level level, final String sourceClass, final String sourceMethod, final String msg, final Throwable thrown) {
         LOG.logp(level, sourceClass, sourceMethod, msg, thrown);
     }
 
     /**
-     * Log a message, specifying source class, method, and resource bundle name, with a single object parameter to the
-     * log message.
+     * Log a message, specifying source class, method, and resource bundle name, with a single object parameter to the log message.
      * <p>
-     * If the logger is currently enabled for the given message level then a corresponding LogRecord is created and
-     * forwarded to all the registered output Handler objects.
+     * If the logger is currently enabled for the given message level then a corresponding LogRecord is created and forwarded to all the registered output
+     * Handler objects.
      * <p>
-     * The msg string is localized using the named resource bundle. If the resource bundle name is null, or an empty
-     * String or invalid then the msg string is not localized.
+     * The msg string is localized using the named resource bundle. If the resource bundle name is null, or an empty String or invalid then the msg string is
+     * not localized.
      * <p>
      * 
      * @param level One of the message level identifiers, e.g. SEVERE
@@ -324,22 +323,21 @@ public class JLog {
      * @param bundleName name of resource bundle to localize msg, can be null
      * @param msg The string message (or a key in the message catalog)
      * @param param1 Parameter to the log message.
-     * @see java.util.logging.Logger#logrb(java.util.logging.Level, java.lang.String, java.lang.String,
-     *      java.lang.String, java.lang.String, java.lang.Object)
+     * @see java.util.logging.Logger#logrb(java.util.logging.Level, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.Object)
      */
-    public static void logrb(final Level level, final String sourceClass, final String sourceMethod,
-            final String bundleName, final String msg, final Object param1) {
+    public static void logrb(final Level level, final String sourceClass, final String sourceMethod, final String bundleName, final String msg,
+            final Object param1) {
         LOG.logrb(level, sourceClass, sourceMethod, bundleName, msg, param1);
     }
 
     /**
      * Log a message, specifying source class, method, and resource bundle name, with an array of object arguments.
      * <p>
-     * If the logger is currently enabled for the given message level then a corresponding LogRecord is created and
-     * forwarded to all the registered output Handler objects.
+     * If the logger is currently enabled for the given message level then a corresponding LogRecord is created and forwarded to all the registered output
+     * Handler objects.
      * <p>
-     * The msg string is localized using the named resource bundle. If the resource bundle name is null, or an empty
-     * String or invalid then the msg string is not localized.
+     * The msg string is localized using the named resource bundle. If the resource bundle name is null, or an empty String or invalid then the msg string is
+     * not localized.
      * <p>
      * 
      * @param level One of the message level identifiers, e.g. SEVERE
@@ -348,26 +346,24 @@ public class JLog {
      * @param bundleName name of resource bundle to localize msg, can be null.
      * @param msg The string message (or a key in the message catalog)
      * @param params Array of parameters to the message
-     * @see java.util.logging.Logger#logrb(java.util.logging.Level, java.lang.String, java.lang.String,
-     *      java.lang.String, java.lang.String, java.lang.Object[])
+     * @see java.util.logging.Logger#logrb(java.util.logging.Level, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.Object[])
      */
-    public static void logrb(final Level level, final String sourceClass, final String sourceMethod,
-            final String bundleName, final String msg, final Object[] params) {
+    public static void logrb(final Level level, final String sourceClass, final String sourceMethod, final String bundleName, final String msg,
+            final Object[] params) {
         LOG.logrb(level, sourceClass, sourceMethod, bundleName, msg, params);
     }
 
     /**
      * Log a message, specifying source class, method, and resource bundle name, with associated Throwable information.
      * <p>
-     * If the logger is currently enabled for the given message level then the given arguments are stored in a LogRecord
-     * which is forwarded to all registered output handlers.
+     * If the logger is currently enabled for the given message level then the given arguments are stored in a LogRecord which is forwarded to all registered
+     * output handlers.
      * <p>
-     * The msg string is localized using the named resource bundle. If the resource bundle name is null, or an empty
-     * String or invalid then the msg string is not localized.
+     * The msg string is localized using the named resource bundle. If the resource bundle name is null, or an empty String or invalid then the msg string is
+     * not localized.
      * <p>
-     * Note that the thrown argument is stored in the LogRecord thrown property, rather than the LogRecord parameters
-     * property. Thus is it processed specially by output Formatters and is not treated as a formatting parameter to the
-     * LogRecord message property.
+     * Note that the thrown argument is stored in the LogRecord thrown property, rather than the LogRecord parameters property. Thus is it processed specially
+     * by output Formatters and is not treated as a formatting parameter to the LogRecord message property.
      * <p>
      * 
      * @param level One of the message level identifiers, e.g. SEVERE
@@ -376,22 +372,20 @@ public class JLog {
      * @param bundleName name of resource bundle to localize msg, can be null
      * @param msg The string message (or a key in the message catalog)
      * @param thrown Throwable associated with log message.
-     * @see java.util.logging.Logger#logrb(java.util.logging.Level, java.lang.String, java.lang.String,
-     *      java.lang.String, java.lang.String, java.lang.Throwable)
+     * @see java.util.logging.Logger#logrb(java.util.logging.Level, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.Throwable)
      */
-    public static void logrb(final Level level, final String sourceClass, final String sourceMethod,
-            final String bundleName, final String msg, final Throwable thrown) {
+    public static void logrb(final Level level, final String sourceClass, final String sourceMethod, final String bundleName, final String msg,
+            final Throwable thrown) {
         LOG.logrb(level, sourceClass, sourceMethod, bundleName, msg, thrown);
     }
 
     /**
      * Log a message, specifying source class, method, and resource bundle name with no arguments.
      * <p>
-     * If the logger is currently enabled for the given message level then the given message is forwarded to all the
-     * registered output Handler objects.
+     * If the logger is currently enabled for the given message level then the given message is forwarded to all the registered output Handler objects.
      * <p>
-     * The msg string is localized using the named resource bundle. If the resource bundle name is null, or an empty
-     * String or invalid then the msg string is not localized.
+     * The msg string is localized using the named resource bundle. If the resource bundle name is null, or an empty String or invalid then the msg string is
+     * not localized.
      * <p>
      * 
      * @param level One of the message level identifiers, e.g. SEVERE
@@ -399,19 +393,17 @@ public class JLog {
      * @param sourceMethod name of method that issued the logging request
      * @param bundleName name of resource bundle to localize msg, can be null
      * @param msg The string message (or a key in the message catalog)
-     * @see java.util.logging.Logger#logrb(java.util.logging.Level, java.lang.String, java.lang.String,
-     *      java.lang.String, java.lang.String)
+     * @see java.util.logging.Logger#logrb(java.util.logging.Level, java.lang.String, java.lang.String, java.lang.String, java.lang.String)
      */
-    public static void logrb(final Level level, final String sourceClass, final String sourceMethod,
-            final String bundleName, final String msg) {
+    public static void logrb(final Level level, final String sourceClass, final String sourceMethod, final String bundleName, final String msg) {
         LOG.logrb(level, sourceClass, sourceMethod, bundleName, msg);
     }
 
     /**
      * Log a method entry, with one parameter.
      * <p>
-     * This is a convenience method that can be used to log entry to a method. A LogRecord with message "ENTRY {0}", log
-     * level FINER, and the given sourceMethod, sourceClass, and parameter is logged.
+     * This is a convenience method that can be used to log entry to a method. A LogRecord with message "ENTRY {0}", log level FINER, and the given
+     * sourceMethod, sourceClass, and parameter is logged.
      * <p>
      * 
      * @param sourceClass name of class that issued the logging request
@@ -426,9 +418,8 @@ public class JLog {
     /**
      * Log a method entry, with an array of parameters.
      * <p>
-     * This is a convenience method that can be used to log entry to a method. A LogRecord with message "ENTRY"
-     * (followed by a format {N} indicator for each entry in the parameter array), log level FINER, and the given
-     * sourceMethod, sourceClass, and parameters is logged.
+     * This is a convenience method that can be used to log entry to a method. A LogRecord with message "ENTRY" (followed by a format {N} indicator for each
+     * entry in the parameter array), log level FINER, and the given sourceMethod, sourceClass, and parameters is logged.
      * <p>
      * 
      * @param sourceClass name of class that issued the logging request
@@ -443,8 +434,8 @@ public class JLog {
     /**
      * Log a method entry.
      * <p>
-     * This is a convenience method that can be used to log entry to a method. A LogRecord with message "ENTRY", log
-     * level FINER, and the given sourceMethod and sourceClass is logged.
+     * This is a convenience method that can be used to log entry to a method. A LogRecord with message "ENTRY", log level FINER, and the given sourceMethod and
+     * sourceClass is logged.
      * <p>
      * 
      * @param sourceClass name of class that issued the logging request
@@ -458,8 +449,8 @@ public class JLog {
     /**
      * Log a method return, with result object.
      * <p>
-     * This is a convenience method that can be used to log returning from a method. A LogRecord with message
-     * "RETURN {0}", log level FINER, and the gives sourceMethod, sourceClass, and result object is logged.
+     * This is a convenience method that can be used to log returning from a method. A LogRecord with message "RETURN {0}", log level FINER, and the gives
+     * sourceMethod, sourceClass, and result object is logged.
      * <p>
      * 
      * @param sourceClass name of class that issued the logging request
@@ -474,8 +465,8 @@ public class JLog {
     /**
      * Log a method return.
      * <p>
-     * This is a convenience method that can be used to log returning from a method. A LogRecord with message "RETURN",
-     * log level FINER, and the given sourceMethod and sourceClass is logged.
+     * This is a convenience method that can be used to log returning from a method. A LogRecord with message "RETURN", log level FINER, and the given
+     * sourceMethod and sourceClass is logged.
      * <p>
      * 
      * @param sourceClass name of class that issued the logging request
@@ -489,15 +480,13 @@ public class JLog {
     /**
      * Log throwing an exception.
      * <p>
-     * This is a convenience method to log that a method is terminating by throwing an exception. The logging is done
-     * using the FINER level.
+     * This is a convenience method to log that a method is terminating by throwing an exception. The logging is done using the FINER level.
      * <p>
-     * If the logger is currently enabled for the given message level then the given arguments are stored in a LogRecord
-     * which is forwarded to all registered output handlers. The LogRecord's message is set to "THROW".
+     * If the logger is currently enabled for the given message level then the given arguments are stored in a LogRecord which is forwarded to all registered
+     * output handlers. The LogRecord's message is set to "THROW".
      * <p>
-     * Note that the thrown argument is stored in the LogRecord thrown property, rather than the LogRecord parameters
-     * property. Thus is it processed specially by output Formatters and is not treated as a formatting parameter to the
-     * LogRecord message property.
+     * Note that the thrown argument is stored in the LogRecord thrown property, rather than the LogRecord parameters property. Thus is it processed specially
+     * by output Formatters and is not treated as a formatting parameter to the LogRecord message property.
      * <p>
      * 
      * @param sourceClass name of class that issued the logging request
@@ -535,8 +524,7 @@ public class JLog {
         private final Object[] args = new Object[1];
 
         /**
-         * Line separator string. This is the value of the line.separator property at the moment that the
-         * SimpleFormatter was created.
+         * Line separator string. This is the value of the line.separator property at the moment that the SimpleFormatter was created.
          */
         private final String lineSeparator = System.getProperty("line.separator");
 
