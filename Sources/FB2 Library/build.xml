@@ -56,6 +56,8 @@
 		<filter token="jar.file" value="${jar.file}" />
 		<copy file="scripts/cfn.cmd" tofile="${dist}/cfn.cmd" filtering="true" />
 		<copy file="scripts/cfn.sh" tofile="${dist}/cfn.sh" filtering="true" />
+		<copy file="scripts/ca.cmd" tofile="${dist}/ca.cmd" filtering="true" />
+		<copy file="scripts/ca.sh" tofile="${dist}/ca.sh" filtering="true" />
 	</target>
 
 

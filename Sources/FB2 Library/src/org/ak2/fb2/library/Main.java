@@ -18,6 +18,7 @@ import org.ak2.fb2.library.commands.cfn.RenameFiles;
 import org.ak2.fb2.library.commands.enc.FixEncoding;
 import org.ak2.fb2.library.exceptions.BadCmdArguments;
 import org.ak2.fb2.library.exceptions.LibraryException;
+import org.ak2.utils.LengthUtils;
 
 /**
  * @author Andrei Komarovskikh / Reksoft
@@ -28,12 +29,15 @@ public class Main {
 
     public static void main(final String[] args) {
         System.setProperty("com.sun.org.apache.xalan.internal.serialize.encodings", Main.class.getResource("Encodings.properties").toString());
-        try {
-            final String consoleEnc = System.getProperty("console.encoding", "cp866");
-            System.setOut(new PrintStream(System.out, true, consoleEnc));
-            System.setErr(new PrintStream(System.err, true, consoleEnc));
-        } catch (final UnsupportedEncodingException e) {
-            System.out.println("Unable to setup console codepage: " + e);
+
+        final String consoleEnc = System.getProperty("console.encoding");
+        if (LengthUtils.isNotEmpty(consoleEnc)) {
+            try {
+                System.setOut(new PrintStream(System.out, true, consoleEnc));
+                System.setErr(new PrintStream(System.err, true, consoleEnc));
+            } catch (final UnsupportedEncodingException e) {
+                System.out.println("Unable to setup console codepage: " + e);
+            }
         }
 
         if (args.length < 1) {

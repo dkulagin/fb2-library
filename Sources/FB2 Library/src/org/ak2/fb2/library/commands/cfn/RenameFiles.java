@@ -1,9 +1,7 @@
 package org.ak2.fb2.library.commands.cfn;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,14 +31,14 @@ public class RenameFiles implements ICommand {
 
     private final Properties series = new Properties();
 
-    private PrintStream errors = null;
+//    private PrintStream errors = null;
 
     public RenameFiles() {
-        try {
-            errors = new PrintStream(new File("errors.out"));
-        } catch (final FileNotFoundException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            errors = new PrintStream(new File("errors.out"));
+//        } catch (final FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
         try {
             authors.load(RenameFiles.class.getResourceAsStream("Authors.properties"));
         } catch (final IOException ex) {
@@ -116,8 +114,8 @@ public class RenameFiles implements ICommand {
                     } catch (final Exception ex) {
                         System.err.println("Error on processing " + file.getName() + ":");
                         ex.printStackTrace();
-                        errors.println("Error on processing " + file.getName() + ":");
-                        ex.printStackTrace(errors);
+//                        errors.println("Error on processing " + file.getName() + ":");
+//                        ex.printStackTrace(errors);
                         counters.increment(ProcessingResult.FAILED);
                     }
                 }
