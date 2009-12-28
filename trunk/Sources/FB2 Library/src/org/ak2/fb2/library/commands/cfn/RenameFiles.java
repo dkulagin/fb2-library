@@ -2,9 +2,8 @@ package org.ak2.fb2.library.commands.cfn;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.ak2.fb2.library.book.FictionBook;
 import org.ak2.fb2.library.book.XmlContent;
@@ -31,14 +30,15 @@ public class RenameFiles implements ICommand {
 
     private final Properties series = new Properties();
 
-//    private PrintStream errors = null;
+    private final IRenameHelper helper;
+
+    private final CountersMap<ProcessingResult> counters = new CountersMap<ProcessingResult>();
 
     public RenameFiles() {
-//        try {
-//            errors = new PrintStream(new File("errors.out"));
-//        } catch (final FileNotFoundException e) {
-//            e.printStackTrace();
-//        }
+        this(null);
+    }
+
+    public RenameFiles(final IRenameHelper helper) {
         try {
             authors.load(RenameFiles.class.getResourceAsStream("Authors.properties"));
         } catch (final IOException ex) {
@@ -49,6 +49,7 @@ public class RenameFiles implements ICommand {
         } catch (final IOException ex) {
             ex.printStackTrace();
         }
+        this.helper = helper != null ? helper : new DefaultRenameHelper();
     }
 
     /**
@@ -91,17 +92,22 @@ public class RenameFiles implements ICommand {
         System.out.println("Output book path type  : " + outPath);
 
         final File inFile = new File(inputFolder);
-        final File outFile = new File(outputFolder);
+        final File outFolder = new File(outputFolder);
 
-        if (inFile.equals(outFile)) {
+        if (inFile.equals(outFolder)) {
             throw new BadCmdArguments("Input and output folders cannot be the same.");
         }
-        outFile.mkdirs();
-        if (!outFile.exists()) {
+        outFolder.mkdirs();
+        if (!outFolder.exists()) {
             throw new BadCmdArguments("Output folder is not exist");
         }
 
-        final CountersMap<ProcessingResult> counters = new CountersMap<ProcessingResult>();
+        execute(inFile, outFolder, outFormat, outPath);
+
+        printResults();
+    }
+
+    public void execute(final File inFile, final File outFile, final OutputFormat outFormat, final OutputPath outPath) {
 
         FileScanner.enumerate(inFile, new IFileFilter() {
             @Override
@@ -114,8 +120,6 @@ public class RenameFiles implements ICommand {
                     } catch (final Exception ex) {
                         System.err.println("Error on processing " + file.getName() + ":");
                         ex.printStackTrace();
-//                        errors.println("Error on processing " + file.getName() + ":");
-//                        ex.printStackTrace(errors);
                         counters.increment(ProcessingResult.FAILED);
                     }
                 }
@@ -123,43 +127,38 @@ public class RenameFiles implements ICommand {
             }
         }, new FileScanner.Options(true, true));
 
+    }
+
+    public void printResults() {
         System.out.println("================================");
         System.out.println("Created new: " + counters.get(ProcessingResult.CREATED));
         System.out.println("Duplicated : " + counters.get(ProcessingResult.DUPLICATED));
         System.out.println("Failed     : " + counters.get(ProcessingResult.FAILED));
+        System.out.println("================================");
     }
 
     public ProcessingResult processFile(final IFile file, final File outFile, final OutputFormat outFormat, final OutputPath outPath) throws Exception,
             IOException {
+        System.out.println("File        : " + file.getFullName());
         final XmlContent content = new XmlContent(file);
         final File newFile = createBookFile(content, outFile, outFormat, outPath, true);
         final ProcessingResult result = newFile != null ? ProcessingResult.CREATED : ProcessingResult.DUPLICATED;
         return result;
     }
 
-    public File createBookFile(final XmlContent content, final File outputFolder, final OutputFormat outFormat, final OutputPath outPath,
-            final boolean showInfo) throws Exception {
+    public File createBookFile(final XmlContent content, final File outputFolder, final OutputFormat outFormat, final OutputPath outPath, final boolean showInfo)
+            throws Exception {
         final FictionBook book = new FictionBook(content);
 
-        String author = book.getAuthor();
-        String seq = book.getSequence();
-        String seqNo = book.getSequenceNo();
-        String bookName = book.getBookName();
+        Map<String, String> properties = helper.getBookProperties(book);
 
-        // Lib.rus.ec has a lot of books with name format: "Book title (Sequence name - sequence No)"
-        final Pattern p = Pattern.compile("(.*)\\((.*)\\s-\\s([1-9][0-9]*)\\)");
-        final Matcher m = p.matcher(bookName);
-        if (LengthUtils.isEmpty(seq) && LengthUtils.isEmpty(seqNo) && m.matches()) {
-            // Here we assign correct values for proper file naming
-            bookName = m.group(1);
-            seq = m.group(2);
-            seqNo = m.group(3);
+        String author = properties.get(IRenameHelper.AUTHOR_LAST_NAME) + " " + properties.get(IRenameHelper.AUTHOR_FIRST_NAME);
+        String bookName = properties.get(IRenameHelper.BOOK_NAME);
+        String seq = properties.get(IRenameHelper.BOOK_SEQUENCE);
+        String seqNo = properties.get(IRenameHelper.BOOK_SEQUENCE_NO);
 
-            // Now we fixing the book
-            book.setBookName(bookName);
-            book.setSequence(seq);
-            book.setSequenceNo(seqNo);
-        }
+        helper.setBookProperties(book, properties);
+
         if (showInfo) {
             System.out.println("Author      : " + author);
             if (LengthUtils.isNotEmpty(seq)) {
@@ -171,10 +170,6 @@ public class RenameFiles implements ICommand {
             System.out.println("Book name   : " + bookName);
         }
 
-        // I commented this out because of some sequences without numbers. For example collections of short stories. AK.
-        // if (LengthUtils.isNotEmpty(seq) && LengthUtils.isEmpty(seqNo)) {
-        // seqNo = "001";
-        // }
         if (LengthUtils.isNotEmpty(seqNo)) {
             while (seqNo.length() < 3) {
                 seqNo = "0" + seqNo;
