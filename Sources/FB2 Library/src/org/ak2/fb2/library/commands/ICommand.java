@@ -20,6 +20,8 @@ public interface ICommand {
 
     String getName();
 
+    String getDescription();
+    
     void execute(CommandArgs args) throws LibraryException;
 
 }

@@ -7,19 +7,18 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.ak2.fb2.library.commands.AbstractCommand;
 import org.ak2.fb2.library.commands.CommandArgs;
-import org.ak2.fb2.library.commands.ICommand;
 import org.ak2.fb2.library.common.OutputFormat;
 import org.ak2.fb2.library.common.OutputPath;
 import org.ak2.fb2.library.exceptions.BadCmdArguments;
 import org.ak2.fb2.library.exceptions.LibraryException;
 import org.ak2.utils.LengthUtils;
 
-public class MergeAuthors implements ICommand {
+public class MergeAuthors extends AbstractCommand {
 
-    @Override
-    public String getName() {
-        return "ma";
+    public MergeAuthors() {
+        super("ma");
     }
 
     @Override
@@ -33,19 +32,19 @@ public class MergeAuthors implements ICommand {
         final boolean delete = args.getValue(PARAM_DELETE, false);
 
         if (LengthUtils.isEmpty(inputFile)) {
-            throw new BadCmdArguments("Input file is missing.");
+            throw new BadCmdArguments("Input file is missing.", true);
         }
 
         if (LengthUtils.isEmpty(outputFolder)) {
-            throw new BadCmdArguments("Output folder is missing.");
+            throw new BadCmdArguments("Output folder is missing.", true);
         }
 
         if (outFormat == null) {
-            throw new BadCmdArguments("Output format is wrong.");
+            throw new BadCmdArguments("Output format is wrong.", true);
         }
 
         if (outPath == null) {
-            throw new BadCmdArguments("Output path type is wrong.");
+            throw new BadCmdArguments("Output path type is wrong.", true);
         }
 
         System.out.println("==================");

@@ -3,18 +3,17 @@ package org.ak2.fb2.library.commands.del;
 import java.io.File;
 import java.io.FileFilter;
 
+import org.ak2.fb2.library.commands.AbstractCommand;
 import org.ak2.fb2.library.commands.CommandArgs;
-import org.ak2.fb2.library.commands.ICommand;
 import org.ak2.fb2.library.exceptions.BadCmdArguments;
 import org.ak2.fb2.library.exceptions.LibraryException;
 import org.ak2.utils.LengthUtils;
 import org.ak2.utils.files.FolderScanner;
 
-public class DeleteFolder implements ICommand {
+public class DeleteFolder extends AbstractCommand {
 
-    @Override
-    public String getName() {
-        return "del";
+    public DeleteFolder() {
+        super("del");
     }
 
     @Override
@@ -23,7 +22,7 @@ public class DeleteFolder implements ICommand {
 
         final String inputFolder = args.getValue(PARAM_INPUT);
         if (LengthUtils.isEmpty(inputFolder)) {
-            throw new BadCmdArguments("Input file is missing.");
+            throw new BadCmdArguments("Input file is missing.", true);
         }
 
         System.out.println("==================");

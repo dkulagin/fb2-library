@@ -10,8 +10,8 @@ import java.util.Set;
 
 import org.ak2.fb2.library.book.FictionBook;
 import org.ak2.fb2.library.book.XmlContent;
+import org.ak2.fb2.library.commands.AbstractCommand;
 import org.ak2.fb2.library.commands.CommandArgs;
-import org.ak2.fb2.library.commands.ICommand;
 import org.ak2.fb2.library.common.OutputFormat;
 import org.ak2.fb2.library.common.OutputPath;
 import org.ak2.fb2.library.common.ProcessingException;
@@ -28,7 +28,7 @@ import org.ak2.utils.files.IFileFilter;
  * @author Alexander Kasatkin
  *
  */
-public class RenameFiles implements ICommand {
+public class RenameFiles extends AbstractCommand {
 
     private final Properties authors = new Properties();
 
@@ -43,6 +43,7 @@ public class RenameFiles implements ICommand {
     }
 
     public RenameFiles(final IRenameHelper helper) {
+        super("cfn");
         try {
             authors.load(RenameFiles.class.getResourceAsStream("Authors.properties"));
         } catch (final IOException ex) {
@@ -56,14 +57,6 @@ public class RenameFiles implements ICommand {
         this.helper = helper != null ? helper : new DefaultRenameHelper();
     }
 
-    /**
-     * @see org.ak2.fb2.library.commands.ICommand#getName()
-     */
-    @Override
-    public String getName() {
-        return "cfn";
-    }
-
     @Override
     public void execute(final CommandArgs args) throws LibraryException {
         System.out.println("The 'Convert File Names' command is selected:\n\t" + args);
@@ -75,19 +68,19 @@ public class RenameFiles implements ICommand {
         final OutputPath outPath = args.getValue(PARAM_OUTPATH, OutputPath.class, OutputPath.Standard);
 
         if (LengthUtils.isEmpty(inputFolder)) {
-            throw new BadCmdArguments("Input folder is missing.");
+            throw new BadCmdArguments("Input folder is missing.", true);
         }
 
         if (LengthUtils.isEmpty(outputFolder)) {
-            throw new BadCmdArguments("Output folder is missing.");
+            throw new BadCmdArguments("Output folder is missing.", true);
         }
 
         if (outFormat == null) {
-            throw new BadCmdArguments("Output format is wrong.");
+            throw new BadCmdArguments("Output format is wrong.", true);
         }
 
         if (outPath == null) {
-            throw new BadCmdArguments("Output path type is wrong.");
+            throw new BadCmdArguments("Output path type is wrong.", true);
         }
 
         System.out.println("Processing input folder: " + inputFolder);

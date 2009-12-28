@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.IOException;
 
 import org.ak2.fb2.library.book.XmlContent;
+import org.ak2.fb2.library.commands.AbstractCommand;
 import org.ak2.fb2.library.commands.CommandArgs;
-import org.ak2.fb2.library.commands.ICommand;
 import org.ak2.fb2.library.commands.cfn.RenameFiles;
 import org.ak2.fb2.library.common.OutputFormat;
 import org.ak2.fb2.library.common.OutputPath;
@@ -18,11 +18,10 @@ import org.ak2.utils.files.FileScanner;
 import org.ak2.utils.files.IFile;
 import org.ak2.utils.files.IFileFilter;
 
-public class FixEncoding implements ICommand {
+public class FixEncoding extends AbstractCommand {
 
-    @Override
-    public String getName() {
-        return "enc";
+    public FixEncoding() {
+        super("enc");
     }
 
     @Override
@@ -33,11 +32,11 @@ public class FixEncoding implements ICommand {
         final OutputFormat outFormat = args.getValue(PARAM_OUTFORMAT, OutputFormat.class, OutputFormat.Zip);
 
         if (LengthUtils.isEmpty(inputFolder)) {
-            throw new BadCmdArguments("Input folder is missing.");
+            throw new BadCmdArguments("Input folder is missing.", true);
         }
 
         if (outFormat == null) {
-            throw new BadCmdArguments("Output format is wrong.");
+            throw new BadCmdArguments("Output format is wrong.", true);
         }
 
         System.out.println("Processing input folder : " + inputFolder);
