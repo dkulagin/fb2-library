@@ -2,8 +2,11 @@ package org.ak2.fb2.library.commands.cfn;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import org.ak2.fb2.library.book.FictionBook;
 import org.ak2.fb2.library.book.XmlContent;
@@ -11,6 +14,7 @@ import org.ak2.fb2.library.commands.CommandArgs;
 import org.ak2.fb2.library.commands.ICommand;
 import org.ak2.fb2.library.common.OutputFormat;
 import org.ak2.fb2.library.common.OutputPath;
+import org.ak2.fb2.library.common.ProcessingException;
 import org.ak2.fb2.library.common.ProcessingResult;
 import org.ak2.fb2.library.exceptions.BadCmdArguments;
 import org.ak2.fb2.library.exceptions.LibraryException;
@@ -107,7 +111,9 @@ public class RenameFiles implements ICommand {
         printResults();
     }
 
-    public void execute(final File inFile, final File outFile, final OutputFormat outFormat, final OutputPath outPath) {
+    public Collection<File> execute(final File inFile, final File outFile, final OutputFormat outFormat, final OutputPath outPath) {
+
+        final Set<File> result = new LinkedHashSet<File>();
 
         FileScanner.enumerate(inFile, new IFileFilter() {
             @Override
@@ -115,11 +121,24 @@ public class RenameFiles implements ICommand {
                 if (file.getName().endsWith(".fb2")) {
                     try {
                         System.out.println("--------------------------------");
-                        final ProcessingResult result = processFile(file, outFile, outFormat, outPath);
-                        counters.increment(result);
-                    } catch (final Exception ex) {
+                        final File newFile = processFile(file, outFile, outFormat, outPath);
+                        result.add(newFile);
+                        counters.increment(ProcessingResult.CREATED);
+                    } catch (final ProcessingException ex) {
+                        final ProcessingResult pr = ex.getResult();
+                        if (pr == ProcessingResult.FAILED) {
+                            System.err.println("Error on processing " + file.getName() + ":");
+                            ex.printStackTrace();
+                        } else {
+                            final File outFile = ex.getFile();
+                            if (outFile != null) {
+                                result.add(outFile);
+                            }
+                        }
+                        counters.increment(pr);
+                    } catch (final Throwable th) {
                         System.err.println("Error on processing " + file.getName() + ":");
-                        ex.printStackTrace();
+                        th.printStackTrace();
                         counters.increment(ProcessingResult.FAILED);
                     }
                 }
@@ -127,6 +146,7 @@ public class RenameFiles implements ICommand {
             }
         }, new FileScanner.Options(true, true));
 
+        return result;
     }
 
     public void printResults() {
@@ -137,55 +157,62 @@ public class RenameFiles implements ICommand {
         System.out.println("================================");
     }
 
-    public ProcessingResult processFile(final IFile file, final File outFile, final OutputFormat outFormat, final OutputPath outPath) throws Exception,
-            IOException {
+    public File processFile(final IFile file, final File outFile, final OutputFormat outFormat, final OutputPath outPath) throws ProcessingException {
         System.out.println("File        : " + file.getFullName());
-        final XmlContent content = new XmlContent(file);
-        final File newFile = createBookFile(content, outFile, outFormat, outPath, true);
-        final ProcessingResult result = newFile != null ? ProcessingResult.CREATED : ProcessingResult.DUPLICATED;
-        return result;
+        try {
+            final XmlContent content = new XmlContent(file);
+            return createBookFile(content, outFile, outFormat, outPath, true);
+        } catch (final IOException ex) {
+            throw new ProcessingException(ex);
+        }
     }
 
     public File createBookFile(final XmlContent content, final File outputFolder, final OutputFormat outFormat, final OutputPath outPath, final boolean showInfo)
-            throws Exception {
-        final FictionBook book = new FictionBook(content);
+            throws ProcessingException {
+        try {
+            final FictionBook book = new FictionBook(content);
 
-        Map<String, String> properties = helper.getBookProperties(book);
+            final Map<String, String> properties = helper.getBookProperties(book);
 
-        String author = properties.get(IRenameHelper.AUTHOR_LAST_NAME) + " " + properties.get(IRenameHelper.AUTHOR_FIRST_NAME);
-        String bookName = properties.get(IRenameHelper.BOOK_NAME);
-        String seq = properties.get(IRenameHelper.BOOK_SEQUENCE);
-        String seqNo = properties.get(IRenameHelper.BOOK_SEQUENCE_NO);
+            String author = properties.get(IRenameHelper.AUTHOR_LAST_NAME) + " " + properties.get(IRenameHelper.AUTHOR_FIRST_NAME);
+            String bookName = properties.get(IRenameHelper.BOOK_NAME);
+            String seq = properties.get(IRenameHelper.BOOK_SEQUENCE);
+            String seqNo = properties.get(IRenameHelper.BOOK_SEQUENCE_NO);
 
-        helper.setBookProperties(book, properties);
+            helper.setBookProperties(book, properties);
 
-        if (showInfo) {
-            System.out.println("Author      : " + author);
-            if (LengthUtils.isNotEmpty(seq)) {
-                System.out.println("Sequence    : " + seq);
+            if (showInfo) {
+                System.out.println("Author      : " + author);
+                if (LengthUtils.isNotEmpty(seq)) {
+                    System.out.println("Sequence    : " + seq);
+                }
+                if (LengthUtils.isNotEmpty(seqNo)) {
+                    System.out.println("SequenceNo  : " + seqNo);
+                }
+                System.out.println("Book name   : " + bookName);
             }
+
             if (LengthUtils.isNotEmpty(seqNo)) {
-                System.out.println("SequenceNo  : " + seqNo);
+                while (seqNo.length() < 3) {
+                    seqNo = "0" + seqNo;
+                }
+                bookName = seqNo + ". " + bookName;
             }
-            System.out.println("Book name   : " + bookName);
+
+            seq = fixName(seq);
+            bookName = fixName(bookName);
+
+            author = authors.getProperty(author, author);
+            seq = series.getProperty(seq, seq);
+
+            final File bookFolder = outPath.getFolder(outputFolder, author, seq);
+            final String bookFileName = bookName + ".fb2";
+            return outFormat.createFile(bookFolder, bookFileName, book);
+        } catch (final ProcessingException ex) {
+            throw ex;
+        } catch (final Exception ex) {
+            throw new ProcessingException(ex);
         }
-
-        if (LengthUtils.isNotEmpty(seqNo)) {
-            while (seqNo.length() < 3) {
-                seqNo = "0" + seqNo;
-            }
-            bookName = seqNo + ". " + bookName;
-        }
-
-        seq = fixName(seq);
-        bookName = fixName(bookName);
-
-        author = authors.getProperty(author, author);
-        seq = series.getProperty(seq, seq);
-
-        final File bookFolder = outPath.getFolder(outputFolder, author, seq);
-        final String bookFileName = bookName + ".fb2";
-        return outFormat.createFile(bookFolder, bookFileName, book);
     }
 
     private static String fixName(String name) {

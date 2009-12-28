@@ -23,6 +23,27 @@ public class FolderScanner {
         }
     }
 
+    public static void enumerateWide(final File root, final FileFilter filter, final FileFilter worker, final int depth) {
+        if (filter.accept(root)) {
+            File[] folders = root.listFiles(new FileFilter() {
+                @Override
+                public boolean accept(File file) {
+                    if (file.isDirectory()) {
+                        return filter.accept(file);
+                    }
+                    return false;
+                }
+            });
+            int newDepth = depth - 1;
+            if (newDepth >= 0) {
+                for (File folder : folders) {
+                    enumerateWide(folder, filter, worker, newDepth);
+                }
+            }
+            worker.accept(root);
+        }
+    }
+
     public static void enumerateDepth(final File root, final FileFilter filter, final int depth) {
         root.listFiles(new FileFilter() {
             @Override

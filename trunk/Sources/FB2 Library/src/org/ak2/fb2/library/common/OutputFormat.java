@@ -2,6 +2,7 @@ package org.ak2.fb2.library.common;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 
 import org.ak2.fb2.library.book.FictionBook;
 import org.ak2.utils.zip.PackageCreator;
@@ -13,7 +14,7 @@ public enum OutputFormat {
     Fb2 {
         /**
          * {@inheritDoc}
-         * 
+         *
          * @see org.ak2.fb2.library.common.OutputFormat#getFile(java.io.File, java.lang.String)
          */
         @Override
@@ -23,11 +24,11 @@ public enum OutputFormat {
 
         /**
          * {@inheritDoc}
-         * 
+         *
          * @see org.ak2.fb2.library.common.OutputFormat#writeFile(java.io.File, java.lang.String, org.ak2.fb2.library.book.FictionBook)
          */
         @Override
-        protected void writeFile(final File outFile, final String bookFileName, final byte[] content) throws Exception {
+        protected void writeFile(final File outFile, final String bookFileName, final byte[] content) throws IOException {
             final FileOutputStream out = new FileOutputStream(outFile);
             out.write(content);
             out.close();
@@ -39,7 +40,7 @@ public enum OutputFormat {
     Zip {
         /**
          * {@inheritDoc}
-         * 
+         *
          * @see org.ak2.fb2.library.common.OutputFormat#getFile(java.io.File, java.lang.String)
          */
         @Override
@@ -50,35 +51,45 @@ public enum OutputFormat {
 
         /**
          * {@inheritDoc}
-         * 
+         *
          * @see org.ak2.fb2.library.common.OutputFormat#writeFile(java.io.File, java.lang.String, org.ak2.fb2.library.book.FictionBook)
          */
         @Override
-        protected void writeFile(final File outFile, final String bookFileName, final byte[] content) throws Exception {
+        protected void writeFile(final File outFile, final String bookFileName, final byte[] content) throws IOException {
             final PackageCreator pc = new PackageCreator(outFile);
             pc.addFileToPackage(content, bookFileName);
             pc.close();
         }
     };
 
-    public File createFile(final File bookFolder, final String bookFileName, final FictionBook book) throws Exception {
-        return createFile(bookFolder, bookFileName, book.getBytes());
+    public File createFile(final File bookFolder, final String bookFileName, final FictionBook book) throws ProcessingException {
+        try {
+            return createFile(bookFolder, bookFileName, book.getBytes());
+        } catch (ProcessingException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new ProcessingException(ex);
+        }
     }
 
-    public File createFile(final File bookFolder, final String bookFileName, final byte[] content) throws Exception {
+    public File createFile(final File bookFolder, final String bookFileName, final byte[] content) throws ProcessingException {
         final File outFile = getFile(bookFolder, bookFileName);
         if (!outFile.exists()) {
-            writeFile(outFile, bookFileName, content);
-            System.out.println("File created: " + outFile.getAbsolutePath());
-            return outFile;
+            try {
+                writeFile(outFile, bookFileName, content);
+                System.out.println("File created: " + outFile.getAbsolutePath());
+                return outFile;
+            } catch (IOException ex) {
+                throw new ProcessingException(ex);
+            }
         } else {
             System.out.println("File found  : " + outFile.getAbsolutePath());
-            return null;
+            throw new ProcessingException(outFile);
         }
     }
 
     protected abstract File getFile(File bookFolder, String bookFileName);
 
-    protected abstract void writeFile(File outFile, String bookFileName, byte[] content) throws Exception;
+    protected abstract void writeFile(File outFile, String bookFileName, byte[] content) throws IOException;
 
 }

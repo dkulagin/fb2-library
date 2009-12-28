@@ -58,6 +58,10 @@
 		<copy file="scripts/cfn.sh" tofile="${dist}/cfn.sh" filtering="true" />
 		<copy file="scripts/ca.cmd" tofile="${dist}/ca.cmd" filtering="true" />
 		<copy file="scripts/ca.sh" tofile="${dist}/ca.sh" filtering="true" />
+		<copy file="scripts/ma.cmd" tofile="${dist}/ma.cmd" filtering="true" />
+		<copy file="scripts/ma.sh" tofile="${dist}/ma.sh" filtering="true" />
+		<copy file="scripts/del.cmd" tofile="${dist}/del.cmd" filtering="true" />
+		<copy file="scripts/del.sh" tofile="${dist}/del.sh" filtering="true" />
 	</target>
 
 
