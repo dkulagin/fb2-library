@@ -133,6 +133,26 @@ public class EnumUtils {
     }
 
     /**
+     * Returns enumeration item of the given class.
+     * 
+     * @param <T> type of enumeration item
+     * @param clazz enumeration class
+     * @param name name of enumeration item (case insensitive)</li> a * @return an instance of the given enumeration
+     *        class or <code>null</code> if an appropriate item cannot be found
+     */
+    public static <T extends Enum<T>> T valueOf(final Class<T> clazz, final String name, final T defaultValue) {
+        final T[] values = clazz.getEnumConstants();
+        if (LengthUtils.isNotEmpty(values)) {
+            for (final T item : values) {
+                if (item.name().equalsIgnoreCase(name)) {
+                    return item;
+                }
+            }
+        }
+        return defaultValue;
+    }
+
+    /**
      * This class represent unknown constant.
      */
     private static final class Unknown implements IntConstant {

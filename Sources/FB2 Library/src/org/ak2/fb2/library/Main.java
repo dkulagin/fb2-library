@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.text.MessageFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,26 +23,30 @@ import org.ak2.fb2.library.commands.ma.MergeAuthors;
 import org.ak2.fb2.library.exceptions.BadCmdArguments;
 import org.ak2.fb2.library.exceptions.LibraryException;
 import org.ak2.utils.LengthUtils;
+import org.ak2.utils.enums.EnumUtils;
+import org.ak2.utils.jlog.JLog;
+import org.ak2.utils.jlog.JLogLevel;
+import org.ak2.utils.jlog.JLogMessage;
 
 /**
  * @author Andrei Komarovskikh / Reksoft
  */
 public class Main {
 
+    private static final JLogMessage MSG_UNKNOWN_CMD = new JLogMessage(JLogLevel.FATAL, "No appropriate command found");
+
+    private static final JLogMessage MSG_BAD_CONSOLE_ENC = new JLogMessage(JLogLevel.ERROR, "Unable to setup console codepage: {0}");
+
+    private static final JLogMessage MSG_BAD_ARG = new JLogMessage(JLogLevel.ERROR, "Bad cmd argument: {0}");
+
+    private static final JLogMessage MSG_ERROR = new JLogMessage(JLogLevel.ERROR, "Unexpected exception: ");
+
     private static final ICommand[] COMMANDS = { new RenameFiles(), new FixEncoding(), new CompareAuthors(), new MergeAuthors(), new DeleteFolder() };
 
     public static void main(final String[] args) {
-        System.setProperty("com.sun.org.apache.xalan.internal.serialize.encodings", Main.class.getResource("Encodings.properties").toString());
-
-        final String consoleEnc = System.getProperty("console.encoding");
-        if (LengthUtils.isNotEmpty(consoleEnc)) {
-            try {
-                System.setOut(new PrintStream(System.out, true, consoleEnc));
-                System.setErr(new PrintStream(System.err, true, consoleEnc));
-            } catch (final UnsupportedEncodingException e) {
-                System.out.println("Unable to setup console codepage: " + e);
-            }
-        }
+        initLog();
+        initXalan();
+        initConsole();
 
         if (args.length < 1) {
             showReadme();
@@ -64,20 +70,45 @@ public class Main {
             }
         }
 
-        System.err.println("No appropriate command found");
+        MSG_UNKNOWN_CMD.log();
         showReadme();
+    }
+
+    private static void initLog() {
+        String logFilePattern = MessageFormat.format("fb2-library.{0,date,yyyyMMdd.HHmmss}.log", new Date());
+        JLogLevel consoleLogLevel = EnumUtils.valueOf(JLogLevel.class, System.getProperty("jlog.console.level"), JLogLevel.INFO);
+        JLogLevel fileLogLevel = EnumUtils.valueOf(JLogLevel.class, System.getProperty("jlog.file.level"), JLogLevel.INFO);
+        JLog.setConsoleLevel(consoleLogLevel);
+        JLog.addLogFile(logFilePattern, fileLogLevel);
+
+    }
+
+    private static void initXalan() {
+        System.setProperty("com.sun.org.apache.xalan.internal.serialize.encodings", Main.class.getResource("Encodings.properties").toString());
+    }
+
+    private static void initConsole() {
+        final String consoleEnc = System.getProperty("console.encoding");
+        if (LengthUtils.isNotEmpty(consoleEnc)) {
+            try {
+                System.setOut(new PrintStream(System.out, true, consoleEnc));
+                System.setErr(new PrintStream(System.err, true, consoleEnc));
+            } catch (final UnsupportedEncodingException e) {
+                MSG_BAD_CONSOLE_ENC.log("" + e);
+            }
+        }
     }
 
     private static void executeCommand(final CommandArgs cmdArgs, final ICommand cmd) {
         try {
             cmd.execute(cmdArgs);
         } catch (final BadCmdArguments ex) {
-            System.err.println(ex.getMessage());
+            MSG_BAD_ARG.log(ex.getMessage());
             if (ex.isShowReadme()) {
                 showReadme(cmd);
             }
         } catch (final LibraryException ex) {
-            ex.printStackTrace();
+            MSG_ERROR.log(ex);
         }
     }
 

@@ -5,6 +5,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import org.ak2.fb2.library.book.FictionBook;
+import org.ak2.utils.jlog.JLogLevel;
+import org.ak2.utils.jlog.JLogMessage;
 import org.ak2.utils.zip.PackageCreator;
 
 public enum OutputFormat {
@@ -14,7 +16,7 @@ public enum OutputFormat {
     Fb2 {
         /**
          * {@inheritDoc}
-         *
+         * 
          * @see org.ak2.fb2.library.common.OutputFormat#getFile(java.io.File, java.lang.String)
          */
         @Override
@@ -24,7 +26,7 @@ public enum OutputFormat {
 
         /**
          * {@inheritDoc}
-         *
+         * 
          * @see org.ak2.fb2.library.common.OutputFormat#writeFile(java.io.File, java.lang.String, org.ak2.fb2.library.book.FictionBook)
          */
         @Override
@@ -40,7 +42,7 @@ public enum OutputFormat {
     Zip {
         /**
          * {@inheritDoc}
-         *
+         * 
          * @see org.ak2.fb2.library.common.OutputFormat#getFile(java.io.File, java.lang.String)
          */
         @Override
@@ -51,7 +53,7 @@ public enum OutputFormat {
 
         /**
          * {@inheritDoc}
-         *
+         * 
          * @see org.ak2.fb2.library.common.OutputFormat#writeFile(java.io.File, java.lang.String, org.ak2.fb2.library.book.FictionBook)
          */
         @Override
@@ -61,6 +63,10 @@ public enum OutputFormat {
             pc.close();
         }
     };
+
+    private static final JLogMessage MSG_FILE_FOUND = new JLogMessage(JLogLevel.DEBUG, "File   found: {0}");
+
+    private static final JLogMessage MSG_FILE_CREATED = new JLogMessage(JLogLevel.DEBUG, "File created: {0}");
 
     public File createFile(final File bookFolder, final String bookFileName, final FictionBook book) throws ProcessingException {
         try {
@@ -77,13 +83,13 @@ public enum OutputFormat {
         if (!outFile.exists()) {
             try {
                 writeFile(outFile, bookFileName, content);
-                System.out.println("File created: " + outFile.getAbsolutePath());
+                MSG_FILE_CREATED.log(outFile.getAbsolutePath());
                 return outFile;
             } catch (IOException ex) {
                 throw new ProcessingException(ex);
             }
         } else {
-            System.out.println("File found  : " + outFile.getAbsolutePath());
+            MSG_FILE_FOUND.log(outFile.getAbsolutePath());
             throw new ProcessingException(outFile);
         }
     }

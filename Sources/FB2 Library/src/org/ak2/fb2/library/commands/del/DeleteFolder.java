@@ -9,8 +9,12 @@ import org.ak2.fb2.library.exceptions.BadCmdArguments;
 import org.ak2.fb2.library.exceptions.LibraryException;
 import org.ak2.utils.LengthUtils;
 import org.ak2.utils.files.FolderScanner;
+import org.ak2.utils.jlog.JLogLevel;
+import org.ak2.utils.jlog.JLogMessage;
 
 public class DeleteFolder extends AbstractCommand {
+
+    private static final JLogMessage MSG_DELETE = new JLogMessage(JLogLevel.DEBUG, "{0}: '''{0}'''");
 
     public DeleteFolder() {
         super("del");
@@ -18,15 +22,16 @@ public class DeleteFolder extends AbstractCommand {
 
     @Override
     public void execute(CommandArgs args) throws LibraryException {
-        System.out.println("The 'Delete folder' command is selected:\n\t" + args);
+        MSG_ARGS.log(this.getClass().getSimpleName(), args);
 
         final String inputFolder = args.getValue(PARAM_INPUT);
         if (LengthUtils.isEmpty(inputFolder)) {
             throw new BadCmdArguments("Input file is missing.", true);
         }
 
-        System.out.println("==================");
-        System.out.println("Folder to delete: " + inputFolder);
+        logBoldLine(MSG_INFO_VALUE.getLevel());
+        MSG_INFO_VALUE.log("Folder to delete", inputFolder);
+        logBoldLine(MSG_INFO_VALUE.getLevel());
 
         final File inFolder = new File(inputFolder);
 
@@ -53,7 +58,7 @@ public class DeleteFolder extends AbstractCommand {
         public boolean accept(File folder) {
             folder.listFiles(new FileWorker());
             boolean result = folder.delete();
-            System.out.println((result ? "    Deleted" : "Not deleted") + " '"+folder.getAbsolutePath() + "'");
+            MSG_DELETE.log(result ? "    Deleted" : "Not deleted", folder.getAbsolutePath());
             return false;
         }
     }

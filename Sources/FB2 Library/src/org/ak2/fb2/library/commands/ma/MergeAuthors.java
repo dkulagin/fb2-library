@@ -14,8 +14,12 @@ import org.ak2.fb2.library.common.OutputPath;
 import org.ak2.fb2.library.exceptions.BadCmdArguments;
 import org.ak2.fb2.library.exceptions.LibraryException;
 import org.ak2.utils.LengthUtils;
+import org.ak2.utils.jlog.JLogLevel;
+import org.ak2.utils.jlog.JLogMessage;
 
 public class MergeAuthors extends AbstractCommand {
+
+    private static final JLogMessage MSG_PROCESS = new JLogMessage("Process clusters:");
 
     public MergeAuthors() {
         super("ma");
@@ -23,7 +27,7 @@ public class MergeAuthors extends AbstractCommand {
 
     @Override
     public void execute(final CommandArgs args) throws LibraryException {
-        System.out.println("The 'Merge authors' command is selected:\n\t" + args);
+        MSG_ARGS.log(this.getClass().getSimpleName(), args);
 
         final String inputFile = args.getValue(PARAM_INPUT);
         final String outputFolder = args.getValue(PARAM_OUTPUT);
@@ -47,12 +51,12 @@ public class MergeAuthors extends AbstractCommand {
             throw new BadCmdArguments("Output path type is wrong.", true);
         }
 
-        System.out.println("==================");
-        System.out.println("Processing input file  : " + inputFile);
-        System.out.println("Writing output into    : " + outputFolder);
-        System.out.println("Output book format     : " + outFormat);
-        System.out.println("Output book path type  : " + outPath);
-        System.out.println("==================");
+        logBoldLine(MSG_INFO_VALUE.getLevel());
+        MSG_INFO_VALUE.log("Processing input file", inputFile);
+        MSG_INFO_VALUE.log("Writing output into  ", outputFolder);
+        MSG_INFO_VALUE.log("Output book format   ", outFormat);
+        MSG_INFO_VALUE.log("Output book path type", outPath);
+        logBoldLine(MSG_INFO_VALUE.getLevel());
 
         final File inFile = new File(inputFile);
         final File outFolder = new File(outputFolder);
@@ -68,8 +72,8 @@ public class MergeAuthors extends AbstractCommand {
 
         final List<Cluster> clusters = loadClusters(inFile);
 
-        System.out.println("Process clusters:");
-        System.out.println("==================");
+        MSG_PROCESS.log();
+        logBoldLine(JLogLevel.INFO);
 
         for (final Cluster cluster : clusters) {
             cluster.merge(outFolder, outFormat, outPath, delete);

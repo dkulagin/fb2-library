@@ -8,11 +8,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import org.ak2.utils.jlog.JLog;
+import org.ak2.utils.jlog.JLogLevel;
+import org.ak2.utils.jlog.JLogMessage;
+
 /**
  * @author Alexander Kasatkin
  * 
  */
 public abstract class AbstractCommand implements ICommand {
+
+    protected static final JLogMessage MSG_ARGS = new JLogMessage(JLogLevel.INFO, "The ''{0}'' command is selected:\n\t{1}");
+
+    protected static final JLogMessage MSG_INFO_VALUE = new JLogMessage(JLogLevel.INFO, "{0}: {1}");
+
+    protected static final JLogMessage MSG_DEBUG_VALUE = new JLogMessage(JLogLevel.DEBUG, "{0}: {1}");
+
+    protected static final JLogMessage MSG_ERROR = new JLogMessage(JLogLevel.ERROR, "Error on processing {0}: ");
 
     private final String name;
 
@@ -35,6 +47,14 @@ public abstract class AbstractCommand implements ICommand {
      */
     public final String getDescription() {
         return description;
+    }
+
+    protected void logBoldLine(JLogLevel level) {
+        JLog.log(level.getLevel(), "================================");
+    }
+
+    protected void logLine(JLogLevel level) {
+        JLog.log(level.getLevel(), "--------------------------------");
     }
 
     static String loadDescription(Class<? extends AbstractCommand> clazz) {

@@ -13,8 +13,14 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.ak2.utils.LengthUtils;
+import org.ak2.utils.jlog.JLogLevel;
+import org.ak2.utils.jlog.JLogMessage;
 
 class Clusters {
+
+    private static final JLogMessage MSG_PAIR = new JLogMessage(JLogLevel.DEBUG, "Create pair for ''{0}''  and ''{1}''");
+
+    private static final JLogMessage MSG_CLUSTER = new JLogMessage(JLogLevel.INFO, "Compress: {0}");
 
     private final Map<Author, List<Set<Author>>> clusterMap = new TreeMap<Author, List<Set<Author>>>();
 
@@ -45,7 +51,7 @@ class Clusters {
                 if (author.isShortFirstName()) {
                     list.clear();
                 } else if ((list.size() > 1)) {
-                    System.out.println("Compress: " + list);
+                    MSG_CLUSTER.log(list);
                     found = true;
                     final Set<Author> cluster = new TreeSet<Author>();
                     for (final Set<Author> pair : list) {
@@ -85,7 +91,7 @@ class Clusters {
     }
 
     protected void addAuthors(final Author authorI, final Author authorJ) {
-        System.out.println("Create pair for '" + authorI + "' and '" + authorJ + "'");
+        MSG_PAIR.log(authorI, authorJ);
 
         final Set<Author> pair = new HashSet<Author>();
         pair.add(authorI);
