@@ -74,7 +74,7 @@ public class Main {
         } catch (final BadCmdArguments ex) {
             System.err.println(ex.getMessage());
             if (ex.isShowReadme()) {
-                showReadme();
+                showReadme(cmd);
             }
         } catch (final LibraryException ex) {
             ex.printStackTrace();
@@ -90,7 +90,23 @@ public class Main {
             for (String s = readme.readLine(); s != null; s = readme.readLine()) {
                 System.out.println(s);
             }
+            for (final ICommand cmd : COMMANDS) {
+                System.out.println("");
+                System.out.println(cmd.getName() + " - " + cmd.getDescription());
+            }
         } catch (final IOException ex) {
         }
     }
+
+    private static void showReadme(final ICommand cmd) {
+        try {
+            final BufferedReader readme = new BufferedReader(new InputStreamReader(Main.class.getClassLoader().getResourceAsStream("readme.txt")));
+            for (String s = readme.readLine(); s != null; s = readme.readLine()) {
+                System.out.println(s);
+            }
+            System.out.println(cmd.getName() + " - " + cmd.getDescription());
+        } catch (final IOException ex) {
+        }
+    }
+
 }

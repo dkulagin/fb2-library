@@ -8,14 +8,18 @@ import java.io.PrintWriter;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.ak2.fb2.library.commands.AbstractCommand;
 import org.ak2.fb2.library.commands.CommandArgs;
-import org.ak2.fb2.library.commands.ICommand;
 import org.ak2.fb2.library.exceptions.BadCmdArguments;
 import org.ak2.fb2.library.exceptions.LibraryException;
 import org.ak2.utils.LengthUtils;
 import org.ak2.utils.files.FolderScanner;
 
-public class CompareAuthors implements ICommand {
+public class CompareAuthors extends AbstractCommand {
+
+    public CompareAuthors() {
+        super("ca");
+    }
 
     @Override
     public void execute(final CommandArgs args) throws LibraryException {
@@ -28,11 +32,11 @@ public class CompareAuthors implements ICommand {
         final int distance = args.getValue(PARAM_DISTANCE, 1);
 
         if (LengthUtils.isEmpty(inputFolder)) {
-            throw new BadCmdArguments("Input folder is missing.");
+            throw new BadCmdArguments("Input folder is missing.", true);
         }
 
         if (LengthUtils.isEmpty(outputFile)) {
-            throw new BadCmdArguments("Output file is missing.");
+            throw new BadCmdArguments("Output file is missing.", true);
         }
 
         final File folder = new File(inputFolder);
@@ -79,10 +83,4 @@ public class CompareAuthors implements ICommand {
 
         return authors.toArray(new Author[authors.size()]);
     }
-
-    @Override
-    public String getName() {
-        return "ca";
-    }
-
 }
