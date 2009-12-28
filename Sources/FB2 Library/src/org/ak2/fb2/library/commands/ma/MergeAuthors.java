@@ -24,12 +24,13 @@ public class MergeAuthors implements ICommand {
 
     @Override
     public void execute(final CommandArgs args) throws LibraryException {
-        System.out.println("The 'Compare authors' command is selected:\n\t" + args);
+        System.out.println("The 'Merge authors' command is selected:\n\t" + args);
 
         final String inputFile = args.getValue(PARAM_INPUT);
         final String outputFolder = args.getValue(PARAM_OUTPUT);
         final OutputFormat outFormat = args.getValue(PARAM_OUTFORMAT, OutputFormat.class, OutputFormat.Zip);
         final OutputPath outPath = args.getValue(PARAM_OUTPATH, OutputPath.class, OutputPath.Standard);
+        final boolean delete = args.getValue(PARAM_DELETE, false);
 
         if (LengthUtils.isEmpty(inputFile)) {
             throw new BadCmdArguments("Input file is missing.");
@@ -72,7 +73,7 @@ public class MergeAuthors implements ICommand {
         System.out.println("==================");
 
         for (final Cluster cluster : clusters) {
-            cluster.merge(outFolder, outFormat, outPath);
+            cluster.merge(outFolder, outFormat, outPath, delete);
         }
     }
 

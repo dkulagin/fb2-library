@@ -16,6 +16,8 @@ public interface ICommand {
 
     String PARAM_DISTANCE = "distance";
 
+    String PARAM_DELETE = "delete";
+
     String getName();
 
     void execute(CommandArgs args) throws LibraryException;

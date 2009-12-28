@@ -42,3 +42,8 @@ Where command is:
        -outformat <output book format> - output book format. The following are supported:
                 FB2 - uncompressed fb2 book
                 ZIP - fb2 book in a separated zip archive
+
+  del - delete folder.
+       The following options are supported:
+       -input  <input folder> - folder to delete.
+

@@ -31,6 +31,14 @@ public class CommandArgs {
         return LengthUtils.safeString(m_args.get(name), defaultValue);
     }
 
+    public boolean getValue(final String name, final boolean defaultValue) {
+        String val = m_args.get(name);
+        if (LengthUtils.isEmpty(val)) {
+            return defaultValue;
+        }
+        return "true".equalsIgnoreCase(val) || "yes".equalsIgnoreCase(val);
+    }
+
     public int getValue(final String name, final int defaultValue) throws BadCmdArguments {
         String val = getValue(name);
         if (LengthUtils.isEmpty(val)) {
