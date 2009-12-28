@@ -16,6 +16,7 @@ import org.ak2.fb2.library.commands.ICommand;
 import org.ak2.fb2.library.commands.ca.CompareAuthors;
 import org.ak2.fb2.library.commands.cfn.RenameFiles;
 import org.ak2.fb2.library.commands.enc.FixEncoding;
+import org.ak2.fb2.library.commands.ma.MergeAuthors;
 import org.ak2.fb2.library.exceptions.BadCmdArguments;
 import org.ak2.fb2.library.exceptions.LibraryException;
 import org.ak2.utils.LengthUtils;
@@ -25,7 +26,7 @@ import org.ak2.utils.LengthUtils;
  */
 public class Main {
 
-    private static final ICommand[] COMMANDS = { new RenameFiles(), new FixEncoding(), new CompareAuthors() };
+    private static final ICommand[] COMMANDS = { new RenameFiles(), new FixEncoding(), new CompareAuthors(), new MergeAuthors() };
 
     public static void main(final String[] args) {
         System.setProperty("com.sun.org.apache.xalan.internal.serialize.encodings", Main.class.getResource("Encodings.properties").toString());

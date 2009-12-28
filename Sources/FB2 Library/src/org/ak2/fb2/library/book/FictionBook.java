@@ -10,7 +10,6 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.ak2.fb2.library.common.Encoding;
 import org.ak2.utils.XmlUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -18,6 +17,8 @@ import org.w3c.dom.Element;
 public class FictionBook {
 
     private final Document fieldDocument;
+
+    private final Element fieldTitleInfo;
 
     private final String fieldEncoding;
 
@@ -28,23 +29,20 @@ public class FictionBook {
     public FictionBook(final XmlContent content) throws Exception {
         fieldDocument = content.getDocument();
         fieldEncoding = content.getEncoding();
+        fieldTitleInfo = (Element) XmlUtils.selectNode(fieldDocument, "/FictionBook/description/title-info");
     }
 
     public String getBookName() {
         if (fieldDocument == null) {
             return null;
         }
-        if (fieldBookName != null) {
-            return fieldBookName;
+        if (fieldBookName == null) {
+            try {
+                fieldBookName = XmlUtils.getString(fieldTitleInfo, "book-title").trim();
+            } catch (final Throwable th) {
+            }
         }
-        try {
-            final Element element = (Element) XmlUtils.selectNode(fieldDocument, "/FictionBook/description/title-info/book-title");
-            fieldBookName = element.getFirstChild().getNodeValue().trim();
-            return fieldBookName;
-        } catch (final Throwable th) {
-            th.printStackTrace();
-        }
-        return null;
+        return fieldBookName;
     }
 
     public void setBookName(final String bookName) {
@@ -53,31 +51,35 @@ public class FictionBook {
         }
         fieldBookName = bookName.trim();
         try {
-            final Element element = (Element) XmlUtils.selectNode(fieldDocument, "/FictionBook/description/title-info/book-title");
-            element.getFirstChild().setNodeValue(fieldBookName);
+            Element element = (Element) XmlUtils.selectNode(fieldTitleInfo, "book-title");
+            if (element == null) {
+                element = createElement(fieldTitleInfo, "book-title");
+            }
+            element.setTextContent(fieldBookName);
         } catch (final Throwable th) {
             th.printStackTrace();
         }
     }
 
     public String getSequence() {
+        if (fieldDocument == null) {
+            return null;
+        }
         try {
-            final Element element = (Element) XmlUtils.selectNode(fieldDocument, "/FictionBook/description/title-info/sequence");
-            final String fieldSeq = element.getAttribute("name");
-            return fieldSeq.trim();
+            return XmlUtils.getString(fieldTitleInfo, "sequence/@name").trim();
         } catch (final Throwable th) {
         }
         return "";
     }
 
     public void setSequence(final String seq) {
+        if (fieldDocument == null) {
+            return;
+        }
         try {
-            Element seqElement = (Element) XmlUtils.selectNode(fieldDocument, "/FictionBook/description/title-info/sequence");
+            Element seqElement = (Element) XmlUtils.selectNode(fieldTitleInfo, "sequence");
             if (seqElement == null) {
-                // Now we try to create sequence element, but we assume that title-info exist
-                final Element titleInfo = (Element) XmlUtils.selectNode(fieldDocument, "/FictionBook/description/title-info");
-                seqElement = fieldDocument.createElement("sequence");
-                titleInfo.appendChild(seqElement);
+                seqElement = createElement(fieldTitleInfo, "sequence");
             }
             seqElement.setAttribute("name", seq.trim());
         } catch (final Throwable th) {
@@ -85,23 +87,24 @@ public class FictionBook {
     }
 
     public String getSequenceNo() {
+        if (fieldDocument == null) {
+            return null;
+        }
         try {
-            final Element element = (Element) XmlUtils.selectNode(fieldDocument, "/FictionBook/description/title-info/sequence");
-            final String fieldSeq = element.getAttribute("number");
-            return fieldSeq.trim();
+            return XmlUtils.getString(fieldTitleInfo, "sequence/@number").trim();
         } catch (final Throwable th) {
         }
         return "";
     }
 
     public void setSequenceNo(final String seqNo) {
+        if (fieldDocument == null) {
+            return;
+        }
         try {
-            Element seqElement = (Element) XmlUtils.selectNode(fieldDocument, "/FictionBook/description/title-info/sequence");
+            Element seqElement = (Element) XmlUtils.selectNode(fieldTitleInfo, "sequence");
             if (seqElement == null) {
-                // Now we try to create sequence element, but we assume that title-info exist
-                final Element titleInfo = (Element) XmlUtils.selectNode(fieldDocument, "/FictionBook/description/title-info");
-                seqElement = fieldDocument.createElement("sequence");
-                titleInfo.appendChild(seqElement);
+                seqElement = createElement(fieldTitleInfo, "sequence");
             }
             seqElement.setAttribute("number", seqNo.trim());
         } catch (final Throwable th) {
@@ -114,32 +117,60 @@ public class FictionBook {
         }
         if (fieldAuthor == null) {
             try {
-                fieldAuthor = (getAuthorLastName() + " " + getAuthorFirstName()).trim();
+                fieldAuthor = (getAuthorLastName() + " " + getAuthorFirstName());
             } catch (final Throwable th) {
-                th.printStackTrace();
             }
         }
         return fieldAuthor;
     }
 
-    private String getAuthorFirstName() {
+    public String getAuthorFirstName() {
+        if (fieldDocument == null) {
+            return null;
+        }
         try {
-            final Element element = (Element) XmlUtils.selectNode(fieldDocument, "/FictionBook/description/title-info/author/first-name");
-            final String fieldAuthorFirstName = element.getFirstChild().getNodeValue().trim();
-            return fieldAuthorFirstName;
+            return XmlUtils.getString(fieldTitleInfo, "author/first-name").trim();
         } catch (final Throwable th) {
         }
         return "";
     }
 
-    private String getAuthorLastName() {
+    public void setAuthorFirstName(String firstName) {
+        if (fieldDocument == null) {
+            return;
+        }
+        Element element = (Element) XmlUtils.selectNode(fieldTitleInfo, "author/first-name");
+        if (element == null) {
+            element = (Element) XmlUtils.selectNode(fieldTitleInfo, "author");
+            if (element == null) {
+                element = createElement(fieldTitleInfo, "author");
+            }
+            element = createElement(element, "first-name");
+        }
+        element.setTextContent(firstName);
+    }
+
+    public String getAuthorLastName() {
         try {
-            final Element element = (Element) XmlUtils.selectNode(fieldDocument, "/FictionBook/description/title-info/author/last-name");
-            final String fieldAuthorLastName = element.getFirstChild().getNodeValue().trim();
-            return fieldAuthorLastName;
+            return XmlUtils.getString(fieldTitleInfo, "author/last-name").trim();
         } catch (final Throwable th) {
         }
         return "";
+    }
+
+    public void setAuthorLastName(String lastName) {
+        if (fieldDocument == null) {
+            return;
+        }
+        Element element = (Element) XmlUtils.selectNode(fieldTitleInfo, "author/last-name");
+        if (element == null) {
+            element = (Element) XmlUtils.selectNode(fieldTitleInfo, "author");
+            if (element == null) {
+                element = createElement(fieldTitleInfo, "author");
+            }
+            element = createElement(element, "last-name");
+        }
+        element.setTextContent(lastName);
     }
 
     public byte[] getBytes() throws TransformerFactoryConfigurationError, TransformerException {
@@ -160,4 +191,13 @@ public class FictionBook {
             return text.getBytes();
         }
     }
+
+    private Element createElement(Element parent, String... tagNames) {
+        Element e = parent;
+        for (String tagName : tagNames) {
+            e = (Element) e.appendChild(fieldDocument.createElement(tagName));
+        }
+        return e;
+    }
+
 }
