@@ -34,7 +34,7 @@ public class Cluster extends DefaultRenameHelper {
 
     public void merge(final File outFolder, final OutputFormat outFormat, final OutputPath outPath) {
 
-        System.out.println("Merge cluster into: " + targetAuthor);
+        System.out.println("Merge cluster: " + this);
         System.out.println("==================");
 
         RenameFiles cmd = new RenameFiles(this);
