@@ -2,6 +2,9 @@ package org.ak2.fb2.library.commands.ca;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -47,8 +50,20 @@ public class CompareAuthors implements ICommand {
 
         System.out.println("Printing clusters:");
         System.out.println("==================");
-        for (final Set<Author> c : clusters.getClusters()) {
-            System.out.println(Clusters.toString(c));
+
+        try {
+            PrintWriter out = new PrintWriter(new FileWriter(outputFile));
+            for (final Set<Author> cluster : clusters.getClusters()) {
+                String str = Clusters.toString(cluster);
+                System.out.println(str);
+                out.println(str);
+            }
+            try {
+                out.close();
+            } catch (Exception ex) {
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
         }
     }
 

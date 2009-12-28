@@ -16,7 +16,9 @@ public class CommandArgs {
             if (args[i].startsWith("-") && (i + 1 < args.length)) {
                 final String name = args[i].substring(1);
                 final String value = args[i + 1];
-                m_args.put(name, value);
+                if (!value.startsWith("-")) {
+                    m_args.put(name, value);
+                }
             }
         }
     }
