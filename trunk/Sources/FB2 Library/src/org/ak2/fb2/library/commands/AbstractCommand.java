@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.ak2.fb2.library.commands;
 
@@ -14,7 +14,7 @@ import org.ak2.utils.jlog.JLogMessage;
 
 /**
  * @author Alexander Kasatkin
- * 
+ *
  */
 public abstract class AbstractCommand implements ICommand {
 
@@ -49,11 +49,19 @@ public abstract class AbstractCommand implements ICommand {
         return description;
     }
 
-    protected void logBoldLine(JLogLevel level) {
+    public static void logBoldLine() {
+        logBoldLine(MSG_INFO_VALUE.getLevel());
+    }
+
+    public static void logBoldLine(JLogLevel level) {
         JLog.log(level.getLevel(), "================================");
     }
 
-    protected void logLine(JLogLevel level) {
+    public static void logLine() {
+        logLine(MSG_DEBUG_VALUE.getLevel());
+    }
+
+    public static void logLine(JLogLevel level) {
         JLog.log(level.getLevel(), "--------------------------------");
     }
 

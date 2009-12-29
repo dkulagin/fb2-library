@@ -14,6 +14,7 @@ import org.ak2.fb2.library.common.OutputPath;
 import org.ak2.fb2.library.exceptions.BadCmdArguments;
 import org.ak2.fb2.library.exceptions.LibraryException;
 import org.ak2.utils.LengthUtils;
+import org.ak2.utils.csv.CsvRecord;
 import org.ak2.utils.jlog.JLogLevel;
 import org.ak2.utils.jlog.JLogMessage;
 
@@ -51,12 +52,12 @@ public class MergeAuthors extends AbstractCommand {
             throw new BadCmdArguments("Output path type is wrong.", true);
         }
 
-        logBoldLine(MSG_INFO_VALUE.getLevel());
+        logBoldLine();
         MSG_INFO_VALUE.log("Processing input file", inputFile);
         MSG_INFO_VALUE.log("Writing output into  ", outputFolder);
         MSG_INFO_VALUE.log("Output book format   ", outFormat);
         MSG_INFO_VALUE.log("Output book path type", outPath);
-        logBoldLine(MSG_INFO_VALUE.getLevel());
+        logBoldLine();
 
         final File inFile = new File(inputFile);
         final File outFolder = new File(outputFolder);
@@ -91,11 +92,13 @@ public class MergeAuthors extends AbstractCommand {
                     c = null;
                 } else {
                     final Author author = getAuthor(s);
-                    if (c == null) {
-                        c = new Cluster(author);
-                        clusters.add(c);
+                    if (author != null) {
+                        if (c == null) {
+                            c = new Cluster(author);
+                            clusters.add(c);
+                        }
+                        c.addFolder(author);
                     }
-                    c.addFolder(author);
                 }
             }
 
@@ -110,24 +113,16 @@ public class MergeAuthors extends AbstractCommand {
     }
 
     private Author getAuthor(final String s) {
-        final String[] parts = s.split(":");
-        final String name = normalize(parts[0]);
-        if (parts.length > 1) {
-            return new Author(name, new File(normalize(parts[1])));
+        final CsvRecord rec = new CsvRecord(s);
+        final int size = rec.size();
+        if (size > 0) {
+            final String name = rec.getField(0);
+            if (size == 2) {
+                final String path = rec.getField(1);
+                return new Author(name, new File(path));
+            }
+            return new Author(name, null);
         }
-        return new Author(name, null);
-    }
-
-    private String normalize(final String s) {
-        final String val = s.trim();
-        int firstIndex = 0;
-        int lastIndex = val.length();
-        if (val.startsWith("'")) {
-            firstIndex++;
-        }
-        if (val.endsWith("'")) {
-            lastIndex--;
-        }
-        return val.substring(firstIndex, lastIndex).trim();
+        return null;
     }
 }

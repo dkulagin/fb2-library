@@ -44,10 +44,10 @@ public class FixEncoding extends AbstractCommand {
             throw new BadCmdArguments("Output format is wrong.", true);
         }
 
-        logBoldLine(MSG_INFO_VALUE.getLevel());
+        logBoldLine();
         MSG_INFO_VALUE.log("Processing input folder ", inputFolder);
         MSG_INFO_VALUE.log("Output book format      ", outFormat);
-        logBoldLine(MSG_INFO_VALUE.getLevel());
+        logBoldLine();
 
         final File inFolder = new File(inputFolder);
         final File tempFolder = createTempFolder(inFolder);
@@ -79,12 +79,12 @@ public class FixEncoding extends AbstractCommand {
 
         tempFolder.delete();
 
-        logBoldLine(JLogLevel.INFO);
+        logBoldLine();
         MSG_INFO_VALUE.log("Skipped   ", counters.get(ProcessingResult.SKIPPED));
         MSG_INFO_VALUE.log("Fixed     ", counters.get(ProcessingResult.CREATED));
         MSG_INFO_VALUE.log("Duplicated", counters.get(ProcessingResult.DUPLICATED));
         MSG_INFO_VALUE.log("Failed    ", counters.get(ProcessingResult.FAILED));
-        logBoldLine(JLogLevel.INFO);
+        logBoldLine();
     }
 
     private File createTempFolder(final File inFolder) throws LibraryException {

@@ -29,9 +29,9 @@ public class DeleteFolder extends AbstractCommand {
             throw new BadCmdArguments("Input file is missing.", true);
         }
 
-        logBoldLine(MSG_INFO_VALUE.getLevel());
+        logBoldLine();
         MSG_INFO_VALUE.log("Folder to delete", inputFolder);
-        logBoldLine(MSG_INFO_VALUE.getLevel());
+        logBoldLine();
 
         final File inFolder = new File(inputFolder);
 
