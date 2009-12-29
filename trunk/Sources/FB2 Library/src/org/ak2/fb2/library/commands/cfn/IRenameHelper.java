@@ -6,6 +6,7 @@ import org.ak2.fb2.library.book.FictionBook;
 
 public interface IRenameHelper {
 
+    String AUTHOR = "author";
     String AUTHOR_FIRST_NAME = "authorFirstName";
     String AUTHOR_LAST_NAME = "authorLastName";
     String BOOK_NAME = "bookName";

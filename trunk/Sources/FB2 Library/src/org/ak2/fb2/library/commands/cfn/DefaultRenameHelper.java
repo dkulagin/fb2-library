@@ -30,6 +30,9 @@ public class DefaultRenameHelper implements IRenameHelper {
             seqNo = m.group(3);
         }
 
+        final String author = (lastName + " " + firstName).trim();
+
+        map.put(AUTHOR, author);
         map.put(AUTHOR_FIRST_NAME, firstName);
         map.put(AUTHOR_LAST_NAME, lastName);
         map.put(BOOK_NAME, bookName);

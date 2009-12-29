@@ -27,7 +27,7 @@ import org.ak2.utils.jlog.JLogLevel;
 
 /**
  * @author Alexander Kasatkin
- * 
+ *
  */
 public class RenameFiles extends AbstractCommand {
 
@@ -123,7 +123,7 @@ public class RenameFiles extends AbstractCommand {
                     } catch (final ProcessingException ex) {
                         final ProcessingResult pr = ex.getResult();
                         if (pr == ProcessingResult.FAILED) {
-                            MSG_ERROR.log(ex, file.getName());
+                            MSG_ERROR.log(ex, file.getFullName());
                         } else {
                             final File outFile = ex.getFile();
                             if (outFile != null) {
@@ -132,7 +132,7 @@ public class RenameFiles extends AbstractCommand {
                         }
                         counters.increment(pr);
                     } catch (final Throwable th) {
-                        MSG_ERROR.log(th, file.getName());
+                        MSG_ERROR.log(th, file.getFullName());
                         counters.increment(ProcessingResult.FAILED);
                     }
                 }
@@ -169,7 +169,7 @@ public class RenameFiles extends AbstractCommand {
 
             final Map<String, String> properties = helper.getBookProperties(book);
 
-            String author = properties.get(IRenameHelper.AUTHOR_LAST_NAME) + " " + properties.get(IRenameHelper.AUTHOR_FIRST_NAME);
+            String author = properties.get(IRenameHelper.AUTHOR);
             String bookName = properties.get(IRenameHelper.BOOK_NAME);
             String seq = properties.get(IRenameHelper.BOOK_SEQUENCE);
             String seqNo = properties.get(IRenameHelper.BOOK_SEQUENCE_NO);
