@@ -8,7 +8,7 @@ public class Author {
 
     private final File m_folder;
 
-    private final String m_name;
+    private String m_name;
 
     private String m_firstName;
 
@@ -18,13 +18,14 @@ public class Author {
         m_folder = folder;
         m_name = name;
         if (LengthUtils.isNotEmpty(name)) {
-            int pos = m_name.indexOf(",");
+            int pos = m_name.indexOf("/");
             if (pos >= 0) {
                 m_lastName = m_name.substring(0, pos).trim();
                 m_firstName = m_name.substring(pos + 1).trim();
                 if (m_firstName.endsWith(".")) {
                     m_firstName = m_firstName.substring(0, m_firstName.length() - 1);
                 }
+                m_name = (m_lastName + " " + m_firstName).trim();
             } else {
                 pos = m_name.lastIndexOf(' ');
                 if (pos >= 0) {

@@ -84,12 +84,12 @@ public class RenameFiles extends AbstractCommand {
             throw new BadCmdArguments("Output path type is wrong.", true);
         }
 
-        logBoldLine(MSG_INFO_VALUE.getLevel());
+        logBoldLine();
         MSG_INFO_VALUE.log("Processing input folder", inputFolder);
         MSG_INFO_VALUE.log("Writing output into    ", outputFolder);
         MSG_INFO_VALUE.log("Output book format     ", outFormat);
         MSG_INFO_VALUE.log("Output book path type  ", outPath);
-        logBoldLine(MSG_INFO_VALUE.getLevel());
+        logBoldLine();
 
         final File inFile = new File(inputFolder);
         final File outFolder = new File(outputFolder);
@@ -104,7 +104,9 @@ public class RenameFiles extends AbstractCommand {
 
         execute(inFile, outFolder, outFormat, outPath);
 
+        logBoldLine();
         printResults();
+        logBoldLine();
     }
 
     public Collection<File> execute(final File inFile, final File outFile, final OutputFormat outFormat, final OutputPath outPath) {
@@ -145,11 +147,9 @@ public class RenameFiles extends AbstractCommand {
     }
 
     public void printResults() {
-        logBoldLine(MSG_INFO_VALUE.getLevel());
         MSG_INFO_VALUE.log("Created new", counters.get(ProcessingResult.CREATED));
         MSG_INFO_VALUE.log("Duplicated ", counters.get(ProcessingResult.DUPLICATED));
         MSG_INFO_VALUE.log("Failed     ", counters.get(ProcessingResult.FAILED));
-        logBoldLine(MSG_INFO_VALUE.getLevel());
     }
 
     public File processFile(final IFile file, final File outFile, final OutputFormat outFormat, final OutputPath outPath) throws ProcessingException {

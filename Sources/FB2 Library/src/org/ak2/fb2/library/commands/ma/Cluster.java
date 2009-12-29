@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.ak2.fb2.library.book.FictionBook;
+import org.ak2.fb2.library.commands.AbstractCommand;
 import org.ak2.fb2.library.commands.cfn.DefaultRenameHelper;
 import org.ak2.fb2.library.commands.cfn.RenameFiles;
 import org.ak2.fb2.library.commands.del.DeleteFolder;
@@ -19,7 +20,7 @@ import org.ak2.utils.jlog.JLogMessage;
 
 public class Cluster extends DefaultRenameHelper {
 
-    private static final JLogMessage MSG_MERGE = new JLogMessage(JLogLevel.DEBUG, "Merge cluster: {0}");
+    private static final JLogMessage MSG_MERGE = new JLogMessage(JLogLevel.INFO, "Merge cluster: {0}");
 
     private final Author targetAuthor;
 
@@ -56,6 +57,7 @@ public class Cluster extends DefaultRenameHelper {
         }
 
         mCmd.printResults();
+        AbstractCommand.logBoldLine();
 
         if (delete) {
             for (final Author author : authors) {

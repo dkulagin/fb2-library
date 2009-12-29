@@ -1,10 +1,20 @@
 package org.ak2.fb2.library.commands.ca;
 
 import java.io.File;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.ak2.utils.CompareUtils;
+import org.ak2.utils.FileUtils;
+import org.ak2.utils.files.FileScanner;
+import org.ak2.utils.files.IFile;
+import org.ak2.utils.files.IFileFilter;
+import org.ak2.utils.jlog.JLogLevel;
+import org.ak2.utils.jlog.JLogMessage;
 
 public class Author implements Comparable<Author> {
+
+    private static final JLogMessage MSG_SCAN = new JLogMessage(JLogLevel.INFO, "Scan folder {0}");
 
     private final File m_folder;
 
@@ -15,6 +25,8 @@ public class Author implements Comparable<Author> {
     private String m_lastName;
 
     private boolean m_shortFirstName;
+
+    private Set<String> m_files;
 
     public Author(final File folder) {
         m_folder = folder;
@@ -51,6 +63,25 @@ public class Author implements Comparable<Author> {
 
     public String getLastName() {
         return m_lastName;
+    }
+
+    public Set<String> getFiles() {
+        if (m_files == null) {
+            m_files = new TreeSet<String>();
+            MSG_SCAN.log(m_folder);
+            FileScanner.enumerate(m_folder, new IFileFilter() {
+                @Override
+                public boolean accept(final IFile file) {
+                    if (file.getName().endsWith(".fb2")) {
+                        final File realFile = file.getRealFile();
+                        final String fileName = FileUtils.getRelativeFileName(realFile, m_folder);
+                        m_files.add(fileName);
+                    }
+                    return true;
+                }
+            }, new FileScanner.Options(true, true));
+        }
+        return m_files;
     }
 
     @Override

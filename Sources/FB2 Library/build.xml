@@ -52,7 +52,7 @@
 		</jar>
 	</target>
 
-	<target name="generate" depends="jar" >
+	<target name="generate" depends="jar">
 		<filter token="jar.file" value="${jar.file}" />
 		<copy file="scripts/cfn.cmd" tofile="${dist}/cfn.cmd" filtering="true" />
 		<copy file="scripts/cfn.sh" tofile="${dist}/cfn.sh" filtering="true" />
@@ -62,10 +62,15 @@
 		<copy file="scripts/ma.sh" tofile="${dist}/ma.sh" filtering="true" />
 		<copy file="scripts/del.cmd" tofile="${dist}/del.cmd" filtering="true" />
 		<copy file="scripts/del.sh" tofile="${dist}/del.sh" filtering="true" />
+
+		<fixcrlf srcdir="${dist}" eol="dos" includes="*.cmd" />
+		<fixcrlf srcdir="${dist}" eol="unix" includes="*.sh" />
+		<chmod perm="+x" dir="${dist}" includes="*.sh" />
 	</target>
 
 
 	<target name="all" depends="clean, jar, generate" description="build all">
+<!--
 		<copy todir="${packages}">
 			<fileset dir="${dist}">
 				<include name="${jar.file}" />
@@ -73,10 +78,22 @@
 				<include name="*.sh" />
 			</fileset>
 		</copy>
+-->
+		<tar destfile="${packages}/${jar.name}-${project.version}.tar.gz" compression="gzip" >
+			<tarfileset dir="${dist}" mode="755">
+				<include name="*.sh" />
+			</tarfileset>
+			<tarfileset dir="${dist}">
+				<include name="*.jar" />
+			</tarfileset>
+		</tar>
 
-		<fixcrlf srcdir="${packages}" eol="dos" includes="*.cmd" />
-		<fixcrlf srcdir="${packages}" eol="unix" includes="*.sh" />
-		<chmod perm="+x" dir="${packages}" includes="*.sh" />
+		<zip destfile="${packages}/${jar.name}-${project.version}.zip">
+			<fileset dir="${dist}" >
+				<include name="*.cmd" />
+				<include name="*.jar" />
+			</fileset>
+		</zip>
 
 	</target>
 </project>
