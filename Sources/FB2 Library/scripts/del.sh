@@ -1,3 +1,6 @@
 #!/bin/bash
 
-java -Xms256M -Xmx512M -jar @jar.file@ del -input $1
+SCRIPT=$0
+SCRIPT_PATH=`dirname "$SCRIPT"`
+
+java -Xms256M -Xmx512M -jar "$SCRIPT_PATH/@jar.file@" del -input $1
