@@ -65,11 +65,11 @@ public class FixEncoding extends AbstractCommand {
                     } catch (ProcessingException ex) {
                         final ProcessingResult pr = ex.getResult();
                         if (pr == ProcessingResult.FAILED) {
-                            MSG_ERROR.log(ex, file.getName());
+                            MSG_ERROR.log(ex, file.getFullName());
                         }
                         counters.increment(pr);
                     } catch (final Exception ex) {
-                        MSG_ERROR.log(ex, file.getName());
+                        MSG_ERROR.log(ex, file.getFullName());
                         counters.increment(ProcessingResult.FAILED);
                     }
                 }
