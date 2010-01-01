@@ -10,7 +10,7 @@ import java.util.zip.ZipInputStream;
 
 /**
  * @author Alexander Kasatkin
- *
+ * 
  */
 public class ZipArchiveFile extends StandardFile implements IFolder {
 
@@ -21,7 +21,7 @@ public class ZipArchiveFile extends StandardFile implements IFolder {
 
     /**
      * Constructor.
-     *
+     * 
      * @param file real file
      * @throws IOException thrown on error
      * @throws ZipException thrown on error
@@ -33,11 +33,24 @@ public class ZipArchiveFile extends StandardFile implements IFolder {
 
     /**
      * {@inheritDoc}
-     *
-     * @see org.ak2.utils.files.IFolder#enumerate(org.ak2.utils.files.IFileFilter,
-     *      org.ak2.utils.files.FileScanner.Options)
+     * 
+     * @see java.lang.Object#finalize()
+     */
+    @Override
+    protected void finalize() {
+        try {
+            m_archive.close();
+        } catch (Exception ex) {
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     * 
+     * @see org.ak2.utils.files.IFolder#enumerate(org.ak2.utils.files.IFileFilter, org.ak2.utils.files.FileScanner.Options)
      */
     public final void enumerate(final IFileFilter filter, final FileScanner.Options options) {
+        try {
         if (options.isArchiveScanEnabled()) {
             final Enumeration<? extends ZipEntry> entries = m_archive.entries();
             while (entries.hasMoreElements()) {
@@ -46,8 +59,7 @@ public class ZipArchiveFile extends StandardFile implements IFolder {
                 if (FileFactory.isZipFile(e.getName())) {
                     try {
                         ZipInputStream in = new ZipInputStream(entry.open());
-                        for (ZipEntry childEntry = in.getNextEntry(); childEntry != null; childEntry = in
-                                .getNextEntry()) {
+                        for (ZipEntry childEntry = in.getNextEntry(); childEntry != null; childEntry = in.getNextEntry()) {
                             ZipArchiveInternalEntry child = new ZipArchiveInternalEntry(entry, in, childEntry);
                             filter.accept(child);
                         }
@@ -58,6 +70,12 @@ public class ZipArchiveFile extends StandardFile implements IFolder {
                     filter.accept(entry);
                 }
 
+            }
+        }
+        } finally {
+            try {
+                m_archive.close();
+            } catch (IOException ex) {
             }
         }
     }

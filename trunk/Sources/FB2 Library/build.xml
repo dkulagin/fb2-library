@@ -54,14 +54,11 @@
 
 	<target name="generate" depends="jar">
 		<filter token="jar.file" value="${jar.file}" />
-		<copy file="scripts/cfn.cmd" tofile="${dist}/cfn.cmd" filtering="true" />
-		<copy file="scripts/cfn.sh" tofile="${dist}/cfn.sh" filtering="true" />
-		<copy file="scripts/ca.cmd" tofile="${dist}/ca.cmd" filtering="true" />
-		<copy file="scripts/ca.sh" tofile="${dist}/ca.sh" filtering="true" />
-		<copy file="scripts/ma.cmd" tofile="${dist}/ma.cmd" filtering="true" />
-		<copy file="scripts/ma.sh" tofile="${dist}/ma.sh" filtering="true" />
-		<copy file="scripts/del.cmd" tofile="${dist}/del.cmd" filtering="true" />
-		<copy file="scripts/del.sh" tofile="${dist}/del.sh" filtering="true" />
+		<copy todir="${dist}" filtering="true">
+			<fileset dir="scripts">
+				<include name="*" />
+			</fileset>
+		</copy>
 
 		<fixcrlf srcdir="${dist}" eol="dos" includes="*.cmd" />
 		<fixcrlf srcdir="${dist}" eol="unix" includes="*.sh" />
@@ -70,26 +67,19 @@
 
 
 	<target name="all" depends="clean, jar, generate" description="build all">
-<!--
-		<copy todir="${packages}">
-			<fileset dir="${dist}">
-				<include name="${jar.file}" />
-				<include name="*.cmd" />
-				<include name="*.sh" />
-			</fileset>
-		</copy>
--->
-		<tar destfile="${packages}/${jar.name}-${project.version}.tar.gz" compression="gzip" >
-			<tarfileset dir="${dist}" mode="755">
+		<property name="install.path" value="/opt/${package.name}/${package.name}-${project.version}/" />
+
+		<tar destfile="${packages}/${package.name}-${project.version}.tar.gz" compression="gzip">
+			<tarfileset dir="${dist}" mode="755" preserveleadingslashes="true" prefix="${install.path}">
 				<include name="*.sh" />
 			</tarfileset>
-			<tarfileset dir="${dist}">
+			<tarfileset dir="${dist}" preserveleadingslashes="true" prefix="${install.path}">
 				<include name="*.jar" />
 			</tarfileset>
 		</tar>
 
-		<zip destfile="${packages}/${jar.name}-${project.version}.zip">
-			<fileset dir="${dist}" >
+		<zip destfile="${packages}/${package.name}-${project.version}.zip">
+			<fileset dir="${dist}">
 				<include name="*.cmd" />
 				<include name="*.jar" />
 			</fileset>
