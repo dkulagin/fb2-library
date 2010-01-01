@@ -43,14 +43,7 @@ public class DeleteFolder extends AbstractCommand {
     }
 
     public void execute(final File inFolder) {
-        FolderScanner.enumerateWide(inFolder, new FolderFilter(), new FolderWorker(), Integer.MAX_VALUE);
-    }
-
-    private final class FolderFilter implements FileFilter {
-        @Override
-        public boolean accept(File folder) {
-            return true;
-        }
+        FolderScanner.enumerateWide(inFolder, new FolderWorker());
     }
 
     private final class FolderWorker implements FileFilter {

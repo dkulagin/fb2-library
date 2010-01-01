@@ -97,7 +97,7 @@ public class CompareAuthors extends AbstractCommand {
                 buf.eol();
                 if (includeFiles) {
                     Set<String> files = author.getFiles();
-                    for(String file : files) {
+                    for (String file : files) {
                         buf.add("", "", commonFiles.contains(file) ? "\"=\"" : "\"+\"", file).eol();
                     }
                 }
@@ -121,13 +121,13 @@ public class CompareAuthors extends AbstractCommand {
 
     private Author[] getAuthors(final File folder, final int depth) {
         final Set<Author> authors = new TreeSet<Author>();
-        FolderScanner.enumerateDepth(folder, new FileFilter() {
+        FolderScanner.enumerateDepth(folder, null, new FileFilter() {
             @Override
             public boolean accept(final File f) {
                 authors.add(new Author(f));
                 return true;
             }
-        }, depth);
+        }, depth, Math.max(0, depth - 1));
 
         return authors.toArray(new Author[authors.size()]);
     }
