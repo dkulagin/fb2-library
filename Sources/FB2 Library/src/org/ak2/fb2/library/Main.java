@@ -109,6 +109,8 @@ public class Main {
             }
         } catch (final LibraryException ex) {
             MSG_ERROR.log(ex);
+        } catch (final Throwable th) {
+            MSG_ERROR.log(th);
         }
     }
 
