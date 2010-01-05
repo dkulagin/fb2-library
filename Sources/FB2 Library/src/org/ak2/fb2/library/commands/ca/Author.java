@@ -6,6 +6,7 @@ import java.util.TreeSet;
 
 import org.ak2.utils.CompareUtils;
 import org.ak2.utils.FileUtils;
+import org.ak2.utils.LengthUtils;
 import org.ak2.utils.files.FileScanner;
 import org.ak2.utils.files.IFile;
 import org.ak2.utils.files.IFileFilter;
@@ -120,6 +121,9 @@ public class Author implements Comparable<Author> {
     }
 
     public static boolean isSimilar(final Author a1, final Author a2, final int dist) {
+    	if (LengthUtils.equals(a1.m_firstName, a2.m_lastName) && LengthUtils.equals(a1.m_lastName, a2.m_firstName)) {
+    		return true;
+    	}
         if (a1.m_firstName != null && a2.m_firstName != null) {
             final int lnDist = CompareUtils.levensteinDistance(a1.m_lastName, a2.m_lastName);
             if (lnDist > dist) {
