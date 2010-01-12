@@ -54,6 +54,9 @@
 
 	<target name="generate" depends="jar">
 		<filter token="jar.file" value="${jar.file}" />
+		<filter token="java.linux.options" value="${java.linux.options}" />
+		<filter token="java.win.options" value="${java.win.options}" />
+
 		<copy todir="${dist}" filtering="true">
 			<fileset dir="scripts">
 				<include name="*" />

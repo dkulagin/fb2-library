@@ -20,6 +20,7 @@ import org.ak2.fb2.library.commands.cfn.RenameFiles;
 import org.ak2.fb2.library.commands.del.DeleteFolder;
 import org.ak2.fb2.library.commands.enc.FixEncoding;
 import org.ak2.fb2.library.commands.ma.MergeAuthors;
+import org.ak2.fb2.library.commands.xml.ExportXml;
 import org.ak2.fb2.library.exceptions.BadCmdArguments;
 import org.ak2.fb2.library.exceptions.LibraryException;
 import org.ak2.utils.LengthUtils;
@@ -41,7 +42,7 @@ public class Main {
 
     private static final JLogMessage MSG_ERROR = new JLogMessage(JLogLevel.ERROR, "Unexpected exception: ");
 
-    private static final ICommand[] COMMANDS = { new RenameFiles(), new FixEncoding(), new CompareAuthors(), new MergeAuthors(), new DeleteFolder() };
+    private static final ICommand[] COMMANDS = { new RenameFiles(), new FixEncoding(), new CompareAuthors(), new MergeAuthors(), new DeleteFolder(), new ExportXml() };
 
     public static void main(final String[] args) {
         initLog();
@@ -107,8 +108,6 @@ public class Main {
             if (ex.isShowReadme()) {
                 showReadme(cmd);
             }
-        } catch (final LibraryException ex) {
-            MSG_ERROR.log(ex);
         } catch (final Throwable th) {
             MSG_ERROR.log(th);
         }

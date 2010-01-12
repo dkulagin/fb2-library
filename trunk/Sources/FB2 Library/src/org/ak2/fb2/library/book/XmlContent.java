@@ -161,7 +161,7 @@ public class XmlContent {
     }
 
     public static String getXmlEncoding(final byte[] bytes, final String defaultEncoding) {
-        String text = new String(bytes, 0, 1024);
+        String text = new String(bytes, 0, Math.min(bytes.length, 1024));
         final Matcher m = ENCODING_PATTERN.matcher(text);
         if (m.find()) {
             return m.group(1);
