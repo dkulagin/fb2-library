@@ -1,3 +1,3 @@
 @Echo off
 
-java -Xms256M -Xmx512M -jar @jar.file@ del -input %1
+java @java.win.options@ -jar @jar.file@ del -input %1

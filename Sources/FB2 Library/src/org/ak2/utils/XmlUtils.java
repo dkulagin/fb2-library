@@ -4,6 +4,9 @@ import java.util.Iterator;
 
 import org.ak2.utils.xpath.IXPathApi;
 import org.ak2.utils.xpath.XPathException;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -25,9 +28,11 @@ public final class XmlUtils {
 
     /**
      * Searches for a content of a node by the given XPath expression.
-     * 
-     * @param root root XML element
-     * @param xpath XPath expression
+     *
+     * @param root
+     *            root XML element
+     * @param xpath
+     *            XPath expression
      * @return string
      */
     public static String getString(final Node root, final String xpath) {
@@ -42,10 +47,13 @@ public final class XmlUtils {
 
     /**
      * Searches for a content of a node by the given XPath expression.
-     * 
-     * @param root root XML element
-     * @param xpath XPath expression
-     * @param defaultValue default value used if no appropriate content found
+     *
+     * @param root
+     *            root XML element
+     * @param xpath
+     *            XPath expression
+     * @param defaultValue
+     *            default value used if no appropriate content found
      * @return string
      */
     public static String getString(final Node root, final String xpath, final String defaultValue) {
@@ -54,10 +62,13 @@ public final class XmlUtils {
 
     /**
      * Searches for a content of a node by the given XPath expression.
-     * 
-     * @param root root XML element
-     * @param xpath XPath expression
-     * @param defaultValue default value used if no appropriate content found
+     *
+     * @param root
+     *            root XML element
+     * @param xpath
+     *            XPath expression
+     * @param defaultValue
+     *            default value used if no appropriate content found
      * @return boolean
      */
     public static boolean getBoolean(final Node root, final String xpath, final boolean defaultValue) {
@@ -70,10 +81,13 @@ public final class XmlUtils {
 
     /**
      * Searches for a content of a node by the given XPath expression.
-     * 
-     * @param root root XML element
-     * @param xpath XPath expression
-     * @param defaultValue default value used if no appropriate content found
+     *
+     * @param root
+     *            root XML element
+     * @param xpath
+     *            XPath expression
+     * @param defaultValue
+     *            default value used if no appropriate content found
      * @return int
      */
     public static int getInteger(final Node root, final String xpath, final int defaultValue) {
@@ -90,9 +104,11 @@ public final class XmlUtils {
 
     /**
      * Searches for a single node by the given XPath expression.
-     * 
-     * @param root root XML element
-     * @param xpath XPath expression
+     *
+     * @param root
+     *            root XML element
+     * @param xpath
+     *            XPath expression
      * @return an instance of the {@link Node} object
      */
     @SuppressWarnings("unchecked")
@@ -107,9 +123,11 @@ public final class XmlUtils {
 
     /**
      * Searches for nodes by the given XPath expression.
-     * 
-     * @param root root XML element
-     * @param xpath XPath expression
+     *
+     * @param root
+     *            root XML element
+     * @param xpath
+     *            XPath expression
      * @return an iterable collection of the {@link Node} objects
      */
     public static Iterable<Node> selectNodes(final Node root, final String xpath) {
@@ -124,9 +142,11 @@ public final class XmlUtils {
 
     /**
      * Searches for content onodes by the given XPath expression.
-     * 
-     * @param root root XML element
-     * @param xpath XPath expression
+     *
+     * @param root
+     *            root XML element
+     * @param xpath
+     *            XPath expression
      * @return an iterable collection of selected node contents
      */
     public static Iterable<String> selectStrings(final Node root, final String xpath) {
@@ -137,6 +157,19 @@ public final class XmlUtils {
             // NOP
         }
         return new StringListWrapper(selectNodes);
+    }
+
+    /**
+     * Searches for nodes by the given XPath expression.
+     *
+     * @param root
+     *            root XML element
+     * @param xpath
+     *            XPath expression
+     * @return an iterable collection of the {@link Node} objects
+     */
+    public static Iterable<Attr> selectAttributes(final Element elem) {
+        return new NodeMapWrapper(elem.getAttributes());
     }
 
     /**
@@ -156,8 +189,9 @@ public final class XmlUtils {
 
         /**
          * Constructor.
-         * 
-         * @param nodes found nodes
+         *
+         * @param nodes
+         *            found nodes
          */
         NodeListWrapper(final NodeList nodes) {
             m_nodes = nodes;
@@ -165,7 +199,7 @@ public final class XmlUtils {
 
         /**
          * Returns an iterator over a set of elements of type T.
-         * 
+         *
          * @return an Iterator.
          * @see java.lang.Iterable#iterator()
          */
@@ -176,7 +210,7 @@ public final class XmlUtils {
 
         /**
          * Returns <tt>true</tt> if the iteration has more elements.
-         * 
+         *
          * @return <tt>true</tt> if the iterator has more elements.
          * @see java.util.Iterator#hasNext()
          */
@@ -186,7 +220,7 @@ public final class XmlUtils {
 
         /**
          * Returns the next element in the iteration.
-         * 
+         *
          * @return the next element in the iteration.
          * @see java.util.Iterator#next()
          */
@@ -199,7 +233,6 @@ public final class XmlUtils {
          */
         public void remove() {
         }
-
     }
 
     /**
@@ -219,8 +252,9 @@ public final class XmlUtils {
 
         /**
          * Constructor.
-         * 
-         * @param nodes found nodes
+         *
+         * @param nodes
+         *            found nodes
          */
         StringListWrapper(final NodeList nodes) {
             m_nodes = nodes;
@@ -228,7 +262,7 @@ public final class XmlUtils {
 
         /**
          * Returns an iterator over a set of elements of type T.
-         * 
+         *
          * @return an Iterator.
          * @see java.lang.Iterable#iterator()
          * @see java.lang.Iterable#iterator()
@@ -240,7 +274,7 @@ public final class XmlUtils {
 
         /**
          * Returns <tt>true</tt> if the iteration has more elements.
-         * 
+         *
          * @return <tt>true</tt> if the iterator has more elements.
          * @see java.util.Iterator#hasNext()
          */
@@ -250,7 +284,7 @@ public final class XmlUtils {
 
         /**
          * Returns the next element in the iteration.
-         * 
+         *
          * @return the next element in the iteration.
          * @see java.util.Iterator#next()
          */
@@ -263,7 +297,68 @@ public final class XmlUtils {
          */
         public void remove() {
         }
-
     }
 
+    /**
+     * This class wraps the {@link NodeList} object by iterable collection interface.
+     */
+    private static class NodeMapWrapper implements Iterable<Attr>, Iterator<Attr> {
+
+        /**
+         * List containing found nodes.
+         */
+        private final NamedNodeMap m_nodes;
+
+        /**
+         * Iterator index.
+         */
+        private int m_index;
+
+        /**
+         * Constructor.
+         *
+         * @param nodes
+         *            found nodes
+         */
+        NodeMapWrapper(final NamedNodeMap nodes) {
+            m_nodes = nodes;
+        }
+
+        /**
+         * Returns an iterator over a set of elements of type T.
+         *
+         * @return an Iterator.
+         * @see java.lang.Iterable#iterator()
+         */
+        public Iterator<Attr> iterator() {
+            m_index = 0;
+            return this;
+        }
+
+        /**
+         * Returns <tt>true</tt> if the iteration has more elements.
+         *
+         * @return <tt>true</tt> if the iterator has more elements.
+         * @see java.util.Iterator#hasNext()
+         */
+        public boolean hasNext() {
+            return m_nodes != null && m_index >= 0 && m_index < m_nodes.getLength();
+        }
+
+        /**
+         * Returns the next element in the iteration.
+         *
+         * @return the next element in the iteration.
+         * @see java.util.Iterator#next()
+         */
+        public Attr next() {
+            return (Attr) (hasNext() ? m_nodes.item(m_index++) : null);
+        }
+
+        /**
+         * @see java.util.Iterator#remove()
+         */
+        public void remove() {
+        }
+    }
 }
