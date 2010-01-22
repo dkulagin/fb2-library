@@ -85,4 +85,8 @@ public class FictionBookImage {
         out.write(fieldOriginal);
         out.close();
     }
+
+    public byte[] getRawData() {
+        return fieldOriginal;
+    }
 }

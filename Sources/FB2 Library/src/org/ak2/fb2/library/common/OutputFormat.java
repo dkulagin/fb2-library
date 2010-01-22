@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import org.ak2.fb2.library.book.FictionBook;
+import org.ak2.palmdoc.MobiPrcCreator;
 import org.ak2.utils.jlog.JLogLevel;
 import org.ak2.utils.jlog.JLogMessage;
 import org.ak2.utils.zip.PackageCreator;
@@ -40,6 +41,21 @@ public enum OutputFormat {
             pc.addFileToPackage(content, bookFileName);
             pc.close();
         }
+    },
+    /**
+     * Mobireader PRC file
+     */
+    Prc {
+
+        @Override
+        public File createFile(File bookFolder, String bookFileName, FictionBook book) throws ProcessingException {
+            try {
+                return MobiPrcCreator.createFile(bookFolder, bookFileName, book);
+            } catch (Exception ex) {
+                throw new ProcessingException(ex);
+            }
+        }
+        
     };
 
     private static final JLogMessage MSG_FILE_FOUND = new JLogMessage(JLogLevel.DEBUG, "File   found: {0}");
