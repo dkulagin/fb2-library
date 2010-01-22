@@ -13,36 +13,14 @@ public enum OutputFormat {
     /**
      * FB2 output file.
      */
-    Fb2 {
-        /**
-         * {@inheritDoc}
-         * 
-         * @see org.ak2.fb2.library.common.OutputFormat#getFile(java.io.File, java.lang.String)
-         */
-        @Override
-        protected File getFile(final File bookFolder, final String bookFileName) {
-            return new File(bookFolder, bookFileName);
-        }
-
-        /**
-         * {@inheritDoc}
-         * 
-         * @see org.ak2.fb2.library.common.OutputFormat#writeFile(java.io.File, java.lang.String, org.ak2.fb2.library.book.FictionBook)
-         */
-        @Override
-        protected void writeFile(final File outFile, final String bookFileName, final byte[] content) throws IOException {
-            final FileOutputStream out = new FileOutputStream(outFile);
-            out.write(content);
-            out.close();
-        }
-    },
+    Fb2,
     /**
      * Zip file with single FB2 book.
      */
     Zip {
         /**
          * {@inheritDoc}
-         * 
+         *
          * @see org.ak2.fb2.library.common.OutputFormat#getFile(java.io.File, java.lang.String)
          */
         @Override
@@ -53,7 +31,7 @@ public enum OutputFormat {
 
         /**
          * {@inheritDoc}
-         * 
+         *
          * @see org.ak2.fb2.library.common.OutputFormat#writeFile(java.io.File, java.lang.String, org.ak2.fb2.library.book.FictionBook)
          */
         @Override
@@ -78,7 +56,7 @@ public enum OutputFormat {
         }
     }
 
-    public File createFile(final File bookFolder, final String bookFileName, final byte[] content) throws ProcessingException {
+    protected File createFile(final File bookFolder, final String bookFileName, final byte[] content) throws ProcessingException {
         final File outFile = getFile(bookFolder, bookFileName);
         if (!outFile.exists()) {
             try {
@@ -94,8 +72,13 @@ public enum OutputFormat {
         }
     }
 
-    protected abstract File getFile(File bookFolder, String bookFileName);
+    protected File getFile(final File bookFolder, final String bookFileName) {
+        return new File(bookFolder, bookFileName);
+    }
 
-    protected abstract void writeFile(File outFile, String bookFileName, byte[] content) throws IOException;
-
+    protected void writeFile(final File outFile, final String bookFileName, final byte[] content) throws IOException {
+        final FileOutputStream out = new FileOutputStream(outFile);
+        out.write(content);
+        out.close();
+    }
 }
