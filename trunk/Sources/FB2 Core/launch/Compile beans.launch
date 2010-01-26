@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/FB Core"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="4"/>
+</listAttribute>
+<booleanAttribute key="org.eclipse.debug.core.appendEnvironmentVariables" value="true"/>
+<booleanAttribute key="org.eclipse.jdt.debug.ui.INCLUDE_EXTERNAL_JARS" value="true"/>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="org.apache.xmlbeans.impl.tool.SchemaCompiler"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-javasource 1.5&#13;&#10;-out ./lib/bookstore-xmlbeans.jar &#13;&#10;./resources/org/ak2/fb2/bookstore/impl/xsd/FictionBookStore.xsd&#13;&#10;./resources/org/ak2/fb2/bookstore/impl/xsd/FictionBookLinks.xsd&#13;&#10;./resources/org/ak2/fb2/bookstore/impl/xsd/FictionBookLang.xsd&#13;&#10;./resources/org/ak2/fb2/bookstore/impl/xsd/FictionBookGenres.xsd&#13;&#10;./resources/org/ak2/fb2/bookstore/impl/xsd/FictionBookStore.xsdconfig"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="FB Core"/>
+</launchConfiguration>
