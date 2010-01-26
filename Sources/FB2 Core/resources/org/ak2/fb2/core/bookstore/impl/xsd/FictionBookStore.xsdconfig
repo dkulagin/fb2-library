@@ -1,0 +1,7 @@
+<xb:config xmlns:xb="http://xml.apache.org/xmlbeans/2004/02/xbean/config" xmlns:ct="http://xmlbeans.apache.org/samples/catalog">
+	<xb:namespace uri="##any">
+    	<xb:package>org.ak2.fb2.bookstore.impl.xsd</xb:package>                    
+    	<!-- xb:suffix>Bean</xb:suffix -->
+	</xb:namespace>
+</xb:config>
+
