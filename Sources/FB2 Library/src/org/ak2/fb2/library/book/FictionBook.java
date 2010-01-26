@@ -40,6 +40,9 @@ public class FictionBook {
         fieldTitleInfo = (Element) XmlUtils.selectNode(fieldDocument, "/FictionBook/description/title-info");
     }
 
+    public Document getDocument() {
+        return fieldDocument;
+    }
     public String getBookName() {
         if (fieldDocument == null) {
             return null;

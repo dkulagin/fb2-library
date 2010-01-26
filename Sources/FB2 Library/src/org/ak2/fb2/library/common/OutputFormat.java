@@ -50,12 +50,17 @@ public enum OutputFormat {
         @Override
         public File createFile(File bookFolder, String bookFileName, FictionBook book) throws ProcessingException {
             try {
-                return MobiPrcCreator.createFile(bookFolder, bookFileName, book);
+                return MobiPrcCreator.createFile(bookFolder, bookFileName + ".prc", book);
             } catch (Exception ex) {
                 throw new ProcessingException(ex);
             }
         }
         
+        @Override
+        protected File getFile(final File bookFolder, final String bookFileName) {
+            final String prcFileName = bookFileName + ".prc";
+            return new File(bookFolder, prcFileName);
+        }
     };
 
     private static final JLogMessage MSG_FILE_FOUND = new JLogMessage(JLogLevel.DEBUG, "File   found: {0}");
