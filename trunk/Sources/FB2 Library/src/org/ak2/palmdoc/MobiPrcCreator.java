@@ -1,5 +1,6 @@
 package org.ak2.palmdoc;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -8,6 +9,7 @@ import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 
+import javax.imageio.ImageIO;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -19,6 +21,12 @@ import javax.xml.transform.stream.StreamSource;
 import org.ak2.fb2.library.book.FictionBook;
 import org.ak2.fb2.library.book.image.FictionBookImage;
 import org.ak2.utils.ResourceUtils;
+import org.ak2.utils.xpath.IXPathApi;
+import org.ak2.utils.xpath.XPathException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * @author Andrei Komarovskikh / Reksoft
@@ -29,16 +37,18 @@ public class MobiPrcCreator {
     private static final String HTML_ENCODING = "windows-1251";
 
     public static File createFile(File bookFolder, String outputFileName, FictionBook fb) throws IOException, TransformerFactoryConfigurationError,
-            TransformerException {
-        boolean compress = true;
+            TransformerException, XPathException {
+        boolean compress = false;
 
-        System.out.println("Generating PRC...");
         String databaseName = fb.getBookName();
         PilotDocRecord docRecord = null;
         RandomAccessFile outputFile = null;
         DocumentHeader docHeader = new DocumentHeader();
 
-        byte[] bookContent = getBookContent(fb);
+        
+        Node doc = setImageIndexes(fb);
+        
+        byte[] bookContent = getBookContent(doc);
         docHeader.storyLen = bookContent.length;
         docRecord = new PilotDocRecord(docHeader.storyLen);
         docRecord.assign(bookContent, docHeader.storyLen);
@@ -97,7 +107,6 @@ public class MobiPrcCreator {
         docHeader.write(outputFile);
 
         int indexInArray = 0;
-        System.out.print("Writing records:");
 
         // Write doc records
         for (int record = 1; record <= docHeader.numRecords; record++) {
@@ -110,22 +119,19 @@ public class MobiPrcCreator {
             if (compress) {
                 docRecord.compress();
             }
-            System.out.print(" " + record);
             outputFile.write(docRecord.buf);
         }
-
-        System.out.println("");
         // Write images
-
-        // Iterator it = images.iterator();
-
-        System.out.print("Writing images:");
 
         int imageRecordIndex = docHeader.numRecords + 1;
         for (int imageIndex = 0; imageIndex < images.length; imageIndex++, imageRecordIndex++) {
             recordIndex[imageRecordIndex].fileOffset = (int) outputFile.getFilePointer();
-            System.out.print(" " + (imageIndex + 1));
-            outputFile.write(images[imageIndex].getRawData());
+            BufferedImage img = images[imageIndex].transformImage(300, 300, 64000);
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            ImageIO.write(img, "bmp", output);
+            output.flush();
+            output.close();
+            outputFile.write(output.toByteArray());
         }
         System.out.println("");
 
@@ -137,11 +143,42 @@ public class MobiPrcCreator {
         }
 
         outputFile.close();
-        System.out.println("PRC Generation finished");
         return f;
     }
 
-    private static byte[] getBookContent(FictionBook fb) throws TransformerFactoryConfigurationError, TransformerException, UnsupportedEncodingException {
+    
+    protected static Node setImageIndexes(FictionBook fb) throws TransformerException, XPathException {
+        Document document = fb.getDocument();
+        
+        Node doc = document.cloneNode(true);
+        
+        final NodeList iter2 = IXPathApi.Factory.newInstance().selectNodes(doc, "//image");
+        for (int i = 0; i < iter2.getLength(); i++) {
+            
+            final Element element = (Element) iter2.item(i);
+            String imageName = element.getAttribute("l:href");
+            if (imageName.startsWith("#")) {
+                imageName = imageName.substring(1);
+            }
+            final int index = fb.getImageIndex(imageName);
+            if (index != -1) {
+                element.setAttribute("prctype", "BMP");
+
+                String indexString = "" + (1 + index);
+
+                final int j = indexString.length();
+                for (int k = 0; k < 5 - j; k++) {
+                    indexString = "0" + indexString;
+                }
+
+                element.setAttribute("prcindex", indexString);
+            }
+        }
+        return doc;
+    }
+    
+    
+    private static byte[] getBookContent(Node document) throws TransformerFactoryConfigurationError, TransformerException, UnsupportedEncodingException {
         
         final InputStream resourceAsStream = MobiPrcCreator.class.getResourceAsStream(FB2_2_HTML_RU_XSL);
 
@@ -149,7 +186,7 @@ public class MobiPrcCreator {
 
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
 
-        final DOMSource fb2FileSource = new DOMSource(fb.getDocument());
+        final DOMSource fb2FileSource = new DOMSource(document);
 
         final StreamResult htmlFile = new StreamResult(output);
 
