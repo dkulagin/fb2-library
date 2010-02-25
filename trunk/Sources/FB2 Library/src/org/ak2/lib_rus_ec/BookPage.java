@@ -13,8 +13,8 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.ak2.fb2.library.book.BookAuthor;
 import org.ak2.fb2.library.book.XmlContent;
-import org.ak2.fb2.library.commands.ma.Author;
 import org.ak2.utils.LengthUtils;
 
 public class BookPage {
@@ -31,7 +31,7 @@ public class BookPage {
         REPLACEMENTS.put("<\\/h5>", "<\\/subtitle>");
     }
 
-    private final AuthorPage m_author;
+    private final AuthorPage m_authorPage;
 
     private final String m_genre;
 
@@ -43,9 +43,9 @@ public class BookPage {
 
     private final String m_link;
 
-    public BookPage(final AuthorPage author, final String name, final String genre, final String sequence, final String seqNo, final String link) {
+    public BookPage(final AuthorPage authorPage, final String name, final String genre, final String sequence, final String seqNo, final String link) {
         super();
-        m_author = author;
+        m_authorPage = authorPage;
         m_name = name;
         m_genre = genre;
         m_sequence = sequence;
@@ -54,7 +54,7 @@ public class BookPage {
     }
 
     public AuthorPage getAuthor() {
-        return m_author;
+        return m_authorPage;
     }
 
     public String getLink() {
@@ -78,7 +78,7 @@ public class BookPage {
     }
 
     public XmlContent getContent() throws IOException {
-        URL authorUrl = m_author != null ? m_author.getAuthorUrl() : null;
+        URL authorUrl = m_authorPage != null ? m_authorPage.getAuthorUrl() : null;
         if (authorUrl == null) {
             throw new IllegalArgumentException("Book author URL unknown");
         }
@@ -163,7 +163,7 @@ public class BookPage {
                 + "<date value=\"{6,date,yyyy-MM-dd}\">{6,date,yyyy-MM-dd}</date>" + "<id></id>" + "<version>1.0</version>" + "</document-info>\n"
                 + "</description>\n" + "<body>\n";
 
-        Author author = new Author(m_author.getName(), null);
+        BookAuthor author = m_authorPage.getAuthor();
         String header = MessageFormat.format(headerTemplate, author.getFirstName(), author.getLastName(), m_name, m_genre, m_sequence, m_seqNo, new Date());
 
         buf.setLength(0);
@@ -186,7 +186,7 @@ public class BookPage {
 
     @Override
     public String toString() {
-        return "BookPage [m_author=" + m_author + ", m_name=" + m_name + ", m_genre=" + m_genre + ", m_sequence=" + m_sequence + ", m_seqNo=" + m_seqNo
+        return "BookPage [m_authorPage=" + m_authorPage + ", m_name=" + m_name + ", m_genre=" + m_genre + ", m_sequence=" + m_sequence + ", m_seqNo=" + m_seqNo
                 + ", m_link=" + m_link + "]";
     }
 

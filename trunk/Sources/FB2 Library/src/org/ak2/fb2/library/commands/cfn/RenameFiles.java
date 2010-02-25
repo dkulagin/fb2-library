@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.ak2.fb2.library.book.BookAuthor;
 import org.ak2.fb2.library.book.FictionBook;
 import org.ak2.fb2.library.book.XmlContent;
 import org.ak2.fb2.library.commands.AbstractCommand;
@@ -167,12 +168,12 @@ public class RenameFiles extends AbstractCommand {
         try {
             final FictionBook book = new FictionBook(content);
 
-            final Map<String, String> properties = helper.getBookProperties(book);
+            final Map<String, Object> properties = helper.getBookProperties(book);
 
-            String author = properties.get(IRenameHelper.AUTHOR);
-            String bookName = properties.get(IRenameHelper.BOOK_NAME);
-            String seq = properties.get(IRenameHelper.BOOK_SEQUENCE);
-            String seqNo = properties.get(IRenameHelper.BOOK_SEQUENCE_NO);
+            BookAuthor author = (BookAuthor) properties.get(IRenameHelper.AUTHOR);
+            String bookName = (String) properties.get(IRenameHelper.BOOK_NAME);
+            String seq = (String) properties.get(IRenameHelper.BOOK_SEQUENCE);
+            String seqNo = (String) properties.get(IRenameHelper.BOOK_SEQUENCE_NO);
 
             helper.setBookProperties(book, properties);
 
@@ -197,10 +198,10 @@ public class RenameFiles extends AbstractCommand {
             seq = fixName(seq);
             bookName = fixName(bookName);
 
-            author = authors.getProperty(author, author);
+            String authorName = authors.getProperty(author.getName(), author.getName());
             seq = series.getProperty(seq, seq);
 
-            final File bookFolder = outPath.getFolder(outputFolder, author, seq);
+            final File bookFolder = outPath.getFolder(outputFolder, authorName, seq);
             final String bookFileName = bookName + ".fb2";
             return outFormat.createFile(bookFolder, bookFileName, book);
         } catch (final ProcessingException ex) {

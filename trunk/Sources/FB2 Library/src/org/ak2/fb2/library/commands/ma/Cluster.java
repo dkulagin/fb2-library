@@ -78,10 +78,9 @@ public class Cluster extends DefaultRenameHelper {
     }
 
     @Override
-    public Map<String, String> getBookProperties(final FictionBook book) {
-        final Map<String, String> bookProperties = super.getBookProperties(book);
-        bookProperties.put(AUTHOR_FIRST_NAME, targetAuthor.getFirstName());
-        bookProperties.put(AUTHOR_LAST_NAME, targetAuthor.getLastName());
+    public Map<String, Object> getBookProperties(final FictionBook book) {
+        final Map<String, Object> bookProperties = super.getBookProperties(book);
+        bookProperties.put(AUTHOR, targetAuthor);
         return bookProperties;
     }
 }
