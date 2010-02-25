@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.ak2.fb2.library.book.BookAuthor;
 import org.ak2.utils.CompareUtils;
 import org.ak2.utils.FileUtils;
 import org.ak2.utils.LengthUtils;
@@ -13,57 +14,28 @@ import org.ak2.utils.files.IFileFilter;
 import org.ak2.utils.jlog.JLogLevel;
 import org.ak2.utils.jlog.JLogMessage;
 
-public class Author implements Comparable<Author> {
+public class Author extends BookAuthor implements Comparable<Author> {
 
     private static final JLogMessage MSG_SCAN = new JLogMessage(JLogLevel.INFO, "Scan folder {0}");
 
     private final File m_folder;
 
-    private final String m_name;
-
-    private String m_firstName;
-
-    private String m_lastName;
-
-    private boolean m_shortFirstName;
+    private final boolean m_shortFirstName;
 
     private Set<String> m_files;
 
     public Author(final File folder) {
+        super(folder.getName());
         m_folder = folder;
-        m_name = folder.getName().trim();
-        final int pos = m_name.lastIndexOf(' ');
-        if (pos >= 0) {
-            m_lastName = m_name.substring(0, pos).trim();
-            m_firstName = m_name.substring(pos).trim();
-            if (m_firstName.endsWith(".")) {
-                m_firstName = m_firstName.substring(0, m_firstName.length() - 1);
-            }
-            m_shortFirstName = m_firstName.length() == 1;
-        } else {
-            m_lastName = m_name;
-            m_firstName = null;
-        }
+        m_shortFirstName = getFirstName().length() == 1;
     }
 
     public File getFolder() {
         return m_folder;
     }
 
-    public String getName() {
-        return m_name;
-    }
-
-    public String getFirstName() {
-        return m_firstName;
-    }
-
     public boolean isShortFirstName() {
         return m_shortFirstName;
-    }
-
-    public String getLastName() {
-        return m_lastName;
     }
 
     public Set<String> getFiles() {
@@ -87,7 +59,7 @@ public class Author implements Comparable<Author> {
 
     @Override
     public String toString() {
-        return m_name;
+        return getName();
     }
 
     @Override
@@ -112,7 +84,7 @@ public class Author implements Comparable<Author> {
             return 0;
         }
 
-        int result = this.m_name.compareToIgnoreCase(obj.m_name);
+        int result = this.getName().compareToIgnoreCase(obj.getName());
         if (result == 0) {
             result = this.m_folder.getAbsolutePath().compareTo(obj.m_folder.getAbsolutePath());
         }
@@ -121,11 +93,16 @@ public class Author implements Comparable<Author> {
     }
 
     public static boolean isSimilar(final Author a1, final Author a2, final int dist) {
-    	if (LengthUtils.equals(a1.m_firstName, a2.m_lastName) && LengthUtils.equals(a1.m_lastName, a2.m_firstName)) {
-    		return true;
-    	}
-        if (a1.m_firstName != null && a2.m_firstName != null) {
-            final int lnDist = CompareUtils.levensteinDistance(a1.m_lastName, a2.m_lastName);
+        final String fn1 = a1.getFirstName();
+        final String fn2 = a2.getFirstName();
+        final String ln1 = a1.getLastName();
+        final String ln2 = a2.getLastName();
+
+        if (LengthUtils.equals(fn1, ln2) && LengthUtils.equals(ln1, fn2)) {
+            return true;
+        }
+        if (fn1 != null && fn2 != null) {
+            final int lnDist = CompareUtils.levensteinDistance(ln1, ln2);
             if (lnDist > dist) {
                 return false;
             }
@@ -134,26 +111,29 @@ public class Author implements Comparable<Author> {
             final boolean isShort2 = a2.isShortFirstName();
 
             if (isShort1 && isShort2) {
-                return a1.m_firstName.equalsIgnoreCase(a2.m_firstName);
+                return fn1.equalsIgnoreCase(fn2);
             } else if (isShort1) {
-                return lnDist == 0 && a2.m_firstName.startsWith(a1.m_firstName);
+                return lnDist == 0 && fn2.startsWith(fn1);
             } else if (isShort2) {
-                return lnDist == 0 && a1.m_firstName.startsWith(a2.m_firstName);
+                return lnDist == 0 && fn1.startsWith(fn2);
             }
 
-            final int fnDist = CompareUtils.levensteinDistance(a1.m_firstName, a2.m_firstName);
+            final int fnDist = CompareUtils.levensteinDistance(fn1, fn2);
 
             return lnDist + fnDist <= dist;
 
         } else {
-            final boolean isShort1 = a1.m_name.length() == 1;
-            final boolean isShort2 = a2.m_name.length() == 1;
+            final String n1 = a1.getName();
+            final String n2 = a2.getName();
+
+            final boolean isShort1 = n1.length() == 1;
+            final boolean isShort2 = n2.length() == 1;
 
             if (isShort1 && isShort2) {
-                return a1.m_name.equalsIgnoreCase(a2.m_name);
+                return n1.equalsIgnoreCase(n2);
             }
 
-            return CompareUtils.levensteinDistance(a1.m_name, a2.m_name) <= dist;
+            return CompareUtils.levensteinDistance(n1, n2) <= dist;
         }
     }
 

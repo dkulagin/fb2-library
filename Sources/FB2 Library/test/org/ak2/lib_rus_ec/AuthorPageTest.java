@@ -1,4 +1,4 @@
-package org.ak2.fb2.importt.lib_rus_ec;
+package org.ak2.lib_rus_ec;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,12 +22,17 @@ import org.junit.Test;
 
 public class AuthorPageTest {
 
+    private static File folder;
+
     @BeforeClass
     public static void init() {
         // System.setProperty("http.proxyHost", "proxy.reksoft.ru");
         // System.setProperty("http.proxyPort", "3128");
 
-        FileScanner.enumerate(new File("."), new IFileFilter() {
+        folder = new File("output");
+        folder.mkdirs();
+
+        FileScanner.enumerate(folder, new IFileFilter() {
             @Override
             public boolean accept(IFile file) {
                 if (file.getName().endsWith(".fb2")) {
@@ -35,7 +40,7 @@ public class AuthorPageTest {
                 }
                 return false;
             }
-        }, null);
+        }, new FileScanner.Options(true, false));
     }
 
     @Test
@@ -48,17 +53,17 @@ public class AuthorPageTest {
         System.out.println(books);
 
         BookPage bookPage = books.get(3);
-        
+
         XmlContent content = bookPage.getContent();
 
         RenameFiles cmd = new RenameFiles();
 
-        cmd.createBookFile(content, new File("."), OutputFormat.Fb2, OutputPath.Simple, false);
+        cmd.createBookFile(content, new File("output"), OutputFormat.Fb2, OutputPath.Standard, false);
     }
 
-    //@Test
+    // @Test
     public void testBook() throws IOException, ProcessingException {
-        BookPage bookPage = new BookPage(new AuthorPage("author", null), "book", "genre", "sequence", "1", null);
+        BookPage bookPage = new BookPage(new AuthorPage("lastName firstName", null), "book", "genre", "sequence", "1", null);
 
         File f = new File("/home/whippet/Work/0000.My/FictionBook/Books/Lib.Rus.Ec/read.html");
 
@@ -71,9 +76,9 @@ public class AuthorPageTest {
         cmd.createBookFile(content, new File("."), OutputFormat.Fb2, OutputPath.Simple, false);
     }
 
-    //@Test
+    // @Test
     public void testPoem() throws IOException, ProcessingException {
-        BookPage bookPage = new BookPage(new AuthorPage("author", null), "poem", "genre", null, null, null);
+        BookPage bookPage = new BookPage(new AuthorPage("lastName firstName", null), "poem", "genre", null, null, null);
 
         File f = new File("poem.html");
 
