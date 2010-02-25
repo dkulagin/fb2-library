@@ -1,4 +1,4 @@
-package org.ak2.fb2.importt.lib_rus_ec;
+package org.ak2.lib_rus_ec;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -34,14 +34,11 @@ public class AuthorPage {
         final List<BookPage> list = new ArrayList<BookPage>();
 
         final URLConnection conn = m_authorUrl.openConnection();
-
         final StringBuilder buf = new StringBuilder();
         final BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF8"));
         for (String s = in.readLine(); s != null; s = in.readLine()) {
             buf.append(s).append('\n');
         }
-
-        // System.out.println(buf);
 
         String currentGenre = null;
         String currentSequence = null;
@@ -59,14 +56,11 @@ public class AuthorPage {
                 final String seqNo = m.group(6);
                 final String link = m.group(7);
                 final String name = m.group(8);
-                final URL url = new URL(m_authorUrl.getProtocol(), m_authorUrl.getHost(), link + "/read");
-
-                final BookPage book = new BookPage(this, name, currentGenre, currentSequence, seqNo, url);
+                final BookPage book = new BookPage(this, name, currentGenre, currentSequence, seqNo, link);
                 list.add(book);
             }
 
         }
-
         return list;
     }
 
