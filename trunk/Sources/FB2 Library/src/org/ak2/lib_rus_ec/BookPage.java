@@ -1,4 +1,4 @@
-package org.ak2.fb2.importt.lib_rus_ec;
+package org.ak2.lib_rus_ec;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -41,24 +41,24 @@ public class BookPage {
 
     private final String m_name;
 
-    private final URL m_bookUrl;
+    private final String m_link;
 
-    public BookPage(final AuthorPage author, final String name, final String genre, final String sequence, final String seqNo, final URL bookUrl) {
+    public BookPage(final AuthorPage author, final String name, final String genre, final String sequence, final String seqNo, final String link) {
         super();
         m_author = author;
         m_name = name;
         m_genre = genre;
         m_sequence = sequence;
         m_seqNo = seqNo;
-        m_bookUrl = bookUrl;
+        m_link = link;
     }
 
     public AuthorPage getAuthor() {
         return m_author;
     }
 
-    public URL getBookUrl() {
-        return m_bookUrl;
+    public String getLink() {
+        return m_link;
     }
 
     public String getName() {
@@ -78,7 +78,12 @@ public class BookPage {
     }
 
     public XmlContent getContent() throws IOException {
-        final URLConnection conn = m_bookUrl.openConnection();
+        URL authorUrl = m_author != null ? m_author.getAuthorUrl() : null;
+        if (authorUrl == null) {
+            throw new IllegalArgumentException("Book author URL unknown");
+        }
+        final URL url = new URL(authorUrl.getProtocol(), authorUrl.getHost(), m_link + "/read");
+        final URLConnection conn = url.openConnection();
         return getContent(conn.getInputStream(), "UTF8");
     }
 
@@ -182,7 +187,7 @@ public class BookPage {
     @Override
     public String toString() {
         return "BookPage [m_author=" + m_author + ", m_name=" + m_name + ", m_genre=" + m_genre + ", m_sequence=" + m_sequence + ", m_seqNo=" + m_seqNo
-                + ", m_bookUrl=" + m_bookUrl + "]";
+                + ", m_link=" + m_link + "]";
     }
 
 }

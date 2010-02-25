@@ -11,6 +11,8 @@ import org.ak2.fb2.library.commands.cfn.RenameFiles;
 import org.ak2.fb2.library.common.OutputFormat;
 import org.ak2.fb2.library.common.OutputPath;
 import org.ak2.fb2.library.common.ProcessingException;
+import org.ak2.lib_rus_ec.AuthorPage;
+import org.ak2.lib_rus_ec.BookPage;
 import org.ak2.utils.files.FileScanner;
 import org.ak2.utils.files.IFile;
 import org.ak2.utils.files.IFileFilter;
@@ -22,8 +24,8 @@ public class AuthorPageTest {
 
     @BeforeClass
     public static void init() {
-        System.setProperty("http.proxyHost", "proxy.reksoft.ru");
-        System.setProperty("http.proxyPort", "3128");
+        // System.setProperty("http.proxyHost", "proxy.reksoft.ru");
+        // System.setProperty("http.proxyPort", "3128");
 
         FileScanner.enumerate(new File("."), new IFileFilter() {
             @Override
@@ -36,8 +38,8 @@ public class AuthorPageTest {
         }, null);
     }
 
-    // @Test
-    public void test() throws IOException {
+    @Test
+    public void test() throws IOException, ProcessingException {
         URL url = new URL("http://lib.rus.ec/a/5285");
 
         AuthorPage a = new AuthorPage(url);
@@ -45,9 +47,16 @@ public class AuthorPageTest {
         List<BookPage> books = a.getBooks();
         System.out.println(books);
 
+        BookPage bookPage = books.get(3);
+        
+        XmlContent content = bookPage.getContent();
+
+        RenameFiles cmd = new RenameFiles();
+
+        cmd.createBookFile(content, new File("."), OutputFormat.Fb2, OutputPath.Simple, false);
     }
 
-    @Test
+    //@Test
     public void testBook() throws IOException, ProcessingException {
         BookPage bookPage = new BookPage(new AuthorPage("author", null), "book", "genre", "sequence", "1", null);
 
