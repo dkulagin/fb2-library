@@ -6,12 +6,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.MessageFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.ak2.fb2.library.book.BookAuthor;
 import org.ak2.fb2.library.book.XmlContent;
@@ -31,6 +37,10 @@ public class BookPage {
         REPLACEMENTS.put("<p class=book>", "<p>");
         REPLACEMENTS.put("<h5 class=book>", "<subtitle>");
         REPLACEMENTS.put("<\\/h5>", "<\\/subtitle>");
+        REPLACEMENTS.put("<SUP>", "<sup>");
+        REPLACEMENTS.put("</SUP>", "</sup>");
+        REPLACEMENTS.put("<SUB>", "<sub>");
+        REPLACEMENTS.put("</SUB>", "</sub>");
     }
 
     private final AuthorPage m_authorPage;
@@ -44,6 +54,8 @@ public class BookPage {
     private final String m_name;
 
     private final String m_link;
+
+    private List<BookImage> m_images = Collections.emptyList();
 
     public BookPage(final AuthorPage authorPage, final String name, final String genre, final String sequence, final String seqNo, final String link) {
         super();
@@ -79,6 +91,10 @@ public class BookPage {
         return m_seqNo;
     }
 
+    public List<BookImage> getImages() {
+        return m_images;
+    }
+
     public XmlContent getContent() throws IOException {
         final URL authorUrl = m_authorPage != null ? m_authorPage.getAuthorUrl() : null;
         if (authorUrl == null) {
@@ -92,10 +108,15 @@ public class BookPage {
     public XmlContent getContent(final InputStream input, final String encoding) throws UnsupportedEncodingException, IOException {
         final StringBuilder buf = loadText(input, encoding);
 
+        fixNotes(buf);
         fixTitles(buf);
-        fixTags(buf);
         fixDiv(buf);
         fixBlockquote(buf);
+
+        m_images = fixImages(buf);
+
+        fixTags(buf);
+
         fixSection(buf);
 
         final String headerTemplate = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
@@ -155,6 +176,71 @@ public class BookPage {
         return buf;
     }
 
+    static void fixNotes(final StringBuilder buf) {
+
+        // <a l:href="#n01" type="note">[1]</a>
+        // <sup><a name=r1><a href="#n1" title="Подробнее — см. дополнительную главу 1-а.">[1]</sup></A>
+
+        Pattern p = Pattern.compile("<sup><a name=\\w+><a href=\"#(\\w+)\" title=\"[^\"]+\">([^<]+)</sup></A>", Pattern.DOTALL);
+
+        int start = 0;
+        for (Matcher m = p.matcher(buf); m.find(start); m = p.matcher(buf)) {
+            String id = m.group(1);
+            String text = m.group(2);
+            start = m.start();
+            int end = m.end();
+            buf.replace(start, end, "<a l:href=\"#" + id + "\" type=\"note\">" + text + "</a>");
+        }
+
+        // <h3 class=book>
+        // Примечания
+        // </h3>
+        // <a name="n1"></a>
+        // <h3 class=book>
+
+        Pattern pt = Pattern.compile("(<h3 class=book>([^<]+)</h3>)\\s*<a name=\\\"\\w+\\\">\\s*</a>\\s*<h3 class=book>.*?</h3>\\s*<p class=book>.*?</p>\\s*<small>\\(<a href=#\\w+>.+?</a>\\)</small>", Pattern.DOTALL);
+        Matcher m = pt.matcher(buf);
+        if (m.find()) {
+            start = m.start(1);
+            int end = m.end(1);
+            String title = m.group(2).trim();
+
+            //</section>
+            //</body>
+            //<body name="notes">
+            //<title>
+            //<p>Примечания</p>
+            //</title>
+
+            buf.replace(start, end, "\n</section></body>\n<body name=\"notes\">\n<title><p>" + title + "</p></title>\n");
+
+            // <a name="n1"></a>
+            // <h3 class=book>
+            // 1.
+            // </h3>
+            // <p>Подробнее — см. дополнительную главу 1-а.</p>
+            // <small>(<a href=#r1>обратно</a>)</small>
+
+            Pattern pn = Pattern.compile("<a name=\\\"(\\w+)\\\">\\s*</a>\\s*<h3 class=book>(.*?)</h3>\\s*<p class=book>(.*?)</p>\\s*<small>\\(<a href=#\\w+>.+?</a>\\)</small>", Pattern.DOTALL);
+            for (Matcher mn = pn.matcher(buf); mn.find(start); mn = pn.matcher(buf)) {
+                String id = mn.group(1);
+                String note = mn.group(2).trim();
+                String text = mn.group(3).trim();
+                start = mn.start();
+                end = mn.end();
+
+                // <section id="n1">
+                // <title>
+                // <p>1.</p>
+                // </title>
+                // <p>Подробнее — см. дополнительную главу 1-а.</p>
+                // </section>
+
+                buf.replace(start, end, "<section id=\""+id+"\"><title><p>"+note+"</p></title><p>" + text + "</p></section>\n");
+            }
+        }
+    }
+
     static void fixTitles(final StringBuilder buf) {
         int stage = fixTitle(buf, 0);
         while (stage != -1) {
@@ -191,15 +277,6 @@ public class BookPage {
         }
 
         return stage + 1;
-    }
-
-    static void fixTags(final StringBuilder buf) {
-        String result = buf.toString();
-        for (final Map.Entry<String, String> entry : REPLACEMENTS.entrySet()) {
-            result = result.replaceAll(entry.getKey(), entry.getValue());
-        }
-        buf.setLength(0);
-        buf.append(result);
     }
 
     static void fixDiv(final StringBuilder buf) {
@@ -265,8 +342,41 @@ public class BookPage {
         }
     }
 
+    List<BookImage> fixImages(StringBuilder buf) throws MalformedURLException {
+        List<BookImage> images = new LinkedList<BookImage>();
+
+        // <img border=0 style='spacing 9px;' src="/i/56/146556/yes01.png">
+        // <image l:href="#img01.png"/>
+
+        Pattern p = Pattern.compile("<img (?:border=0 style='spacing 9px;')? src=\"(/i/[^\"]+)\">", Pattern.DOTALL);
+
+        int start = 0;
+        for (Matcher m = p.matcher(buf); m.find(start); m = p.matcher(buf)) {
+            String link = m.group(1);
+            BookImage image = new BookImage(this, link);
+            images.add(image);
+
+            start = m.start();
+            int end = m.end();
+
+            buf.replace(start, end, "<image l:href=\"#" + image.getId() + "\"/>");
+        }
+
+        return images;
+    }
+
+    static void fixTags(final StringBuilder buf) {
+        String result = buf.toString();
+        for (final Map.Entry<String, String> entry : REPLACEMENTS.entrySet()) {
+            result = result.replaceAll(entry.getKey(), entry.getValue());
+        }
+        buf.setLength(0);
+        buf.append(result);
+    }
+
+
     static void fixSection(final StringBuilder buf) {
-        final String sectionStart = "<section>";
+        final String sectionStart = "<section";
         final String sectionEnd = "</section>";
 
         final int startIndex = buf.lastIndexOf(sectionStart);
@@ -274,7 +384,7 @@ public class BookPage {
             return;
         }
 
-        final int endIndex = buf.indexOf(sectionEnd);
+        final int endIndex = buf.lastIndexOf(sectionEnd);
         if (startIndex > endIndex) {
             buf.append(sectionEnd);
         }
