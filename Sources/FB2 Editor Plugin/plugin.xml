@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="test.editors.FB2Editor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            default="true"
+            extensions="fb2"
+            icon="icons/sample.gif"
+            id="test.editors.FB2Editor"
+            name="FB2 Editor">
+      </editor>
+   </extension>
+<extension point="org.eclipse.ui.popupMenus"> 
+   <viewerContribution 
+      id="org.eclipse.ui.articles.action.contribution.popup.FB2Editor"
+   targetID="test.editors.FB2Editor.context"> 
+      <action
+         id="org.eclipse.ui.articles.action.contribution.editor.FB2Editor.SplitSection" 
+         label="Split section after current paragraph"
+         icon="icons/sample.gif"
+         menubarPath="additions" 
+         class="test.editors.action.SplitSectionDelegate"> 
+      </action> 
+   </viewerContribution> 
+</extension>
+<extension point="org.eclipse.ui.popupMenus"> 
+   <viewerContribution 
+      id="org.eclipse.ui.articles.action.contribution.popup.FB2Editor"
+   targetID="test.editors.FB2Editor.context"> 
+      <action
+         id="org.eclipse.ui.articles.action.contribution.editor.FB2Editor.AddTitle" 
+         label="Add title to current section"
+         icon="icons/sample.gif"
+         menubarPath="additions" 
+         class="test.editors.action.AddTitleDelegate"> 
+      </action> 
+   </viewerContribution> 
+</extension>
+</plugin>
