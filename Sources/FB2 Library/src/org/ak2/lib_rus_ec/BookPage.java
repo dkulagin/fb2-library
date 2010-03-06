@@ -56,6 +56,8 @@ public class BookPage {
 
     private final String m_link;
 
+    private final String m_id;
+
     private Set<BookImage> m_images = Collections.emptySet();
 
     public BookPage(final AuthorPage authorPage, final String name, final String genre, final String sequence, final String seqNo, final String link) {
@@ -66,6 +68,7 @@ public class BookPage {
         m_sequence = sequence;
         m_seqNo = seqNo;
         m_link = link;
+        m_id = LibRusEc.getId(link);
     }
 
     public AuthorPage getAuthorPage() {
@@ -78,6 +81,10 @@ public class BookPage {
 
     public String getName() {
         return m_name;
+    }
+
+    public final String getId() {
+        return m_id;
     }
 
     public String getGenre() {
@@ -186,7 +193,7 @@ public class BookPage {
         // <a l:href="#n01" type="note">[1]</a>
         // <sup><a name=r1><a href="#n1" title="Подробнее — см. дополнительную главу 1-а.">[1]</sup></A>
 
-        final Pattern p = Pattern.compile("<sup><a name=\\w+><a href=\"#(\\w+)\" title=\"[^\"]+\">([^<]+)</sup></A>", Pattern.DOTALL);
+        final Pattern p = Pattern.compile("<sup><a name=\\w+><a href=\"#(\\w+)\" title=\"[^\"]+\">([^<]+)</sup></A>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 
         int start = 0;
         for (Matcher m = p.matcher(buf); m.find(start); m = p.matcher(buf)) {
@@ -206,7 +213,7 @@ public class BookPage {
         final Pattern pt = Pattern
                 .compile(
                         "(<h3 class=book>([^<]+)</h3>)\\s*<a name=\\\"\\w+\\\">\\s*</a>\\s*<h3 class=book>.*?</h3>\\s*<p class=book>.*?</p>\\s*<small>\\(<a href=#\\w+>.+?</a>\\)</small>",
-                        Pattern.DOTALL);
+                        Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
         final Matcher m = pt.matcher(buf);
         if (m.find()) {
             start = m.start(1);
@@ -231,7 +238,7 @@ public class BookPage {
 
             final Pattern pn = Pattern.compile(
                     "<a name=\\\"(\\w+)\\\">\\s*</a>\\s*<h3 class=book>(.*?)</h3>\\s*<p class=book>(.*?)</p>\\s*<small>\\(<a href=#\\w+>.+?</a>\\)</small>",
-                    Pattern.DOTALL);
+                    Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
             for (Matcher mn = pn.matcher(buf); mn.find(start); mn = pn.matcher(buf)) {
                 final String id = mn.group(1);
                 final String note = mn.group(2).trim();

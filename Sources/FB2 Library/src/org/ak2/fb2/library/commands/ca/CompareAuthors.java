@@ -11,6 +11,10 @@ import java.util.TreeSet;
 
 import org.ak2.fb2.library.commands.AbstractCommand;
 import org.ak2.fb2.library.commands.CommandArgs;
+import org.ak2.fb2.library.commands.ICommandParameter;
+import org.ak2.fb2.library.commands.parameters.BaseParameter;
+import org.ak2.fb2.library.commands.parameters.BoolParameter;
+import org.ak2.fb2.library.commands.parameters.FileSystemParameter;
 import org.ak2.fb2.library.exceptions.BadCmdArguments;
 import org.ak2.fb2.library.exceptions.LibraryException;
 import org.ak2.utils.LengthUtils;
@@ -29,8 +33,28 @@ public class CompareAuthors extends AbstractCommand {
 
     private static final JLogMessage MSG_CLUSTERS = new JLogMessage(JLogLevel.INFO, "Printing clusters:");
 
+    private static final ICommandParameter[] PARAMS = {
+    /** -input <library folder> - library folder */
+    new FileSystemParameter(PARAM_INPUT, "library folder", true, false),
+    /** -output <target file> - file with list of similar author name */
+    new FileSystemParameter(PARAM_OUTPUT, "file with list of similar author name", false, true),
+    /** -depth <depth> - search depth (default 0) */
+    new BaseParameter(PARAM_DEPTH, "search depth", "0"),
+    /** -distance <distance> - Levenstein distance (default 1) */
+    new BaseParameter(PARAM_DISTANCE, "Levenstein distance", "1"),
+    /** -include-files <true|false> - show files for authors included into a cluster */
+    new BoolParameter("include-files", "show files for authors included into a cluster", false), };
+
     public CompareAuthors() {
         super("ca");
+    }
+
+    /**
+     * @see org.ak2.fb2.library.commands.ICommand#getParameters()
+     */
+    @Override
+    public ICommandParameter[] getParameters() {
+        return PARAMS;
     }
 
     @Override
@@ -42,7 +66,7 @@ public class CompareAuthors extends AbstractCommand {
         final String outputFile = args.getValue(PARAM_OUTPUT);
         final int depth = args.getValue(PARAM_DEPTH, 0);
         final int distance = args.getValue(PARAM_DISTANCE, 1);
-        final boolean includeFiles = args.getValue("include-files", false);
+        final boolean includeFiles = args.getValue(PARAM_INC_FILES, false);
 
         if (LengthUtils.isEmpty(inputFolder)) {
             throw new BadCmdArguments("Input folder is missing.", true);

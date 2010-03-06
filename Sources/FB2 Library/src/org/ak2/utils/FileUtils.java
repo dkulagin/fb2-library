@@ -3,8 +3,6 @@ package org.ak2.utils;
 import java.io.File;
 import java.io.IOException;
 
-import javax.swing.filechooser.FileFilter;
-
 /**
  * @author Alexander Kasatkin
  */

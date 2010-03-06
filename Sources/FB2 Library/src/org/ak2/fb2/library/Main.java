@@ -17,12 +17,12 @@ import org.ak2.fb2.library.commands.CommandArgs;
 import org.ak2.fb2.library.commands.ICommand;
 import org.ak2.fb2.library.commands.ca.CompareAuthors;
 import org.ak2.fb2.library.commands.cfn.RenameFiles;
-import org.ak2.fb2.library.commands.del.DeleteFolder;
+import org.ak2.fb2.library.commands.dnb.DownloadBooks;
 import org.ak2.fb2.library.commands.enc.FixEncoding;
+import org.ak2.fb2.library.commands.lab.ListAuthorBooks;
 import org.ak2.fb2.library.commands.ma.MergeAuthors;
 import org.ak2.fb2.library.commands.xml.ExportXml;
 import org.ak2.fb2.library.exceptions.BadCmdArguments;
-import org.ak2.fb2.library.exceptions.LibraryException;
 import org.ak2.utils.LengthUtils;
 import org.ak2.utils.enums.EnumUtils;
 import org.ak2.utils.jlog.JLog;
@@ -42,7 +42,22 @@ public class Main {
 
     private static final JLogMessage MSG_ERROR = new JLogMessage(JLogLevel.ERROR, "Unexpected exception: ");
 
-    private static final ICommand[] COMMANDS = { new RenameFiles(), new FixEncoding(), new CompareAuthors(), new MergeAuthors(), new DeleteFolder(), new ExportXml() };
+    public static final ICommand[] COMMANDS = {
+    /** rename book files and folders */
+    new RenameFiles(),
+    /** fix book encoding */
+    new FixEncoding(),
+    /** compare authors */
+    new CompareAuthors(),
+    /** merge authors */
+    new MergeAuthors(),
+    /** delete folder new DeleteFolder(), */
+    /** export books catalog */
+    new ExportXml(),
+    /** list author books */
+    new ListAuthorBooks(),
+    /** download books */
+    new DownloadBooks(), };
 
     public static void main(final String[] args) {
         initLog();
@@ -75,20 +90,19 @@ public class Main {
         showReadme();
     }
 
-    private static void initLog() {
+    static void initLog() {
         String logFilePattern = MessageFormat.format("fb2-library.{0,date,yyyyMMdd.HHmmss}.log", new Date());
         JLogLevel consoleLogLevel = EnumUtils.valueOf(JLogLevel.class, System.getProperty("jlog.console.level"), JLogLevel.INFO);
         JLogLevel fileLogLevel = EnumUtils.valueOf(JLogLevel.class, System.getProperty("jlog.file.level"), JLogLevel.INFO);
         JLog.setConsoleLevel(consoleLogLevel);
         JLog.addLogFile(logFilePattern, fileLogLevel);
-
     }
 
-    private static void initXalan() {
+    static void initXalan() {
         System.setProperty("com.sun.org.apache.xalan.internal.serialize.encodings", Main.class.getResource("Encodings.properties").toString());
     }
 
-    private static void initConsole() {
+    static void initConsole() {
         final String consoleEnc = System.getProperty("console.encoding");
         if (LengthUtils.isNotEmpty(consoleEnc)) {
             try {
@@ -100,7 +114,7 @@ public class Main {
         }
     }
 
-    private static void executeCommand(final CommandArgs cmdArgs, final ICommand cmd) {
+    static void executeCommand(final CommandArgs cmdArgs, final ICommand cmd) {
         try {
             cmd.execute(cmdArgs);
         } catch (final BadCmdArguments ex) {

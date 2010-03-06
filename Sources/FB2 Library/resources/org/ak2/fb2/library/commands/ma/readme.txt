@@ -1,7 +1,7 @@
 merge authors in renamed library.
-       The following options are supported:
-       -input  <input file> - file with list of similiar author name
-       -output <target folder> - folder to store renamed book
+The following options are supported:
+       -input  <input file> - file with list of similar author name
+       -output <target folder> - folder to store merged books
        -outpath <output path type> - output path type. The following are supported:
                 Simple   - Book will be saved into the output folder indirectly
                 Standard - Book will be save into an author/sequence sub-folder in the output folder.

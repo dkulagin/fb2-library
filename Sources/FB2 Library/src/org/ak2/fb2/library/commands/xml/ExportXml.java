@@ -10,6 +10,8 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.ak2.fb2.library.commands.AbstractCommand;
 import org.ak2.fb2.library.commands.CommandArgs;
+import org.ak2.fb2.library.commands.ICommandParameter;
+import org.ak2.fb2.library.commands.parameters.FileSystemParameter;
 import org.ak2.fb2.library.exceptions.BadCmdArguments;
 import org.ak2.fb2.library.exceptions.LibraryException;
 import org.ak2.utils.FileUtils;
@@ -27,10 +29,24 @@ import org.xml.sax.SAXException;
  */
 public class ExportXml extends AbstractCommand {
 
+    private static final ICommandParameter[] PARAMS = {
+    /** -input  <path list> - input file or folders separated by standard system path separator */
+    new FileSystemParameter(PARAM_INPUT, "input file or folder", true, true),
+    /** -output <target file> - xml file to store book catalog */
+    new FileSystemParameter(PARAM_OUTPUT, "xml file to store book catalog", false, true), };
+
     private final BookTitleInfoHandler m_handler = new BookTitleInfoHandler();
 
     public ExportXml() {
         super("xml");
+    }
+
+    /**
+     * @see org.ak2.fb2.library.commands.ICommand#getParameters()
+     */
+    @Override
+    public ICommandParameter[] getParameters() {
+        return PARAMS;
     }
 
     @Override
@@ -116,7 +132,7 @@ public class ExportXml extends AbstractCommand {
                             MSG_INFO_VALUE.log("Processed", val);
                             try {
                                 out.flush();
-                            } catch (IOException ex) {
+                            } catch (final IOException ex) {
                                 MSG_ERROR.log(ex, file.getFullName());
                             }
                         }

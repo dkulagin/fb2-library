@@ -6,7 +6,10 @@ import java.io.IOException;
 import org.ak2.fb2.library.book.XmlContent;
 import org.ak2.fb2.library.commands.AbstractCommand;
 import org.ak2.fb2.library.commands.CommandArgs;
+import org.ak2.fb2.library.commands.ICommandParameter;
 import org.ak2.fb2.library.commands.cfn.RenameFiles;
+import org.ak2.fb2.library.commands.parameters.EnumParameter;
+import org.ak2.fb2.library.commands.parameters.FileSystemParameter;
 import org.ak2.fb2.library.common.OutputFormat;
 import org.ak2.fb2.library.common.OutputPath;
 import org.ak2.fb2.library.common.ProcessingException;
@@ -25,8 +28,22 @@ public class FixEncoding extends AbstractCommand {
 
     private static final JLogMessage MSG_REPLACED = new JLogMessage(JLogLevel.DEBUG, "Replaced successfully");
 
+    private static final ICommandParameter[] PARAMS = {
+    /** -input  <library folder> - library folder */
+    new FileSystemParameter(PARAM_INPUT, "library folder", true, false),
+    /** -outformat <output book format> - output book format */
+    new EnumParameter(PARAM_OUTFORMAT, "output book format", OutputFormat.values(), OutputFormat.Zip), };
+
     public FixEncoding() {
         super("enc");
+    }
+
+    /**
+     * @see org.ak2.fb2.library.commands.ICommand#getParameters()
+     */
+    @Override
+    public ICommandParameter[] getParameters() {
+        return PARAMS;
     }
 
     @Override

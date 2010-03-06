@@ -1,5 +1,5 @@
 check authors in renamed library.
-       The following options are supported:
+The following options are supported:
        -input  <library folder> - library folder
        -output <target file> - file with list of similar author name
        -depth <depth> - search depth (default 0)

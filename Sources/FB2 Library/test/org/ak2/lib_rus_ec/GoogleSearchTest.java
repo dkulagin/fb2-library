@@ -7,8 +7,8 @@ public class GoogleSearchTest {
 
     @BeforeClass
     public static void init() {
-        System.setProperty("http.proxyHost", "proxy.reksoft.ru");
-        System.setProperty("http.proxyPort", "3128");
+        //System.setProperty("http.proxyHost", "proxy.reksoft.ru");
+        //System.setProperty("http.proxyPort", "3128");
     }
 
     @Test
@@ -16,4 +16,6 @@ public class GoogleSearchTest {
         AuthorPage authorPage = GoogleSearch.getAuthorPage("Кирилл Еськов");
         System.out.println(authorPage);
     }
+    
+    
 }

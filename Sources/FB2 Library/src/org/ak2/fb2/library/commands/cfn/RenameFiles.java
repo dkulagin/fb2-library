@@ -13,6 +13,9 @@ import org.ak2.fb2.library.book.FictionBook;
 import org.ak2.fb2.library.book.XmlContent;
 import org.ak2.fb2.library.commands.AbstractCommand;
 import org.ak2.fb2.library.commands.CommandArgs;
+import org.ak2.fb2.library.commands.ICommandParameter;
+import org.ak2.fb2.library.commands.parameters.EnumParameter;
+import org.ak2.fb2.library.commands.parameters.FileSystemParameter;
 import org.ak2.fb2.library.common.OutputFormat;
 import org.ak2.fb2.library.common.OutputPath;
 import org.ak2.fb2.library.common.ProcessingException;
@@ -28,9 +31,19 @@ import org.ak2.utils.jlog.JLogLevel;
 
 /**
  * @author Alexander Kasatkin
- *
+ * 
  */
 public class RenameFiles extends AbstractCommand {
+
+    private static final ICommandParameter[] PARAMS = {
+    /** -input <original book file or folder> - input file or folder */
+    new FileSystemParameter(PARAM_INPUT, "input file or folder", true, true),
+    /** -output <target folder> - folder to store renamed book */
+    new FileSystemParameter(PARAM_OUTPUT, "folder to store renamed book", true, false),
+    /** -outpath <output path type> - output path type */
+    new EnumParameter(PARAM_OUTPATH, "output path type", OutputPath.values(), OutputPath.Standard),
+    /** -outformat <output book format> - output book format */
+    new EnumParameter(PARAM_OUTFORMAT, "output book format", OutputFormat.values(), OutputFormat.Zip), };
 
     private final Properties authors = new Properties();
 
@@ -42,6 +55,14 @@ public class RenameFiles extends AbstractCommand {
 
     public RenameFiles() {
         this(null);
+    }
+
+    /**
+     * @see org.ak2.fb2.library.commands.ICommand#getParameters()
+     */
+    @Override
+    public ICommandParameter[] getParameters() {
+        return PARAMS;
     }
 
     public RenameFiles(final IRenameHelper helper) {
