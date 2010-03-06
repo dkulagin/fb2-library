@@ -1,6 +1,7 @@
 package org.ak2.fb2.library.commands;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,6 +30,10 @@ public class CommandArgs {
                 }
             }
         }
+    }
+
+    public void setValue(final String name, final String value) {
+        m_args.put(name, value);
     }
 
     public String getValue(final String name) {
@@ -83,6 +88,9 @@ public class CommandArgs {
         return locations;
     }
 
+    public Collection<String> getArgNames() {
+        return m_args.keySet();
+    }
     @Override
     public String toString() {
         return m_args.toString();

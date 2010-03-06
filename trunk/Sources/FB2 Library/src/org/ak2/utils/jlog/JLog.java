@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Formatter;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
@@ -53,6 +54,12 @@ public class JLog {
             handler.setFormatter(s_formatter);
             LOG.addHandler(handler);
         } catch (Exception ex) {
+        }
+    }
+
+    public static void addLogHander(Handler handler) {
+        if (handler != null) {
+            LOG.addHandler(handler);
         }
     }
 
@@ -501,7 +508,7 @@ public class JLog {
     /**
      * This class implements log entry formatter.
      */
-    private static class LogFormatter extends Formatter {
+    public static class LogFormatter extends Formatter {
 
         /**
          * Date time format.
@@ -528,6 +535,14 @@ public class JLog {
          */
         private final String lineSeparator = System.getProperty("line.separator");
 
+        private boolean addDate = true;
+
+        private boolean addThread = true;
+
+        private boolean addLevel = true;
+
+        private boolean addError = true;
+
         /**
          * Format the given LogRecord.
          * 
@@ -537,23 +552,32 @@ public class JLog {
         @Override
         public synchronized String format(final LogRecord record) {
             final StringBuffer sb = new StringBuffer();
-            // Minimize memory allocations here.
-            dat.setTime(record.getMillis());
-            args[0] = dat;
-            final StringBuffer dateTimeText = new StringBuffer();
-            if (formatter == null) {
-                formatter = new MessageFormat(FORMAT);
+
+            if (addDate) {
+                // Minimize memory allocations here.
+                dat.setTime(record.getMillis());
+                args[0] = dat;
+                final StringBuffer dateTimeText = new StringBuffer();
+                if (formatter == null) {
+                    formatter = new MessageFormat(FORMAT);
+                }
+                formatter.format(args, dateTimeText, null);
+                sb.append(dateTimeText);
+                sb.append(" ");
             }
-            formatter.format(args, dateTimeText, null);
-            sb.append(dateTimeText);
-            sb.append(" ");
-            sb.append(record.getLevel().getLocalizedName());
-            sb.append(" {");
-            sb.append(Thread.currentThread().getName());
-            sb.append("} ");
+
+            if (addLevel) {
+                sb.append(record.getLevel().getLocalizedName());
+            }
+
+            if (addThread) {
+                sb.append(" {");
+                sb.append(Thread.currentThread().getName());
+                sb.append("} ");
+            }
             sb.append(formatMessage(record));
             sb.append(lineSeparator);
-            if (record.getThrown() != null) {
+            if (addError && record.getThrown() != null) {
                 try {
                     final StringWriter sw = new StringWriter();
                     final PrintWriter pw = new PrintWriter(sw);
@@ -565,6 +589,62 @@ public class JLog {
                 }
             }
             return sb.toString();
+        }
+
+        /**
+         * @return the addDate
+         */
+        public final boolean isAddDate() {
+            return addDate;
+        }
+
+        /**
+         * @return the addThread
+         */
+        public final boolean isAddThread() {
+            return addThread;
+        }
+
+        /**
+         * @return the addLevel
+         */
+        public final boolean isAddLevel() {
+            return addLevel;
+        }
+
+        /**
+         * @return the addError
+         */
+        public final boolean isAddError() {
+            return addError;
+        }
+
+        /**
+         * @param addDate the addDate to set
+         */
+        public final void setAddDate(boolean addDate) {
+            this.addDate = addDate;
+        }
+
+        /**
+         * @param addThread the addThread to set
+         */
+        public final void setAddThread(boolean addThread) {
+            this.addThread = addThread;
+        }
+
+        /**
+         * @param addLevel the addLevel to set
+         */
+        public final void setAddLevel(boolean addLevel) {
+            this.addLevel = addLevel;
+        }
+
+        /**
+         * @param addError the addError to set
+         */
+        public final void setAddError(boolean addError) {
+            this.addError = addError;
         }
     }
 }

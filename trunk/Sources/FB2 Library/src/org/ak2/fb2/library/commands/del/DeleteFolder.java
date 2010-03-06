@@ -5,6 +5,8 @@ import java.io.FileFilter;
 
 import org.ak2.fb2.library.commands.AbstractCommand;
 import org.ak2.fb2.library.commands.CommandArgs;
+import org.ak2.fb2.library.commands.ICommandParameter;
+import org.ak2.fb2.library.commands.parameters.FileSystemParameter;
 import org.ak2.fb2.library.exceptions.BadCmdArguments;
 import org.ak2.fb2.library.exceptions.LibraryException;
 import org.ak2.utils.LengthUtils;
@@ -16,8 +18,20 @@ public class DeleteFolder extends AbstractCommand {
 
     private static final JLogMessage MSG_DELETE = new JLogMessage(JLogLevel.DEBUG, "{0}: '''{0}'''");
 
+    private static final ICommandParameter[] PARAMS = {
+    /** -input <input folder> - folder to delete */
+    new FileSystemParameter(PARAM_INPUT, "folder to delete", true, true), };
+
     public DeleteFolder() {
         super("del");
+    }
+
+    /**
+     * @see org.ak2.fb2.library.commands.ICommand#getParameters()
+     */
+    @Override
+    public ICommandParameter[] getParameters() {
+        return PARAMS;
     }
 
     @Override

@@ -3,9 +3,10 @@ package org.ak2.lib_rus_ec;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,18 +22,35 @@ public class AuthorPage {
 
     private BookAuthor m_author;
 
+    private final String m_id;
+
+    public AuthorPage(final BookAuthor author, final String id) throws MalformedURLException {
+        m_author = author;
+        m_id = id;
+        m_authorUrl = new URL("http://" + LibRusEc.SITE + LibRusEc.AUTHOR_PATH + id);
+    }
+
     public AuthorPage(final URL authorUrl) {
         m_authorUrl = authorUrl;
+        m_id = LibRusEc.getId(m_authorUrl);
     }
 
     public AuthorPage(String name, URL authorUrl) {
         super();
         m_author = new BookAuthor(name);
         m_authorUrl = authorUrl;
+        m_id = LibRusEc.getId(m_authorUrl);
+    }
+
+    /**
+     * @return the id
+     */
+    public final String getId() {
+        return m_id;
     }
 
     public List<BookPage> getBooks() throws IOException {
-        final List<BookPage> list = new ArrayList<BookPage>();
+        final List<BookPage> list = new LinkedList<BookPage>();
 
         final URLConnection conn = m_authorUrl.openConnection();
         final StringBuilder buf = new StringBuilder();

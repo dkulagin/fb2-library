@@ -81,4 +81,13 @@ public abstract class AbstractCommand implements ICommand {
         }
         return buf.toString();
     }
+
+    /**
+     * {@inheritDoc}
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return name;
+    }
 }

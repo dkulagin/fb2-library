@@ -9,6 +9,10 @@ import java.util.List;
 
 import org.ak2.fb2.library.commands.AbstractCommand;
 import org.ak2.fb2.library.commands.CommandArgs;
+import org.ak2.fb2.library.commands.ICommandParameter;
+import org.ak2.fb2.library.commands.parameters.BoolParameter;
+import org.ak2.fb2.library.commands.parameters.EnumParameter;
+import org.ak2.fb2.library.commands.parameters.FileSystemParameter;
 import org.ak2.fb2.library.common.OutputFormat;
 import org.ak2.fb2.library.common.OutputPath;
 import org.ak2.fb2.library.exceptions.BadCmdArguments;
@@ -22,9 +26,32 @@ public class MergeAuthors extends AbstractCommand {
 
     private static final JLogMessage MSG_PROCESS = new JLogMessage("Process clusters:");
 
+    private static final ICommandParameter[] PARAMS = {
+        /** -input  <input file> - file with list of similar author name */
+        new FileSystemParameter(PARAM_INPUT, "file with list of similar author name", false, true),
+        /** -output <target folder> - folder to store books of merged authors */
+        new FileSystemParameter(PARAM_OUTPUT, "folder to store books of merged authors", true, false),
+        /** -outpath <output path type> - output path type */
+        new EnumParameter(PARAM_OUTPATH, "output path type", OutputPath.values(), OutputPath.Standard),
+        /** -outformat <output book format> - output book format */
+        new EnumParameter(PARAM_OUTFORMAT, "output book format", OutputFormat.values(), OutputFormat.Zip),
+        /** -delete  <true|false> - delete or not old authors folders */
+        new BoolParameter(PARAM_DELETE, "delete or not old authors folders", false),
+    };
+
     public MergeAuthors() {
         super("ma");
     }
+
+    
+    /**
+     * @see org.ak2.fb2.library.commands.ICommand#getParameters()
+     */
+    @Override
+    public ICommandParameter[] getParameters() {
+        return PARAMS;
+    }
+
 
     @Override
     public void execute(final CommandArgs args) throws LibraryException {

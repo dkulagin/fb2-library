@@ -16,11 +16,15 @@ public interface ICommand {
 
     String PARAM_DISTANCE = "distance";
 
+    String PARAM_INC_FILES = "distance";
+
     String PARAM_DELETE = "delete";
 
     String getName();
 
     String getDescription();
+    
+    ICommandParameter[] getParameters();
     
     void execute(CommandArgs args) throws LibraryException;
 

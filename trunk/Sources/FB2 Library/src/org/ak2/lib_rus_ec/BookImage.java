@@ -25,9 +25,7 @@ public class BookImage {
 
         final URL authorUrl = bookPage.getAuthorPage().getAuthorUrl();
         m_link = new URL(authorUrl.getProtocol(), authorUrl.getHost(), link);
-
-        final int index = link.lastIndexOf("/");
-        this.m_id = index < 0 ? link : link.substring(index + 1);
+        this.m_id = LibRusEc.getId(link);
     }
 
     public BookPage getBookPage() {

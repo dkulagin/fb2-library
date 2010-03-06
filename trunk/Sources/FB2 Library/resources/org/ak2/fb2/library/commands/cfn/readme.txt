@@ -1,5 +1,6 @@
-convert file names. This command renames all files from input folder into output folder.
-        The following options are supported:
+convert file names. 
+This command renames all files from input folder into output folder.
+The following options are supported:
         -input  <original book file or folder> - input file or folder
         -output <target folder> - folder to store renamed book
         -outpath <output path type> - output path type. The following are supported:
