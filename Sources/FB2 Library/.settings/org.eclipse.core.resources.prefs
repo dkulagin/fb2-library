@@ -1,6 +1,7 @@
-#Mon Nov 23 23:25:17 MSK 2009
+#Sun Mar 14 21:29:31 MSK 2010
 eclipse.preferences.version=1
 encoding//resources/org/ak2/fb2/library/commands/enc/utf8.txt=UTF-8
 encoding//resources/org/ak2/fb2/library/commands/enc/windows1251.txt=Cp1251
 encoding//src/org.ak2.fb2.library/Authors.properties=Windows-1251
 encoding//src/org.ak2.fb2.library/Series.properties=Windows-1251
+encoding/<project>=UTF-8

@@ -13,7 +13,7 @@ public class GoogleSearchTest {
 
     @Test
     public void test() throws Exception {
-        AuthorPage authorPage = GoogleSearch.getAuthorPage("Кирилл Еськов");
+        AuthorPage authorPage = LibRusEc.getAuthorPage("Кирилл Еськов");
         System.out.println(authorPage);
     }
     
