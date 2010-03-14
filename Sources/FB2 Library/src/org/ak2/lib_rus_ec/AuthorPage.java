@@ -16,7 +16,7 @@ import org.ak2.utils.web.Web;
 
 public class AuthorPage {
 
-    private static final String PATTERN = "<h1 class=\"title\">([^<]+)</h1>|<a name=(\\w+)><a class=genre href=\\/g\\/\\w+><h9>([^<]+)<\\/h9>|<a href=\\/s\\/\\d+><h8>([^<]+)</h8>|<input type=checkbox  id='[\\w-]+' name=\\d+>\\s+-\\s+((\\d+)\\.\\s*)?<a href=(\\/b\\/\\d+)>([^<]+)<\\/a>";
+    private static final String PATTERN = "<h1 class=\"title\">([^<]+)</h1>|<a name=(\\w+)><a class=genre href=\\/g\\/\\w+><h9>([^<]+)<\\/h9>|<a href=\\/s\\/\\d+><h8>([^<]+)</h8>|<input type=checkbox  id='[\\w-\\,]+' name=\\d+>\\s+-\\s+((\\d+)\\.\\s*)?<a href=(\\/b\\/\\d+)>([^<]+)<\\/a>";
 
     private final URL m_authorUrl;
 
