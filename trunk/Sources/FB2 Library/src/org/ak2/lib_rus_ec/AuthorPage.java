@@ -2,10 +2,8 @@ package org.ak2.lib_rus_ec;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -13,6 +11,8 @@ import java.util.regex.Pattern;
 
 import org.ak2.fb2.library.book.BookAuthor;
 import org.ak2.utils.LengthUtils;
+import org.ak2.utils.web.IWebContent;
+import org.ak2.utils.web.Web;
 
 public class AuthorPage {
 
@@ -52,9 +52,9 @@ public class AuthorPage {
     public List<BookPage> getBooks() throws IOException {
         final List<BookPage> list = new LinkedList<BookPage>();
 
-        final URLConnection conn = m_authorUrl.openConnection();
+        final IWebContent content = Web.get(m_authorUrl);
         final StringBuilder buf = new StringBuilder();
-        final BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF8"));
+        final BufferedReader in = new BufferedReader(content.getReader());
         for (String s = in.readLine(); s != null; s = in.readLine()) {
             buf.append(s).append('\n');
         }

@@ -5,9 +5,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 
 import org.ak2.utils.LengthUtils;
+import org.ak2.utils.web.IWebContent;
+import org.ak2.utils.web.Web;
 
 public class BookImage {
 
@@ -45,10 +46,10 @@ public class BookImage {
     }
 
     public byte[] getContent() throws IOException {
-        final URLConnection conn = m_link.openConnection();
-        final InputStream in = conn.getInputStream();
-        m_contentType = conn.getHeaderField("Content-Type");
+        final IWebContent content = Web.get(m_link);
+        m_contentType = content.getType().getType();
 
+        final InputStream in = content.getStream();
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         final byte[] buf = new byte[8192];
         for (int length = in.read(buf); length != -1; length = in.read(buf)) {

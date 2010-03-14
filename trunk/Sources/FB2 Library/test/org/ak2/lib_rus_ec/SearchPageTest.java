@@ -44,7 +44,7 @@ public class SearchPageTest {
 
     @Test
     public void test() throws IOException, ProcessingException, JSONException {
-        AuthorPage a = GoogleSearch.getAuthorPage("Кирилл Еськов");
+        AuthorPage a = LibRusEc.getAuthorPage("Кирилл Еськов");
 
         List<BookPage> books = a.getBooks();
         for (BookPage bookPage : books) {

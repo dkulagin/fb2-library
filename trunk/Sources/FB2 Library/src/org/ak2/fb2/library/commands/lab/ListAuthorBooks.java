@@ -10,7 +10,7 @@ import org.ak2.fb2.library.exceptions.BadCmdArguments;
 import org.ak2.fb2.library.exceptions.LibraryException;
 import org.ak2.lib_rus_ec.AuthorPage;
 import org.ak2.lib_rus_ec.BookPage;
-import org.ak2.lib_rus_ec.GoogleSearch;
+import org.ak2.lib_rus_ec.LibRusEc;
 import org.ak2.utils.LengthUtils;
 import org.ak2.utils.jlog.JLog;
 
@@ -45,7 +45,7 @@ public class ListAuthorBooks extends AbstractCommand {
             throw new BadCmdArguments("Author name is missing.", true);
         }
         try {
-            final List<AuthorPage> authorPages = GoogleSearch.getAuthorPages(author);
+            final List<AuthorPage> authorPages = LibRusEc.getAuthorPages(author);
             for (final AuthorPage authorPage : authorPages) {
                 JLog.info(authorPage.toString());
                 List<BookPage> books = authorPage.getBooks();

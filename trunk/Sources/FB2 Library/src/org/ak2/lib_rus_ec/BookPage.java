@@ -5,10 +5,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.Date;
@@ -23,6 +23,8 @@ import org.ak2.fb2.library.book.BookAuthor;
 import org.ak2.fb2.library.book.XmlContent;
 import org.ak2.utils.LengthUtils;
 import org.ak2.utils.base64.Base64;
+import org.ak2.utils.web.IWebContent;
+import org.ak2.utils.web.Web;
 
 public class BookPage {
 
@@ -109,12 +111,16 @@ public class BookPage {
             throw new IllegalArgumentException("Book author URL unknown");
         }
         final URL url = new URL(authorUrl.getProtocol(), authorUrl.getHost(), m_link + "/read");
-        final URLConnection conn = url.openConnection();
-        return getContent(conn.getInputStream(), "UTF8");
+        final IWebContent conn = Web.get(url);
+        return getContent(conn.getReader());
     }
 
     public XmlContent getContent(final InputStream input, final String encoding) throws UnsupportedEncodingException, IOException {
-        final StringBuilder buf = loadText(input, encoding);
+        return getContent(new InputStreamReader(input, encoding));
+    }
+
+    public XmlContent getContent(final Reader reader) throws UnsupportedEncodingException, IOException {
+        final StringBuilder buf = loadText(reader);
 
         fixNotes(buf);
         fixTitles(buf);
@@ -157,9 +163,13 @@ public class BookPage {
     }
 
     static StringBuilder loadText(final InputStream input, final String encoding) throws UnsupportedEncodingException, IOException {
+        return loadText(new InputStreamReader(input, encoding));
+    }
+
+    static StringBuilder loadText(final Reader reader) throws UnsupportedEncodingException, IOException {
         final StringBuilder buf = new StringBuilder();
 
-        final BufferedReader in = new BufferedReader(new InputStreamReader(input, encoding));
+        final BufferedReader in = new BufferedReader(reader);
 
         boolean reachBook = false;
         boolean reachEnd = false;
@@ -193,7 +203,8 @@ public class BookPage {
         // <a l:href="#n01" type="note">[1]</a>
         // <sup><a name=r1><a href="#n1" title="Подробнее — см. дополнительную главу 1-а.">[1]</sup></A>
 
-        final Pattern p = Pattern.compile("<sup><a name=\\w+><a href=\"#(\\w+)\" title=\"[^\"]+\">([^<]+)</sup></A>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+        final Pattern p = Pattern
+                .compile("<sup><a name=\\w+><a href=\"#(\\w+)\" title=\"[^\"]+\">([^<]+)</sup></A>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 
         int start = 0;
         for (Matcher m = p.matcher(buf); m.find(start); m = p.matcher(buf)) {
