@@ -5,7 +5,6 @@ import java.net.URL;
 
 import junit.framework.Assert;
 
-import org.ak2.utils.web.http.HttpContent;
 import org.junit.Test;
 
 public class WebContentTest {
@@ -14,10 +13,8 @@ public class WebContentTest {
     public void test() throws IOException {
         URL url = new URL("http://lib.rus.ec/a/3150");
         Assert.assertNotNull(url);
-        
-        IWebContent wc = new HttpContent(url);
+
+        IWebContent wc = Web.get(url);
         Assert.assertNotNull(wc);
     }
-    
-    
 }
