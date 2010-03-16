@@ -1,5 +1,6 @@
 package org.ak2.utils.web;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.net.URL;
@@ -19,15 +20,15 @@ public interface IWebContent {
     /**
      * @return the length
      */
-    int getLength();
+    int getLength() throws IOException;
 
     /**
      * @return the input stream
      */
-    InputStream getStream();
+    InputStream getStream() throws IOException;
 
     /**
      * @return the text content reader
      */
-    Reader getReader();
+    Reader getReader() throws IOException;
 }
