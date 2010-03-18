@@ -7,7 +7,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -15,7 +17,7 @@ import org.ak2.utils.StreamUtils;
 import org.ak2.utils.web.IWebContent;
 import org.ak2.utils.web.WebContentType;
 
-public class CacheManager {
+public class CacheManager implements Iterable<CachedContent> {
 
     private static final String DEFAULT_FOLDER = "./cache";
 
@@ -25,7 +27,7 @@ public class CacheManager {
 
     private final File m_catalog;
 
-    private AtomicLong m_seq = new AtomicLong();
+    private final AtomicLong m_seq = new AtomicLong();
 
     private Map<URL, CachedContent> m_contents;
 
@@ -46,27 +48,32 @@ public class CacheManager {
         });
     }
 
-    public IWebContent get(URL url) {
+    public IWebContent get(final URL url) {
         return m_contents.get(url);
     }
 
-    public IWebContent set(IWebContent content) throws IOException {
-        CachedContent cached = new CachedContent(content);
+    public IWebContent set(final IWebContent content) throws IOException {
+        final CachedContent cached = new CachedContent(content);
         m_contents.put(cached.getUrl(), cached);
         return cached;
     }
 
-    byte[] loadFromFile(String id) throws IOException {
-        File f = new File(m_folder, id);
+    @Override
+    public Iterator<CachedContent> iterator() {
+        return Collections.unmodifiableCollection(m_contents.values()).iterator();
+    }
+
+    byte[] loadFromFile(final String id) throws IOException {
+        final File f = new File(m_folder, id);
         if (f.exists()) {
             return StreamUtils.getBytes(new FileInputStream(f));
         }
         return null;
     }
 
-    String saveToFile(byte[] content, WebContentType type) throws IOException {
-        File f = getFileToSave(type);
-        FileOutputStream out = new FileOutputStream(f);
+    String saveToFile(final byte[] content, final WebContentType type) throws IOException {
+        final File f = getFileToSave(type);
+        final FileOutputStream out = new FileOutputStream(f);
         try {
             out.write(content);
             out.flush();
@@ -74,16 +81,16 @@ public class CacheManager {
         } finally {
             try {
                 out.close();
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
             }
         }
     }
 
-    File getFileToSave(WebContentType type) {
-        String ext = type.getExtension();
+    File getFileToSave(final WebContentType type) {
+        final String ext = type.getExtension();
         while (true) {
-            String fileName = String.format("%016d%s", m_seq.incrementAndGet(), ext);
-            File f = new File(m_folder, fileName);
+            final String fileName = String.format("%016d%s", m_seq.incrementAndGet(), ext);
+            final File f = new File(m_folder, fileName);
             if (!f.exists()) {
                 return f;
             }
@@ -93,10 +100,10 @@ public class CacheManager {
     @SuppressWarnings("unchecked")
     private void load() {
         try {
-            ObjectInputStream in = new ObjectInputStream(new FileInputStream(m_catalog));
+            final ObjectInputStream in = new ObjectInputStream(new FileInputStream(m_catalog));
             m_seq.set(in.readLong());
             m_contents = (Map<URL, CachedContent>) in.readObject();
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             // TODO Auto-generated catch block
             ex.printStackTrace();
         }
@@ -104,10 +111,10 @@ public class CacheManager {
 
     private void save() {
         try {
-            ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(m_catalog));
+            final ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(m_catalog));
             out.writeLong(m_seq.get());
             out.writeObject(m_contents);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             // TODO Auto-generated catch block
             ex.printStackTrace();
         }

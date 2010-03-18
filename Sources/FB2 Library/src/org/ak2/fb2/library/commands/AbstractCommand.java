@@ -3,11 +3,7 @@
  */
 package org.ak2.fb2.library.commands;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
+import org.ak2.utils.StreamUtils;
 import org.ak2.utils.jlog.JLog;
 import org.ak2.utils.jlog.JLogLevel;
 import org.ak2.utils.jlog.JLogMessage;
@@ -32,7 +28,7 @@ public abstract class AbstractCommand implements ICommand {
 
     protected AbstractCommand(final String name) {
         this.name = name;
-        this.description = loadDescription(this.getClass());
+        this.description = StreamUtils.getResourceAsText(this.getClass(), "readme.txt", "Description is not available");
     }
 
     /**
@@ -53,7 +49,7 @@ public abstract class AbstractCommand implements ICommand {
         logBoldLine(MSG_INFO_VALUE.getLevel());
     }
 
-    public static void logBoldLine(JLogLevel level) {
+    public static void logBoldLine(final JLogLevel level) {
         JLog.log(level.getLevel(), "================================");
     }
 
@@ -61,29 +57,13 @@ public abstract class AbstractCommand implements ICommand {
         logLine(MSG_DEBUG_VALUE.getLevel());
     }
 
-    public static void logLine(JLogLevel level) {
+    public static void logLine(final JLogLevel level) {
         JLog.log(level.getLevel(), "--------------------------------");
-    }
-
-    static String loadDescription(Class<? extends AbstractCommand> clazz) {
-        InputStream in = clazz.getResourceAsStream("readme.txt");
-        if (in == null) {
-            return "Description is not available";
-        }
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-        StringBuilder buf = new StringBuilder();
-        try {
-            for (String s = reader.readLine(); s != null; s = reader.readLine()) {
-                buf.append(s).append("\n");
-            }
-        } catch (IOException ex) {
-        }
-        return buf.toString();
     }
 
     /**
      * {@inheritDoc}
+     *
      * @see java.lang.Object#toString()
      */
     @Override

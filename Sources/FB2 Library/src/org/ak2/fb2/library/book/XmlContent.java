@@ -1,10 +1,13 @@
 package org.ak2.fb2.library.book;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.io.StringReader;
+import java.io.Writer;
 import java.lang.ref.WeakReference;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -14,6 +17,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.ak2.fb2.library.common.Encoding;
 import org.ak2.utils.LengthUtils;
+import org.ak2.utils.StreamUtils;
 import org.ak2.utils.files.IFile;
 import org.ak2.utils.jlog.JLogLevel;
 import org.ak2.utils.jlog.JLogMessage;
@@ -51,9 +55,15 @@ public class XmlContent {
     }
 
     public XmlContent(final InputStream in) throws IOException {
-        original = loadContent(in);
+        original = StreamUtils.getBytes(in);
         realEncoding = getRealEncoding(new ByteArrayInputStream(original));
         xmlEncoding = getXmlEncoding(original, null);
+    }
+
+    public XmlContent(final String content) throws IOException {
+        realEncoding = Encoding.UTF8;
+        original = content.getBytes(realEncoding.name());
+        xmlEncoding = realEncoding.getXmlName();
     }
 
     public byte[] getOriginal() {
@@ -114,17 +124,14 @@ public class XmlContent {
         return doc;
     }
 
-    public static byte[] loadContent(final InputStream in) throws IOException {
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        final byte[] buffer = new byte[64 * 1024];
+    public void saveToFile(File file) throws IOException {
+        Writer out = new OutputStreamWriter(new FileOutputStream(file), getEncoding());
         try {
-            for (int len = in.read(buffer); len != -1; len = in.read(buffer)) {
-                baos.write(buffer, 0, len);
-            }
+            out.append(getContent());
+            out.flush();
         } finally {
-            in.close();
+            StreamUtils.close(out);
         }
-        return baos.toByteArray();
     }
 
     public static Encoding getRealEncoding(final InputStream inStream) throws IOException {
@@ -135,27 +142,31 @@ public class XmlContent {
         int head = 0;
         int tail = 0;
 
-        for (int val = inStream.read(); val != -1; val = inStream.read()) {
-            buf[tail] = val;
-            tail = (tail + 1) % buf.length;
-            final int bufLength = (buf.length + tail - head) % buf.length;
+        try {
+            for (int val = inStream.read(); val != -1; val = inStream.read()) {
+                buf[tail] = val;
+                tail = (tail + 1) % buf.length;
+                final int bufLength = (buf.length + tail - head) % buf.length;
 
-            for (final Encoding enc : Encoding.values()) {
-                final int[] pattern = enc.getPattern();
-                final int encLength = pattern.length;
-                if (bufLength >= encLength) {
-                    boolean exact = true;
-                    for (int i = 0; i < encLength && exact; i++) {
-                        exact = pattern[i] == buf[head + i];
-                    }
-                    if (exact) {
-                        return enc;
+                for (final Encoding enc : Encoding.values()) {
+                    final int[] pattern = enc.getPattern();
+                    final int encLength = pattern.length;
+                    if (bufLength >= encLength) {
+                        boolean exact = true;
+                        for (int i = 0; i < encLength && exact; i++) {
+                            exact = pattern[i] == buf[head + i];
+                        }
+                        if (exact) {
+                            return enc;
+                        }
                     }
                 }
+                if (bufLength == buf.length) {
+                    head = (head + 1) % buf.length;
+                }
             }
-            if (bufLength == buf.length) {
-                head = (head + 1) % buf.length;
-            }
+        } finally {
+            StreamUtils.close(inStream);
         }
         return null;
     }

@@ -3,9 +3,6 @@
  */
 package org.ak2.fb2.library;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.text.MessageFormat;
@@ -24,6 +21,7 @@ import org.ak2.fb2.library.commands.ma.MergeAuthors;
 import org.ak2.fb2.library.commands.xml.ExportXml;
 import org.ak2.fb2.library.exceptions.BadCmdArguments;
 import org.ak2.utils.LengthUtils;
+import org.ak2.utils.StreamUtils;
 import org.ak2.utils.enums.EnumUtils;
 import org.ak2.utils.jlog.JLog;
 import org.ak2.utils.jlog.JLogLevel;
@@ -91,9 +89,9 @@ public class Main {
     }
 
     static void initLog() {
-        String logFilePattern = MessageFormat.format("fb2-library.{0,date,yyyyMMdd.HHmmss}.log", new Date());
-        JLogLevel consoleLogLevel = EnumUtils.valueOf(JLogLevel.class, System.getProperty("jlog.console.level"), JLogLevel.INFO);
-        JLogLevel fileLogLevel = EnumUtils.valueOf(JLogLevel.class, System.getProperty("jlog.file.level"), JLogLevel.INFO);
+        final String logFilePattern = MessageFormat.format("fb2-library.{0,date,yyyyMMdd.HHmmss}.log", new Date());
+        final JLogLevel consoleLogLevel = EnumUtils.valueOf(JLogLevel.class, System.getProperty("jlog.console.level"), JLogLevel.INFO);
+        final JLogLevel fileLogLevel = EnumUtils.valueOf(JLogLevel.class, System.getProperty("jlog.file.level"), JLogLevel.INFO);
         JLog.setConsoleLevel(consoleLogLevel);
         JLog.addLogFile(logFilePattern, fileLogLevel);
     }
@@ -131,28 +129,21 @@ public class Main {
      * Shows help text
      */
     private static void showReadme() {
-        try {
-            final BufferedReader readme = new BufferedReader(new InputStreamReader(Main.class.getClassLoader().getResourceAsStream("readme.txt")));
-            for (String s = readme.readLine(); s != null; s = readme.readLine()) {
-                System.out.println(s);
-            }
-            for (final ICommand cmd : COMMANDS) {
-                System.out.println("");
-                System.out.println(cmd.getName() + " - " + cmd.getDescription());
-            }
-        } catch (final IOException ex) {
+        showReadmeHeader();
+        for (final ICommand cmd : COMMANDS) {
+            System.out.println("");
+            System.out.println(cmd.getName() + " - " + cmd.getDescription().trim());
         }
     }
 
     private static void showReadme(final ICommand cmd) {
-        try {
-            final BufferedReader readme = new BufferedReader(new InputStreamReader(Main.class.getClassLoader().getResourceAsStream("readme.txt")));
-            for (String s = readme.readLine(); s != null; s = readme.readLine()) {
-                System.out.println(s);
-            }
-            System.out.println(cmd.getName() + " - " + cmd.getDescription());
-        } catch (final IOException ex) {
-        }
+        showReadmeHeader();
+        System.out.println("");
+        System.out.println(cmd.getName() + " - " + cmd.getDescription().trim());
     }
 
+    private static void showReadmeHeader() {
+        final String text = StreamUtils.getResourceAsText(Main.class, "/readme.txt", "FB2 Library utilities.");
+        System.out.println(text.trim());
+    }
 }

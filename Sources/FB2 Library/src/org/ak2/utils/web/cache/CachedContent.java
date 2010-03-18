@@ -63,11 +63,18 @@ public class CachedContent implements IWebContent, Serializable {
     }
 
     private byte[] getContent() throws IOException {
-        byte[] content = m_content.get();
+        byte[] content = m_content != null ? m_content.get() : null;
         if (content == null) {
             content = CacheManager.getInstance().loadFromFile(m_id);
             m_content = new WeakReference<byte[]>(content);
         }
         return content;
     }
+
+    @Override
+    public String toString() {
+        return "CachedContent [m_id=" + m_id + ", m_type=" + m_type + ", m_link=" + m_link + "]";
+    }
+
+
 }
