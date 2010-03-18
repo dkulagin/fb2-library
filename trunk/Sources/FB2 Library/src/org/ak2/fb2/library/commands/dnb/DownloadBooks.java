@@ -1,10 +1,7 @@
 package org.ak2.fb2.library.commands.dnb;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -127,9 +124,7 @@ public class DownloadBooks extends AbstractCommand {
                     cmd.createBookFile(content, outFolder, outFormat, outPath, false);
                 } catch (ProcessingException ex) {
                     File file = new File(outFolder, bookPage.getAuthorPage().getAuthor() + ". " + bookPage.getName() + ".xml");
-                    Writer out = new OutputStreamWriter(new FileOutputStream(file), content.getEncoding());
-                    out.append(content.getContent());
-                    out.close();
+                    content.saveToFile(file);
                 }
             }
         } catch (final Exception ex) {

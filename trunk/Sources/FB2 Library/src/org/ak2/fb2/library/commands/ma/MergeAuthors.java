@@ -1,9 +1,9 @@
 package org.ak2.fb2.library.commands.ma;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -18,6 +18,7 @@ import org.ak2.fb2.library.common.OutputPath;
 import org.ak2.fb2.library.exceptions.BadCmdArguments;
 import org.ak2.fb2.library.exceptions.LibraryException;
 import org.ak2.utils.LengthUtils;
+import org.ak2.utils.StreamUtils;
 import org.ak2.utils.csv.CsvRecord;
 import org.ak2.utils.jlog.JLogLevel;
 import org.ak2.utils.jlog.JLogMessage;
@@ -27,23 +28,21 @@ public class MergeAuthors extends AbstractCommand {
     private static final JLogMessage MSG_PROCESS = new JLogMessage("Process clusters:");
 
     private static final ICommandParameter[] PARAMS = {
-        /** -input  <input file> - file with list of similar author name */
-        new FileSystemParameter(PARAM_INPUT, "file with list of similar author name", false, true),
-        /** -output <target folder> - folder to store books of merged authors */
-        new FileSystemParameter(PARAM_OUTPUT, "folder to store books of merged authors", true, false),
-        /** -outpath <output path type> - output path type */
-        new EnumParameter(PARAM_OUTPATH, "output path type", OutputPath.values(), OutputPath.Standard),
-        /** -outformat <output book format> - output book format */
-        new EnumParameter(PARAM_OUTFORMAT, "output book format", OutputFormat.values(), OutputFormat.Zip),
-        /** -delete  <true|false> - delete or not old authors folders */
-        new BoolParameter(PARAM_DELETE, "delete or not old authors folders", false),
-    };
+    /** -input <input file> - file with list of similar author name */
+    new FileSystemParameter(PARAM_INPUT, "file with list of similar author name", false, true),
+    /** -output <target folder> - folder to store books of merged authors */
+    new FileSystemParameter(PARAM_OUTPUT, "folder to store books of merged authors", true, false),
+    /** -outpath <output path type> - output path type */
+    new EnumParameter(PARAM_OUTPATH, "output path type", OutputPath.values(), OutputPath.Standard),
+    /** -outformat <output book format> - output book format */
+    new EnumParameter(PARAM_OUTFORMAT, "output book format", OutputFormat.values(), OutputFormat.Zip),
+    /** -delete <true|false> - delete or not old authors folders */
+    new BoolParameter(PARAM_DELETE, "delete or not old authors folders", false), };
 
     public MergeAuthors() {
         super("ma");
     }
 
-    
     /**
      * @see org.ak2.fb2.library.commands.ICommand#getParameters()
      */
@@ -51,7 +50,6 @@ public class MergeAuthors extends AbstractCommand {
     public ICommandParameter[] getParameters() {
         return PARAMS;
     }
-
 
     @Override
     public void execute(final CommandArgs args) throws LibraryException {
@@ -109,47 +107,53 @@ public class MergeAuthors extends AbstractCommand {
     }
 
     private List<Cluster> loadClusters(final File inFile) {
-        final List<Cluster> clusters = new LinkedList<Cluster>();
         try {
-            final BufferedReader in = new BufferedReader(new FileReader(inFile));
-
-            Cluster c = null;
-            for (String s = in.readLine(); s != null; s = in.readLine()) {
-                if (LengthUtils.isEmpty(s)) {
-                    c = null;
-                } else {
-                    final Author author = getAuthor(s);
-                    if (author != null) {
-                        if (c == null) {
-                            c = new Cluster(author);
-                            clusters.add(c);
-                        }
-                        c.addFolder(author);
-                    }
-                }
-            }
-
-            try {
-                in.close();
-            } catch (final IOException ex) {
-            }
+            return StreamUtils.loadText(new FileReader(inFile), new Loader());
         } catch (final IOException ex) {
             ex.printStackTrace();
         }
-        return clusters;
+        return Collections.emptyList();
     }
 
-    private Author getAuthor(final String s) {
-        final CsvRecord rec = new CsvRecord(s);
-        final int size = rec.size();
-        if (size > 0) {
-            final String name = rec.getField(0);
-            if (size == 2) {
-                final String path = rec.getField(1);
-                return new Author(name, new File(path));
-            }
-            return new Author(name, null);
+    static class Loader extends StreamUtils.AsbstractTextLoader<List<Cluster>> {
+
+        private Cluster c = null;
+
+        public Loader() {
+            super(new LinkedList<Cluster>());
         }
-        return null;
+
+        @Override
+        public boolean onLine(final String line) {
+            if (LengthUtils.isEmpty(line)) {
+                c = null;
+            } else {
+                final Author author = getAuthor(line);
+                if (author != null) {
+                    if (c == null) {
+                        c = new Cluster(author);
+                        m_result.add(c);
+                    }
+                    c.addFolder(author);
+                }
+            }
+            return true;
+        }
+
+        Author getAuthor(final String s) {
+            final CsvRecord rec = new CsvRecord(s);
+            final int size = rec.size();
+            if (size > 0) {
+                final String name = rec.getField(0);
+                if (size == 2) {
+                    final String path = rec.getField(1);
+                    return new Author(name, new File(path));
+                }
+                return new Author(name, null);
+            }
+            return null;
+        }
+
     }
+
 }

@@ -91,11 +91,6 @@ public class Starter {
 
         frame.setLocationRelativeTo(null);
         frame.showCmdFrame();
-
-        // if (selected != null) {
-        // final CommandArgs x = cmdArgs.get(selected.getName());
-        // Main.executeCommand(x, selected);
-        // }
     }
 
     static void initLog() {
@@ -185,8 +180,10 @@ public class Starter {
             builder.add(selected.getName());
             for (final String name : args.getArgNames()) {
                 final String value = args.getValue(name);
-                builder.add("-" + name);
-                builder.add(value);
+                if (LengthUtils.isNotEmpty(value)) {
+                    builder.add("-" + name);
+                    builder.add(value);
+                }
             }
             return builder.toString();
 
@@ -388,9 +385,6 @@ public class Starter {
                 execBtn.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(final ActionEvent e) {
-                        // selected = (ICommand) getCommandBox().getSelectedItem();
-                        // CmdFrame.this.dispose();
-
                         selected = (ICommand) getCommandBox().getSelectedItem();
                         if (selected != null) {
                             getExecButton().setEnabled(false);
@@ -402,7 +396,6 @@ public class Starter {
                                     Main.executeCommand(x, selected);
                                     return null;
                                 }
-
                                 @Override
                                 protected void done() {
                                     getExecButton().setEnabled(true);
@@ -411,7 +404,6 @@ public class Starter {
                             };
 
                             task.execute();
-
                         }
                     }
                 });

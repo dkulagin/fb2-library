@@ -1,7 +1,5 @@
 package org.ak2.lib_rus_ec;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -22,6 +20,7 @@ import java.util.regex.Pattern;
 import org.ak2.fb2.library.book.BookAuthor;
 import org.ak2.fb2.library.book.XmlContent;
 import org.ak2.utils.LengthUtils;
+import org.ak2.utils.StreamUtils;
 import org.ak2.utils.base64.Base64;
 import org.ak2.utils.web.IWebContent;
 import org.ak2.utils.web.Web;
@@ -120,7 +119,7 @@ public class BookPage {
     }
 
     public XmlContent getContent(final Reader reader) throws UnsupportedEncodingException, IOException {
-        final StringBuilder buf = loadText(reader);
+        final StringBuilder buf = StreamUtils.loadText(reader, new Loader());
 
         fixNotes(buf);
         fixTitles(buf);
@@ -153,49 +152,13 @@ public class BookPage {
 
         buf.append("</FictionBook>");
 
-        return new XmlContent(new ByteArrayInputStream(buf.toString().getBytes("UTF8")));
+        return new XmlContent(buf.toString());
     }
 
     @Override
     public String toString() {
         return "BookPage [m_authorPage=" + m_authorPage + ", m_name=" + m_name + ", m_genre=" + m_genre + ", m_sequence=" + m_sequence + ", m_seqNo=" + m_seqNo
                 + ", m_link=" + m_link + "]";
-    }
-
-    static StringBuilder loadText(final InputStream input, final String encoding) throws UnsupportedEncodingException, IOException {
-        return loadText(new InputStreamReader(input, encoding));
-    }
-
-    static StringBuilder loadText(final Reader reader) throws UnsupportedEncodingException, IOException {
-        final StringBuilder buf = new StringBuilder();
-
-        final BufferedReader in = new BufferedReader(reader);
-
-        boolean reachBook = false;
-        boolean reachEnd = false;
-        for (String s = in.readLine(); s != null && !reachEnd; s = in.readLine()) {
-            if (!reachBook) {
-                final int ind = s.indexOf("<h3 class=book>");
-                if (ind >= 0) {
-                    s = s.substring(ind);
-                    reachBook = true;
-                }
-            }
-            if (reachBook) {
-                final int ind1 = s.indexOf("<!-- topadvert.ru -->");
-                final int ind2 = s.indexOf("<h3>");
-                if (ind1 >= 0) {
-                    s = s.substring(0, ind1);
-                    reachEnd = true;
-                } else if (ind2 >= 0) {
-                    s = s.substring(0, ind2);
-                    reachEnd = true;
-                }
-                buf.append(s).append('\n');
-            }
-
-        }
-        return buf;
     }
 
     static void fixNotes(final StringBuilder buf) {
@@ -432,6 +395,43 @@ public class BookPage {
                 buf.append("\n");
             }
             buf.append("</binary>\n");
+        }
+    }
+
+    static final class Loader extends StreamUtils.TextLoader {
+        private boolean reachBook = false;
+        private boolean reachEnd = false;
+
+        @Override
+        public void reset() {
+            super.reset();
+            reachBook = false;
+            reachEnd = false;
+        }
+
+        @Override
+        public boolean onLine(final String line) {
+            String s = line;
+            if (!reachBook) {
+                final int ind = s.indexOf("<h3 class=book>");
+                if (ind >= 0) {
+                    s = s.substring(ind);
+                    reachBook = true;
+                }
+            }
+            if (reachBook) {
+                final int ind1 = s.indexOf("<!-- topadvert.ru -->");
+                final int ind2 = s.indexOf("<h3>");
+                if (ind1 >= 0) {
+                    s = s.substring(0, ind1);
+                    reachEnd = true;
+                } else if (ind2 >= 0) {
+                    s = s.substring(0, ind2);
+                    reachEnd = true;
+                }
+                super.onLine(s);
+            }
+            return !reachEnd;
         }
     }
 

@@ -1,10 +1,7 @@
 package org.ak2.lib_rus_ec;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.List;
 
 import org.ak2.fb2.library.book.XmlContent;
@@ -58,10 +55,7 @@ public class SearchPageTest {
             cmd.createBookFile(content, folder, OutputFormat.Fb2, OutputPath.Standard, false);
         } catch (ProcessingException ex) {
             String fileName = bookPage.getAuthorPage().getAuthor() + ". " + bookPage.getName() + ".xml";
-            Writer out = new OutputStreamWriter(new FileOutputStream(fileName), content.getEncoding());
-            out.append(content.getContent());
-            out.close();
-
+            content.saveToFile(new File(fileName));
             throw ex;
         }
     }
