@@ -128,20 +128,21 @@ public class FictionBook {
             return null;
         }
         if (fieldAuthor == null) {
-            String firstName = XmlUtils.getString(fieldTitleInfo, "author/first-name").trim();
-            String lastName = XmlUtils.getString(fieldTitleInfo, "author/last-name").trim();
+            final String firstName = XmlUtils.getString(fieldTitleInfo, "author/first-name").trim();
+            final String lastName = XmlUtils.getString(fieldTitleInfo, "author/last-name").trim();
             fieldAuthor = new BookAuthor(firstName, lastName);
         }
         return fieldAuthor;
     }
 
-    public void setAuthor(BookAuthor author) {
+    public void setAuthor(final BookAuthor author) {
         if (fieldDocument == null) {
             return;
         }
-        if (fieldAuthor == author) {
+        if (author == null) {
             return;
         }
+
         fieldAuthor = author;
         Element aElement = (Element) XmlUtils.selectNode(fieldTitleInfo, "author");
         if (aElement == null) {
@@ -161,9 +162,9 @@ public class FictionBook {
     }
 
     public int getImageIndex(final String imageFileName) {
-        FictionBookImage[] images = getImages();
+        final FictionBookImage[] images = getImages();
         for (int i = 0; i < images.length; i++) {
-            FictionBookImage image = images[i];
+            final FictionBookImage image = images[i];
             if (image.getImageFileName().equals(imageFileName)) {
                 return i;
             }
@@ -176,12 +177,12 @@ public class FictionBook {
     }
 
     public String[] getImageFileNames() {
-        Map<String, FictionBookImage> imageMap = getImageMap();
+        final Map<String, FictionBookImage> imageMap = getImageMap();
         return imageMap.keySet().toArray(new String[imageMap.size()]);
     }
 
     public FictionBookImage[] getImages() {
-        Map<String, FictionBookImage> imageMap = getImageMap();
+        final Map<String, FictionBookImage> imageMap = getImageMap();
         return imageMap.values().toArray(new FictionBookImage[imageMap.size()]);
     }
 
@@ -190,13 +191,13 @@ public class FictionBook {
             fieldImages = new HashMap<String, FictionBookImage>();
             if (fieldDocument != null) {
                 int index = 0;
-                for (Node node : XmlUtils.selectNodes(fieldDocument, "/FictionBook/binary")) {
-                    Element element = (Element) node;
+                for (final Node node : XmlUtils.selectNodes(fieldDocument, "/FictionBook/binary")) {
+                    final Element element = (Element) node;
                     try {
-                        FictionBookImage image = new FictionBookImage(element);
+                        final FictionBookImage image = new FictionBookImage(element);
                         fieldImages.put(image.getImageFileName(), image);
                         index++;
-                    } catch (Throwable th) {
+                    } catch (final Throwable th) {
                         new JLogMessage(JLogLevel.ERROR, "Image {0} cannot be loaded: ").log(th, index);
                     }
                 }
@@ -224,9 +225,9 @@ public class FictionBook {
         }
     }
 
-    private Element createElement(Element parent, String... tagNames) {
+    private Element createElement(final Element parent, final String... tagNames) {
         Element e = parent;
-        for (String tagName : tagNames) {
+        for (final String tagName : tagNames) {
             e = (Element) e.appendChild(fieldDocument.createElement(tagName));
         }
         return e;
