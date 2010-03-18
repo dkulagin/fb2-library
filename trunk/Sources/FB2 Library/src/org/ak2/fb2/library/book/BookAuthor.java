@@ -1,5 +1,8 @@
 package org.ak2.fb2.library.book;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.ak2.utils.LengthUtils;
 
 public class BookAuthor {
@@ -15,7 +18,7 @@ public class BookAuthor {
     }
 
     public BookAuthor(final String name, final boolean lastFirst) {
-        m_name = LengthUtils.safeString(name).trim();
+        m_name = normalize(name);
         if (LengthUtils.isNotEmpty(name)) {
             int pos = m_name.indexOf("/");
             if (pos >= 0) {
@@ -53,8 +56,8 @@ public class BookAuthor {
     }
 
     public BookAuthor(final String firstName, final String lastName) {
-        m_firstName = LengthUtils.safeString(firstName).trim();
-        m_lastName = LengthUtils.safeString(lastName).trim();
+        m_firstName = normalize(firstName);
+        m_lastName = normalize(lastName);
         m_name = getFullName(firstName, lastName);
     }
 
@@ -77,6 +80,19 @@ public class BookAuthor {
 
     public static String getFullName(final String firstName, final String lastName) {
         return (lastName + " " + firstName).trim();
+    }
+
+    public static String normalize(final String name) {
+        final StringBuffer buf = new StringBuffer();
+        final Pattern p = Pattern.compile("\\w+");
+        final Matcher m = p.matcher(LengthUtils.safeString(name).trim());
+        while (m.find()) {
+            final String group = m.group();
+            final String newName = group.substring(0, 1).toUpperCase() + (group.length() > 1 ? group.substring(1).toLowerCase() : "");
+            m.appendReplacement(buf, newName);
+        }
+        m.appendTail(buf);
+        return buf.toString();
     }
 
 }

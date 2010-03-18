@@ -10,7 +10,7 @@ import java.io.Reader;
 
 public class StreamUtils {
 
-    private static final String EOL = System.getProperty("line.separator");
+    public static final String EOL = System.getProperty("line.separator");
 
     public static String getResourceAsText(final Class<?> clazz, final String resource, final String def) {
         final InputStream stream = clazz.getResourceAsStream(resource);

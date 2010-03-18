@@ -20,10 +20,12 @@ import org.ak2.fb2.library.commands.parameters.FileSystemParameter;
 import org.ak2.fb2.library.common.OutputFormat;
 import org.ak2.fb2.library.common.OutputPath;
 import org.ak2.fb2.library.common.ProcessingException;
+import org.ak2.fb2.library.common.ProcessingResult;
 import org.ak2.fb2.library.exceptions.BadCmdArguments;
 import org.ak2.fb2.library.exceptions.LibraryException;
 import org.ak2.lib_rus_ec.AuthorPage;
 import org.ak2.lib_rus_ec.BookPage;
+import org.ak2.lib_rus_ec.BookPageTransformer;
 import org.ak2.utils.LengthUtils;
 import org.ak2.utils.jlog.JLog;
 
@@ -45,11 +47,21 @@ public class DownloadBooks extends AbstractCommand {
     /** -outformat <output book format> - output book format */
     new EnumParameter(PARAM_OUTFORMAT, "output book format", OutputFormat.values(), OutputFormat.Zip), };
 
+    private final BookPageTransformer m_transformer;
+
     /**
      * Constructor.
      */
     public DownloadBooks() {
+        this(new BookPageTransformer());
+    }
+
+    /**
+     * Constructor.
+     */
+    public DownloadBooks(final BookPageTransformer transformer) {
         super("dnb");
+        m_transformer = transformer;
     }
 
     /**
@@ -89,8 +101,8 @@ public class DownloadBooks extends AbstractCommand {
         }
 
         final Set<String> bookIds = new HashSet<String>(Arrays.asList(LengthUtils.safeString(args.getValue("book-ids")).split(":")));
-        for (Iterator<String> iterator = bookIds.iterator(); iterator.hasNext();) {
-            String string = (String) iterator.next();
+        for (final Iterator<String> iterator = bookIds.iterator(); iterator.hasNext();) {
+            final String string = iterator.next();
             if (LengthUtils.isEmpty(string)) {
                 iterator.remove();
             }
@@ -119,12 +131,15 @@ public class DownloadBooks extends AbstractCommand {
             final List<BookPage> booksList = getBooksList(author, authorId, bookIds);
             for (final BookPage bookPage : booksList) {
                 JLog.info("Download book: " + bookPage);
-                final XmlContent content = bookPage.getContent();
+                final XmlContent content = bookPage.getContent(m_transformer);
                 try {
                     cmd.createBookFile(content, outFolder, outFormat, outPath, false);
-                } catch (ProcessingException ex) {
-                    File file = new File(outFolder, bookPage.getAuthorPage().getAuthor() + ". " + bookPage.getName() + ".xml");
-                    content.saveToFile(file);
+                } catch (final ProcessingException ex) {
+                    if (ex.getResult() == ProcessingResult.FAILED) {
+                        final File file = new File(outFolder, bookPage.getAuthorPage().getAuthor() + ". " + bookPage.getName() + ".xml");
+                        content.saveToFile(file);
+                        JLog.warning("Downloaded content saved at: " + file);
+                    }
                 }
             }
         } catch (final Exception ex) {
