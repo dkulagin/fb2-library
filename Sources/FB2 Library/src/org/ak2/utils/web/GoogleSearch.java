@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.ak2.utils.LengthUtils;
+import org.ak2.utils.StreamUtils;
 import org.ak2.utils.web.http.HttpContent;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -63,19 +64,9 @@ public class GoogleSearch {
         final URL url = getSearchRequest(searchString, site);
 
         IWebContent content = new HttpContent(url);
+        final String text = StreamUtils.getText(content.getReader());
 
-        final StringBuilder builder = new StringBuilder();
-        final BufferedReader reader = new BufferedReader(content.getReader());
-        try {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                builder.append(line);
-            }
-        } finally {
-            reader.close();
-        }
-
-        final JSONObject json = new JSONObject(builder.toString());
+        final JSONObject json = new JSONObject(text);
         final JSONObject responseData = json == null ? json : json.getJSONObject("responseData");
         final JSONArray results = responseData == null ? null : responseData.getJSONArray("results");
         return results;
