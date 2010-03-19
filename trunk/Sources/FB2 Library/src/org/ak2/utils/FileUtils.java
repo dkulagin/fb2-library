@@ -87,7 +87,7 @@ public final class FileUtils
     {
         try
         {
-            final String fileAbsolutePath = original;
+            final String fileAbsolutePath = new File(original).getCanonicalPath();
             final String currentAbsolutePath = base.getCanonicalPath();
             if (fileAbsolutePath.startsWith(currentAbsolutePath))
             {
