@@ -124,7 +124,6 @@ public class BookPageTransformer {
         m_fixTags = fixTags;
     }
 
-
     /**
      * Phase 7.
      *
@@ -182,7 +181,7 @@ public class BookPageTransformer {
             fixTags(buf);
         }
 
-        if (m_fixTitleParagraphs ) {
+        if (m_fixTitleParagraphs) {
             fixTitleParagraphs(buf);
         }
 
@@ -219,14 +218,17 @@ public class BookPageTransformer {
         }
 
         // <h3 class=book>
-        // Примечания
+        // <p class=book>Примечания
         // </h3>
-        // <a name="n1"></a>
-        // <h3 class=book>
+        // <a name="n_1"></a><h3 class=book>
+        // <p class=book>1
+        // </h3>
+        // <p class=book><p class=book>Вернемся к нашим баранам…</p>
+        // <small>(<a href=#r1>обратно</a>)</small>
 
         final Pattern pt = Pattern
                 .compile(
-                        "(<h3 class=book>([^<]+)</h3>)\\s*<a name=\\\"\\w+\\\">\\s*</a>\\s*<h3 class=book>.*?</h3>\\s*<p class=book>.*?</p>\\s*<small>\\(<a href=#\\w+>.+?</a>\\)</small>",
+                        "(<h3 class=book>\\s*(?:<p class=book>)?([^<]*?)(:?</p>)?\\s*</h3>)\\s*<a name=\\\"\\w+\\\">\\s*</a>\\s*<h3 class=book>.*?</h3>\\s*<p class=book>.*?</p>\\s*<small>\\(<a href=#\\w+>.+?</a>\\)</small>",
                         Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
         final Matcher m = pt.matcher(buf);
         if (m.find()) {
@@ -251,7 +253,7 @@ public class BookPageTransformer {
             // <small>(<a href=#r1>обратно</a>)</small>
 
             final Pattern pn = Pattern.compile(
-                    "<a name=\\\"(\\w+)\\\">\\s*</a>\\s*<h3 class=book>(.*?)</h3>\\s*<p class=book>(.*?)</p>\\s*<small>\\(<a href=#\\w+>.+?</a>\\)</small>",
+                    "<a name=\\\"(\\w+)\\\">\\s*</a>\\s*<h3 class=book>\\s*(?:<p class=book>)?(.*?)\\s*</h3>\\s*(?:<p class=book>)+(.*?)</p>\\s*<small>\\(<a href=#\\w+>.+?</a>\\)</small>",
                     Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
             for (Matcher mn = pn.matcher(buf); mn.find(start); mn = pn.matcher(buf)) {
                 final String id = mn.group(1);

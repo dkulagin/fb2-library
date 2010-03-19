@@ -95,7 +95,7 @@ public class WebContentType implements Serializable {
      */
     @Override
     public String toString() {
-        return "WebContentType [m_type=" + m_type + ", m_charset=" + m_charset + "]";
+        return m_type + (m_charset != null ? ", " + m_charset : "");
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {

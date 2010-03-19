@@ -9,8 +9,10 @@ import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.ak2.utils.StreamUtils;
@@ -20,6 +22,8 @@ import org.ak2.utils.web.WebContentType;
 public class CacheManager implements Iterable<CachedContent> {
 
     private static final String DEFAULT_FOLDER = "./cache";
+
+    private static boolean s_checkOnStart = false;
 
     private static CacheManager s_instance;
 
@@ -35,26 +39,29 @@ public class CacheManager implements Iterable<CachedContent> {
         m_folder = new File(DEFAULT_FOLDER);
         m_folder.mkdirs();
         m_catalog = new File(m_folder, "cache.bin");
+        m_contents = new HashMap<URL, CachedContent>();
         if (m_catalog.exists()) {
             load();
-        } else {
-            m_contents = new HashMap<URL, CachedContent>();
         }
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                save();
-            }
-        });
     }
 
-    public IWebContent get(final URL url) {
-        return m_contents.get(url);
+    public synchronized IWebContent get(final URL url) {
+        CachedContent content = m_contents.get(url);
+        if (content == null) {
+            return null;
+        }
+        if (checkFile(content)) {
+            return content;
+        }
+        m_contents.remove(url);
+        save();
+        return null;
     }
 
-    public IWebContent set(final IWebContent content) throws IOException {
+    public synchronized IWebContent set(final IWebContent content) throws IOException {
         final CachedContent cached = new CachedContent(content);
         m_contents.put(cached.getUrl(), cached);
+        save();
         return cached;
     }
 
@@ -69,6 +76,19 @@ public class CacheManager implements Iterable<CachedContent> {
             return StreamUtils.getBytes(new FileInputStream(f));
         }
         return null;
+    }
+
+    boolean checkFile(final CachedContent content) {
+        if (content == null) {
+            return false;
+        }
+        final File f = new File(m_folder, content.getId());
+        return f.exists();
+    }
+
+    boolean deleteFile(final String id) {
+        final File f = new File(m_folder, id);
+        return f.delete();
     }
 
     String saveToFile(final byte[] content, final WebContentType type) throws IOException {
@@ -103,10 +123,33 @@ public class CacheManager implements Iterable<CachedContent> {
             final ObjectInputStream in = new ObjectInputStream(new FileInputStream(m_catalog));
             m_seq.set(in.readLong());
             m_contents = (Map<URL, CachedContent>) in.readObject();
+            Set<String> ids = clearMissedContent();
+            if (s_checkOnStart) {
+                File[] files = m_folder.listFiles();
+                for (File file : files) {
+                    if (!ids.contains(file.getName())) {
+                        file.delete();
+                    }
+                }
+            }
+            save();
         } catch (final Exception ex) {
             // TODO Auto-generated catch block
             ex.printStackTrace();
         }
+    }
+
+    private Set<String> clearMissedContent() {
+        Set<String> ids = new HashSet<String>();
+        for (Iterator<CachedContent> iter = m_contents.values().iterator(); iter.hasNext();) {
+            CachedContent content = iter.next();
+            if (checkFile(content)) {
+                ids.add(content.getId());
+            } else {
+                iter.remove();
+            }
+        }
+        return ids;
     }
 
     private void save() {

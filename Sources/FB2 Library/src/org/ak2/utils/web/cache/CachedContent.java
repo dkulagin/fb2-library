@@ -62,7 +62,11 @@ public class CachedContent implements IWebContent, Serializable {
         return new ByteArrayInputStream(getContent());
     }
 
-    private byte[] getContent() throws IOException {
+    String getId() {
+        return m_id;
+    }
+
+    byte[] getContent() throws IOException {
         byte[] content = m_content != null ? m_content.get() : null;
         if (content == null) {
             content = CacheManager.getInstance().loadFromFile(m_id);
@@ -73,7 +77,7 @@ public class CachedContent implements IWebContent, Serializable {
 
     @Override
     public String toString() {
-        return "CachedContent [m_id=" + m_id + ", m_type=" + m_type + ", m_link=" + m_link + "]";
+        return "CachedContent[" + m_id + ", " + m_type + ", " + m_link + "]";
     }
 
 
