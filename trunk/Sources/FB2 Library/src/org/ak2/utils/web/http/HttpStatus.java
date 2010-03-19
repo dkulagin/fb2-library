@@ -19,14 +19,19 @@ public class HttpStatus {
     private final String m_status;
 
     public HttpStatus(final String status) throws WebException {
-        final Matcher m = PATTERN.matcher(status);
-        if (m.matches() && m.groupCount() == 3) {
-            m_version = m.group(1);
-            m_code = Integer.parseInt(m.group(2));
-            m_status = m.group(3);
-        } else {
-            throw new WebException("Bad HTTP status line: " + status);
+        if (LengthUtils.isNotEmpty(status)) {
+            try {
+                final Matcher m = PATTERN.matcher(status);
+                if (m.matches() && m.groupCount() == 3) {
+                    m_version = m.group(1);
+                    m_code = Integer.parseInt(m.group(2));
+                    m_status = m.group(3);
+                    return ;
+                }
+            } catch (Throwable th) {
+            }
         }
+        throw new WebException("Bad HTTP status line: " + status);
     }
 
     public HttpStatus(final URLConnection conn) throws WebException {
@@ -57,7 +62,7 @@ public class HttpStatus {
     public final boolean isOk() {
         return 200 == getCode();
     }
-    
+
     private static String getConnectionStatus(final URLConnection conn) {
         final List<String> list = conn.getHeaderFields().get(null);
         return LengthUtils.isNotEmpty(list) ? list.get(0) : null;
