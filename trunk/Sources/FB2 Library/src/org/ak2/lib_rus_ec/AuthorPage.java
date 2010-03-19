@@ -1,6 +1,5 @@
 package org.ak2.lib_rus_ec;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -11,12 +10,13 @@ import java.util.regex.Pattern;
 
 import org.ak2.fb2.library.book.BookAuthor;
 import org.ak2.utils.LengthUtils;
+import org.ak2.utils.StreamUtils;
 import org.ak2.utils.web.IWebContent;
 import org.ak2.utils.web.Web;
 
 public class AuthorPage {
 
-    private static final String PATTERN = "<h1 class=\"title\">([^<]+)</h1>|<a name=(\\w+)><a class=genre href=\\/g\\/\\w+><h9>([^<]+)<\\/h9>|<a href=\\/s\\/\\d+><h8>([^<]+)</h8>|<input type=checkbox  id='[\\w-\\,]+' name=\\d+>\\s+-\\s+((\\d+)\\.\\s*)?<a href=(\\/b\\/\\d+)>([^<]+)<\\/a>";
+    private static final String PATTERN = "<h1 class=\\\"title\\\">([^<]+)</h1>|<a name=(\\w+)><a class=genre href=\\/g\\/\\w+><h9>([^<]+)<\\/h9>|<a class=sequence href=\\/s\\/\\d+><h8>([^<]+)</h8>|<img src=/img/znak.gif border=0>\\s+-\\s+((\\d+)\\.\\s*)?<a href=(\\/b\\/\\d+)>([^<]+)<\\/a>";
 
     private final URL m_authorUrl;
 
@@ -53,17 +53,13 @@ public class AuthorPage {
         final List<BookPage> list = new LinkedList<BookPage>();
 
         final IWebContent content = Web.get(m_authorUrl);
-        final StringBuilder buf = new StringBuilder();
-        final BufferedReader in = new BufferedReader(content.getReader());
-        for (String s = in.readLine(); s != null; s = in.readLine()) {
-            buf.append(s).append('\n');
-        }
+        final String text = StreamUtils.getText(content.getReader());
 
         String currentGenre = null;
         String currentSequence = null;
 
         final Pattern p = Pattern.compile(PATTERN, Pattern.DOTALL);
-        final Matcher m = p.matcher(buf);
+        final Matcher m = p.matcher(text);
         for (int start = 0; m.find(start); start = m.end()) {
             if (LengthUtils.isNotEmpty(m.group(1))) {
                 m_author = new BookAuthor(m.group(1), false);
