@@ -16,7 +16,7 @@ import org.ak2.utils.web.Web;
 
 public class AuthorPage {
 
-    private static final String PATTERN = "<h1 class=\\\"title\\\">([^<]+)</h1>|<a name=(\\w+)><a class=genre href=\\/g\\/\\w+><h9>([^<]+)<\\/h9>|<a class=sequence href=\\/s\\/\\d+><h8>([^<]+)</h8>|<img src=/img/znak.gif border=0>(?:<input type=checkbox  id='[\\w-]+' name=\\d+>)?\\s+-\\s+((\\d+)\\.\\s*)?<a href=(\\/b\\/\\d+)>([^<]+)<\\/a>";
+    private static final String PATTERN = "<h1 class=\\\"title\\\">([^<]+)</h1>|<a name=(\\w+)><a class=genre href=\\/g\\/\\w+><h9>([^<]+)<\\/h9>|(?:<a class=sequence href=(\\/s\\/\\d+)>)?<h8>([^<]+)</h8>|<img src=/img/znak.gif border=0>(?:<input type=checkbox  id='[\\w-]+' name=\\d+>)?\\s+-\\s+((\\d+)\\.\\s*)?<a href=(\\/b\\/\\d+)>([^<]+)<\\/a>";
 
     private final URL m_authorUrl;
 
@@ -65,12 +65,16 @@ public class AuthorPage {
                 m_author = new BookAuthor(m.group(1), false);
             } else if (LengthUtils.isNotEmpty(m.group(2))) {
                 currentGenre = m.group(2);
-            } else if (LengthUtils.isNotEmpty(m.group(4))) {
-                currentSequence = m.group(4);
+            } else if (LengthUtils.isNotEmpty(m.group(5))) {
+                if (LengthUtils.isNotEmpty(m.group(4))) {
+                    currentSequence = m.group(5);
+                } else {
+                    currentSequence = null;
+                }
             } else {
-                final String seqNo = m.group(6);
-                final String link = m.group(7);
-                final String name = m.group(8);
+                final String seqNo = m.group(7);
+                final String link = m.group(8);
+                final String name = m.group(9);
                 final BookPage book = new BookPage(this, name, currentGenre, currentSequence, seqNo, link);
                 list.add(book);
             }
