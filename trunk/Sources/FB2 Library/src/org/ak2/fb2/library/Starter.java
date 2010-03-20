@@ -124,6 +124,8 @@ public class Starter {
 
         private JScrollPane logScrollPane;
 
+        private JLabel statusLabel;
+
         public CmdFrame() {
             super("FB2 Library Utils");
             setName("MainFrame");
@@ -311,13 +313,23 @@ public class Starter {
                 c02.gridheight = 1;
                 c02.fill = GridBagConstraints.NONE;
                 c02.anchor = GridBagConstraints.WEST;
-                c02.insets = new Insets(8, 8, 0, 8);
+                c02.insets = new Insets(8, 8, 0, 0);
                 mainPanel.add(getExecButton(), c02);
+
+                final GridBagConstraints c03 = new GridBagConstraints();
+                c03.gridy = 0;
+                c03.gridx = 3;
+                c03.gridwidth = 1;
+                c03.gridheight = 1;
+                c03.fill = GridBagConstraints.HORIZONTAL;
+                c03.anchor = GridBagConstraints.WEST;
+                c03.insets = new Insets(8, 8, 0, 8);
+                mainPanel.add(getStatusLabel(), c03);
 
                 final GridBagConstraints c10 = new GridBagConstraints();
                 c10.gridy = 1;
                 c10.gridx = 0;
-                c10.gridwidth = 3;
+                c10.gridwidth = 4;
                 c10.gridheight = 1;
                 c10.fill = GridBagConstraints.HORIZONTAL;
                 c10.weightx = 1.0;
@@ -328,7 +340,7 @@ public class Starter {
                 final GridBagConstraints c20 = new GridBagConstraints();
                 c20.gridy = 2;
                 c20.gridx = 0;
-                c20.gridwidth = 3;
+                c20.gridwidth = 4;
                 c20.gridheight = 1;
                 c20.fill = GridBagConstraints.HORIZONTAL;
                 c20.weightx = 1.0;
@@ -339,7 +351,7 @@ public class Starter {
                 final GridBagConstraints c30 = new GridBagConstraints();
                 c30.gridy = 3;
                 c30.gridx = 0;
-                c30.gridwidth = 3;
+                c30.gridwidth = 4;
                 c30.gridheight = 1;
                 c30.fill = GridBagConstraints.BOTH;
                 c30.weightx = 1.0;
@@ -390,25 +402,35 @@ public class Starter {
                             getExecButton().setEnabled(false);
                             getCommandBox().setEnabled(false);
                             final CommandArgs x = cmdArgs.get(selected.getName());
+                            final Date start = new Date();
                             final SwingWorker<String, String> task = new SwingWorker<String, String>() {
                                 @Override
                                 protected String doInBackground() throws Exception {
                                     Main.executeCommand(x, selected);
                                     return null;
                                 }
+
                                 @Override
                                 protected void done() {
+                                    getStatusLabel().setText(MessageFormat.format("Started at {0,date,HH:mm:ss}, finished at {1,date,HH:mm:ss}", start, new Date()));
                                     getExecButton().setEnabled(true);
                                     getCommandBox().setEnabled(true);
                                 }
                             };
-
+                            getStatusLabel().setText(MessageFormat.format("Started at {0,date,HH:mm:ss}", start));
                             task.execute();
                         }
                     }
                 });
             }
             return execBtn;
+        }
+
+        private JLabel getStatusLabel() {
+            if (statusLabel == null) {
+                statusLabel = new JLabel();
+            }
+            return statusLabel;
         }
 
         private JTextField getCmdLineField() {
