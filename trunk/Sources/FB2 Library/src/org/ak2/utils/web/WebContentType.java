@@ -4,20 +4,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.Serializable;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.ak2.utils.LengthUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.ext.JSON;
+import org.json.ext.JSONProperty;
 
-public class WebContentType implements Serializable {
-
-    /**
-     * Serial version UID.
-     */
-    private static final long serialVersionUID = -1955607275964692510L;
+/**
+ * @author Alexander Kasatkin
+ * 
+ */
+@JSON
+public class WebContentType {
 
     private static final Map<String, String> MIME2EXT = new HashMap<String, String>();
 
@@ -55,9 +58,16 @@ public class WebContentType implements Serializable {
         m_charset = LengthUtils.isNotEmpty(enc) ? Charset.forName(enc) : null;
     }
 
+    public WebContentType(JSONObject object) throws JSONException {
+        m_type = object.getString("type");
+        String enc = object.getString("charset");
+        m_charset = LengthUtils.isNotEmpty(enc) ? Charset.forName(enc) : null;
+    }
+
     /**
      * @return the type
      */
+    @JSONProperty
     public final String getType() {
         return m_type;
     }
@@ -65,6 +75,7 @@ public class WebContentType implements Serializable {
     /**
      * @return the charset
      */
+    @JSONProperty
     public final Charset getCharset() {
         return m_charset;
     }

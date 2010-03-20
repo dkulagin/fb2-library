@@ -1,5 +1,6 @@
 package org.json;
 
+import java.io.FilterWriter;
 import java.io.IOException;
 import java.io.Writer;
 
@@ -53,7 +54,7 @@ import java.io.Writer;
  * @author JSON.org
  * @version 2008-09-22
  */
-public class JSONWriter {
+public class JSONWriter extends FilterWriter {
     private static final int maxdepth = 20;
 
     /**
@@ -85,6 +86,7 @@ public class JSONWriter {
      * Make a fresh JSONWriter. It can be used to build one JSON text.
      */
     public JSONWriter(Writer w) {
+        super(w);
         this.comma = false;
         this.mode = 'i';
         this.stack = new JSONObject[maxdepth];

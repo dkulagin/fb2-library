@@ -13,13 +13,21 @@ public final class Web {
     }
 
     public static IWebContent get(final URL url) throws IOException {
-        return get(url, Proxy.NO_PROXY);
+        return get(url, null, Proxy.NO_PROXY);
+    }
+
+    public static IWebContent get(final URL url, final String info) throws IOException {
+        return get(url, info, Proxy.NO_PROXY);
     }
 
     public static IWebContent get(final URL url, Proxy proxy) throws IOException {
+        return get(url, null, proxy);
+    }
+
+    public static IWebContent get(final URL url, final String info, Proxy proxy) throws IOException {
         IWebContent content = CacheManager.getInstance().get(url);
         if (content == null) {
-            content = new HttpContent(url, proxy);
+            content = new HttpContent(url, info, proxy);
             content = CacheManager.getInstance().set(content);
         }
         return content;

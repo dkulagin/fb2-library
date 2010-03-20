@@ -3,14 +3,13 @@ package org.ak2.utils.web.cache;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
@@ -18,6 +17,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.ak2.utils.StreamUtils;
 import org.ak2.utils.web.IWebContent;
 import org.ak2.utils.web.WebContentType;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class CacheManager implements Iterable<CachedContent> {
 
@@ -33,20 +34,19 @@ public class CacheManager implements Iterable<CachedContent> {
 
     private final AtomicLong m_seq = new AtomicLong();
 
-    private Map<URL, CachedContent> m_contents;
+    private final Map<URL, CachedContent> m_contents = new LinkedHashMap<URL, CachedContent>();
 
     private CacheManager() {
         m_folder = new File(DEFAULT_FOLDER);
         m_folder.mkdirs();
-        m_catalog = new File(m_folder, "cache.bin");
-        m_contents = new HashMap<URL, CachedContent>();
+        m_catalog = new File(m_folder, ".cache");
         if (m_catalog.exists()) {
             load();
         }
     }
 
     public synchronized IWebContent get(final URL url) {
-        CachedContent content = m_contents.get(url);
+        final CachedContent content = m_contents.get(url);
         if (content == null) {
             return null;
         }
@@ -117,20 +117,24 @@ public class CacheManager implements Iterable<CachedContent> {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void load() {
         try {
-            final ObjectInputStream in = new ObjectInputStream(new FileInputStream(m_catalog));
-            m_seq.set(in.readLong());
-            m_contents = (Map<URL, CachedContent>) in.readObject();
-            Set<String> ids = clearMissedContent();
-            if (s_checkOnStart) {
-                File[] files = m_folder.listFiles();
-                for (File file : files) {
-                    if (!ids.contains(file.getName())) {
-                        file.delete();
-                    }
+            final String text = StreamUtils.getText(new FileInputStream(m_catalog));
+            final JSONObject json = new JSONObject(text);
+            m_seq.set(json.getLong("id"));
+
+            final JSONArray jsonArray = json.getJSONArray("cached");
+            final int length = jsonArray.length();
+            final Set<String> ids = new HashSet<String>();
+            for (int i = 0; i < length; i++) {
+                final CachedContent content = new CachedContent(jsonArray.getJSONObject(i));
+                if (checkFile(content)) {
+                    ids.add(content.getId());
+                    m_contents.put(content.getUrl(), content);
                 }
+            }
+            if (s_checkOnStart) {
+                deleteUnknownFiles(ids);
             }
             save();
         } catch (final Exception ex) {
@@ -139,26 +143,27 @@ public class CacheManager implements Iterable<CachedContent> {
         }
     }
 
-    private Set<String> clearMissedContent() {
-        Set<String> ids = new HashSet<String>();
-        for (Iterator<CachedContent> iter = m_contents.values().iterator(); iter.hasNext();) {
-            CachedContent content = iter.next();
-            if (checkFile(content)) {
-                ids.add(content.getId());
-            } else {
-                iter.remove();
+    private void deleteUnknownFiles(final Set<String> ids) {
+        final File[] files = m_folder.listFiles();
+        for (final File file : files) {
+            if (!ids.contains(file.getName())) {
+                file.delete();
             }
         }
-        return ids;
     }
 
     private void save() {
         try {
-            final ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(m_catalog));
-            out.writeLong(m_seq.get());
-            out.writeObject(m_contents);
+            final FileWriter out = new FileWriter(m_catalog);
+            try {
+                JSONObject obj = new JSONObject();
+                obj.put("id", m_seq.get());
+                obj.put("cached", m_contents.values());
+                out.append(obj.toString(2));
+            } finally {
+                StreamUtils.close(out);
+            }
         } catch (final Exception ex) {
-            // TODO Auto-generated catch block
             ex.printStackTrace();
         }
     }
