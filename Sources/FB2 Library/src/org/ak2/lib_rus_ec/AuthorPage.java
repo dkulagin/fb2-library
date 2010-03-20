@@ -52,7 +52,7 @@ public class AuthorPage {
     public List<BookPage> getBooks() throws IOException {
         final List<BookPage> list = new LinkedList<BookPage>();
 
-        final IWebContent content = Web.get(m_authorUrl);
+        final IWebContent content = Web.get(m_authorUrl, m_author.getName());
         final String text = StreamUtils.getText(content.getReader());
 
         String currentGenre = null;

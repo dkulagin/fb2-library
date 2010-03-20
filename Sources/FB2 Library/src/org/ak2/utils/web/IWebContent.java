@@ -18,6 +18,11 @@ public interface IWebContent {
     WebContentType getType();
 
     /**
+     * @return the content info
+     */
+    String getInfo();
+
+    /**
      * @return the length
      */
     int getLength() throws IOException;

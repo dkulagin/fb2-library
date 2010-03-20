@@ -89,7 +89,7 @@ public class BookPage {
             throw new IllegalArgumentException("Book author URL unknown");
         }
         final URL url = new URL(authorUrl.getProtocol(), authorUrl.getHost(), m_link + "/read");
-        final IWebContent conn = Web.get(url);
+        final IWebContent conn = Web.get(url, m_authorPage.getAuthor().getName() + ". " + m_name);
         return getContent(conn.getReader(), t);
     }
 

@@ -18,16 +18,23 @@ public class HttpContent implements IWebContent {
 
     private final WebContentType m_type;
 
+    private final String m_info;
+
     private InputStream m_in;
 
     private int m_length;
 
     public HttpContent(final URL url) throws IOException {
-        this(url, null);
+        this(url, null, null);
     }
 
     public HttpContent(final URL url, final Proxy proxy) throws IOException {
+        this(url, null, proxy);
+    }
+
+    public HttpContent(final URL url, final String info, final Proxy proxy) throws IOException {
         m_url = url;
+        m_info = info;
         m_conn = openConnection(url, proxy);
 
         HttpStatus status = new HttpStatus(m_conn);
@@ -45,6 +52,13 @@ public class HttpContent implements IWebContent {
      */
     public final URL getUrl() {
         return m_url;
+    }
+
+    /**
+     * @see org.ak2.utils.web.IWebContent#getInfo()
+     */
+    public final String getInfo() {
+        return m_info;
     }
 
     /**
