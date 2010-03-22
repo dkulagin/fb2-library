@@ -75,7 +75,14 @@ public class WebContentType {
     /**
      * @return the charset
      */
-    @JSONProperty
+    @JSONProperty(name="charset")
+    public final String getCharsetName() {
+        return m_charset != null ? m_charset.name() : null;
+    }
+
+    /**
+     * @return the charset
+     */
     public final Charset getCharset() {
         return m_charset;
     }

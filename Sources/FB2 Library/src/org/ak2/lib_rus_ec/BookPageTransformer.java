@@ -66,7 +66,7 @@ public class BookPageTransformer {
 
     /**
      * Phase 1.
-     *
+     * 
      * @param fixNotes
      *            transformation flag
      */
@@ -76,7 +76,7 @@ public class BookPageTransformer {
 
     /**
      * Phase 2.
-     *
+     * 
      * @param fixTitles
      *            transformation flag
      */
@@ -86,7 +86,7 @@ public class BookPageTransformer {
 
     /**
      * Phase 3.
-     *
+     * 
      * @param fixDivs
      *            transformation flag
      */
@@ -96,7 +96,7 @@ public class BookPageTransformer {
 
     /**
      * Phase 4.
-     *
+     * 
      * @param fixBlockquotes
      *            transformation flag
      */
@@ -106,7 +106,7 @@ public class BookPageTransformer {
 
     /**
      * Phase 5.
-     *
+     * 
      * @param fixImages
      *            transformation flag
      */
@@ -116,7 +116,7 @@ public class BookPageTransformer {
 
     /**
      * Phase 6.
-     *
+     * 
      * @param fixTags
      *            transformation flag
      */
@@ -126,7 +126,7 @@ public class BookPageTransformer {
 
     /**
      * Phase 7.
-     *
+     * 
      * @param fixTitleParagraphs
      *            transformation flag
      */
@@ -136,7 +136,7 @@ public class BookPageTransformer {
 
     /**
      * Phase 8.
-     *
+     * 
      * @param fixSections
      *            transformation flag
      */
@@ -146,7 +146,7 @@ public class BookPageTransformer {
 
     /**
      * Phase 9.
-     *
+     * 
      * @param loadImages
      *            transformation flag
      */
@@ -217,6 +217,19 @@ public class BookPageTransformer {
             buf.replace(start, end, "<a l:href=\"#" + id + "\" type=\"note\">" + text + "</a>");
         }
 
+        // <a l:href="#n01" type="note">[1]</a>
+        // <div>Неизбежного прощанья[32]</sup></A>.</div>
+
+        final Pattern pm = Pattern.compile("\\[(\\d+)\\]</sup></A>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+        start = 0;
+        for (Matcher m = pm.matcher(buf); m.find(start); m = pm.matcher(buf)) {
+            final String id = m.group(1);
+            final String text = "";
+            start = m.start();
+            final int end = m.end();
+            buf.replace(start, end, "<a l:href=\"#" + id + "\" type=\"note\">" + text + "</a>");
+        }
+
         // <h3 class=book>
         // <p class=book>Примечания
         // </h3>
@@ -245,32 +258,57 @@ public class BookPageTransformer {
 
             buf.replace(start, end, "\n</section></body>\n<body name=\"notes\">\n<title><p>" + title + "</p></title>\n");
 
-            // <a name="n1"></a>
-            // <h3 class=book>
-            // 1.
-            // </h3>
-            // <p>Подробнее — см. дополнительную главу 1-а.</p>
-            // <small>(<a href=#r1>обратно</a>)</small>
-
-            final Pattern pn = Pattern.compile(
-                    "<a name=\\\"(\\w+)\\\">\\s*</a>\\s*<h3 class=book>\\s*(?:<p class=book>)?(.*?)\\s*</h3>\\s*(?:<p class=book>)+(.*?)</p>\\s*<small>\\(<a href=#\\w+>.+?</a>\\)</small>",
+            fixNoteTexts(start, buf);
+        } else {
+            // <a name="footnote58"></a>
+            final Pattern pf = Pattern.compile(
+                    "<a name=\\\"[\\w_\\-]+\\\">\\s*</a>\\s*<h3 class=book>.*?</h3>\\s*<p class=book>.*?</p>\\s*<small>\\(<a href=#\\w+>.+?</a>\\)</small>",
                     Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-            for (Matcher mn = pn.matcher(buf); mn.find(start); mn = pn.matcher(buf)) {
-                final String id = mn.group(1);
-                final String note = mn.group(2).trim();
-                final String text = mn.group(3).trim();
-                start = mn.start();
-                end = mn.end();
-
-                // <section id="n1">
-                // <title>
-                // <p>1.</p>
-                // </title>
-                // <p>Подробнее — см. дополнительную главу 1-а.</p>
-                // </section>
-
-                buf.replace(start, end, "<section id=\"" + id + "\"><title><p>" + note + "</p></title><p>" + text + "</p></section>\n");
+            final Matcher mf = pf.matcher(buf);
+            if (mf.find()) {
+                start = mf.start();
+                final String title = "Notes";
+                buf.insert(start, "\n</section></body>\n<body name=\"notes\">\n<title><p>" + title + "</p></title>\n");
+                fixNoteTexts(start, buf);
             }
+        }
+    }
+
+    private void fixNoteTexts(int start, final StringBuilder buf) {
+        int end;
+        // <a name="n1"></a>
+        // <h3 class=book>
+        // 1.
+        // </h3>
+        // <p>Подробнее — см. дополнительную главу 1-а.</p>
+        // <small>(<a href=#r1>обратно</a>)</small>
+
+        // <a name="footnote58"></a>
+        // <h3 class=book>
+        // <p class=book>58
+        // </h3>
+        // <p class=book><p class=book>Эвфемизм – более мягкое слово или выражение вместо грубого или слишком прямого <i>(греч.).</i></p>
+        // <small>(<a href=#r58>обратно</a>)</small>
+
+        final Pattern pn = Pattern
+                .compile(
+                        "<a name=\\\"([\\w_\\-]+)\\\">\\s*</a>\\s*<h3 class=book>\\s*(?:<p class=book>)?(.*?)\\s*</h3>\\s*(?:<p class=book>)+(.*?)</p>\\s*<small>\\(<a href=#\\w+>.+?</a>\\)</small>",
+                        Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+        for (Matcher mn = pn.matcher(buf); mn.find(start); mn = pn.matcher(buf)) {
+            final String id = mn.group(1);
+            final String note = mn.group(2).trim();
+            final String text = mn.group(3).trim();
+            start = mn.start();
+            end = mn.end();
+
+            // <section id="n1">
+            // <title>
+            // <p>1.</p>
+            // </title>
+            // <p>Подробнее — см. дополнительную главу 1-а.</p>
+            // </section>
+
+            buf.replace(start, end, "<section id=\"" + id + "\"><title><p>" + note + "</p></title><p>" + text + "</p></section>\n");
         }
     }
 

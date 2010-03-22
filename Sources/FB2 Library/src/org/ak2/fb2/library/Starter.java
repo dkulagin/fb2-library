@@ -37,13 +37,13 @@ import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
-import javax.swing.WindowConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
@@ -129,7 +129,6 @@ public class Starter {
         public CmdFrame() {
             super("FB2 Library Utils");
             setName("MainFrame");
-            setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
             setPreferredSize(new Dimension(800, 600));
 
             final Container contentPane = getContentPane();
@@ -137,6 +136,15 @@ public class Starter {
             contentPane.add(getMainPanel());
 
             addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    if (!getExecButton().isEnabled()) {
+                        JOptionPane.showMessageDialog(CmdFrame.this, "Current operation is still executing");
+                        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+                    } else {
+                        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+                    }
+                }
                 @Override
                 public void windowClosed(final WindowEvent e) {
                     synchronized (lock) {
