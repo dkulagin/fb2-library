@@ -87,9 +87,6 @@ public class DownloadBooks extends AbstractCommand {
         if (LengthUtils.isEmpty(authorId)) {
             throw new BadCmdArguments("Author id should be defined.", true);
         }
-        if (LengthUtils.isEmpty(authorLastName)) {
-            throw new BadCmdArguments("Author last name is missing.", true);
-        }
         if (LengthUtils.isEmpty(outputFolder)) {
             throw new BadCmdArguments("Output folder is missing.", true);
         }
@@ -108,7 +105,10 @@ public class DownloadBooks extends AbstractCommand {
             }
         }
 
-        final BookAuthor author = new BookAuthor(authorFirstName, authorLastName);
+        BookAuthor author = null;
+        if (LengthUtils.isNotEmpty(authorLastName)) {
+            author = new BookAuthor(authorFirstName, authorLastName);
+        }
 
         logBoldLine();
         MSG_INFO_VALUE.log("Author                 ", author);
@@ -142,13 +142,18 @@ public class DownloadBooks extends AbstractCommand {
                     }
                 }
             }
+        } catch (final LibraryException ex) {
+            throw ex;
         } catch (final Exception ex) {
             throw new LibraryException(ex);
         }
     }
 
-    protected List<BookPage> getBooksList(final BookAuthor author, final String authorId, final Set<String> bookIds) throws IOException {
+    protected List<BookPage> getBooksList(final BookAuthor author, final String authorId, final Set<String> bookIds) throws IOException, LibraryException {
         final AuthorPage authorPage = new AuthorPage(author, authorId);
+        if (authorPage.getAuthor() ==  null) {
+            throw new LibraryException("Author of this page is unknown: " + authorPage.getAuthorUrl());
+        }
         final List<BookPage> books = authorPage.getBooks();
         if (LengthUtils.isNotEmpty(bookIds)) {
             for (final Iterator<BookPage> iter = books.iterator(); iter.hasNext();) {
