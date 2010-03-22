@@ -24,15 +24,19 @@ public class AuthorPage {
 
     private final String m_id;
 
+    private final boolean m_useLoadedAuthor;
+
     public AuthorPage(final BookAuthor author, final String id) throws MalformedURLException {
         m_author = author;
         m_id = id;
         m_authorUrl = new URL("http://" + LibRusEc.SITE + LibRusEc.AUTHOR_PATH + id);
+        m_useLoadedAuthor = author == null;
     }
 
     public AuthorPage(final URL authorUrl) {
         m_authorUrl = authorUrl;
         m_id = LibRusEc.getId(m_authorUrl);
+        m_useLoadedAuthor = true;
     }
 
     public AuthorPage(String name, URL authorUrl) {
@@ -40,6 +44,7 @@ public class AuthorPage {
         m_author = new BookAuthor(name);
         m_authorUrl = authorUrl;
         m_id = LibRusEc.getId(m_authorUrl);
+        m_useLoadedAuthor = true;
     }
 
     /**
@@ -62,7 +67,9 @@ public class AuthorPage {
         final Matcher m = p.matcher(text);
         for (int start = 0; m.find(start); start = m.end()) {
             if (LengthUtils.isNotEmpty(m.group(1))) {
-                m_author = new BookAuthor(m.group(1), false);
+                if (m_useLoadedAuthor) {
+                    m_author = new BookAuthor(m.group(1), false);
+                }
             } else if (LengthUtils.isNotEmpty(m.group(2))) {
                 currentGenre = m.group(2);
             } else if (LengthUtils.isNotEmpty(m.group(5))) {
