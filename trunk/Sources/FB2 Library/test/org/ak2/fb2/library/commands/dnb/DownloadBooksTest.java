@@ -37,4 +37,18 @@ public class DownloadBooksTest {
 
         cmd.execute(args);
     }
+    
+    @Test
+    public void fomichev() throws LibraryException {
+        BookPageTransformer t = new BookPageTransformer();
+
+        for(CachedContent content : CacheManager.getInstance()) {
+            System.out.println(content);
+        }
+
+        DownloadBooks cmd = new DownloadBooks(t);
+        CommandArgs args = new CommandArgs("dnb", "-author-id", "29166", "-author-last-name", "Фомичев", "-author-first-name", "Алексей", "-output", "./output", "-outpath", "Standard", "-outformat", "Zip");
+
+        cmd.execute(args);
+    }
 }
