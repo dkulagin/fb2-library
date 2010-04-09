@@ -20,145 +20,22 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-public class FictionBook {
-
-    private final Document fieldDocument;
-
-    private final Element fieldTitleInfo;
+public class FictionBook extends FictionBookInfo {
 
     private final String fieldEncoding;
 
-    private String fieldBookName;
-
-    private BookAuthor fieldAuthor;
+    private final Document fieldDocument;
 
     private Map<String, FictionBookImage> fieldImages;
 
     public FictionBook(final XmlContent content) throws Exception {
+        super(XmlUtils.selectNode(content.getDocument(), "/FictionBook/description"));
         fieldDocument = content.getDocument();
         fieldEncoding = content.getEncoding();
-        fieldTitleInfo = (Element) XmlUtils.selectNode(fieldDocument, "/FictionBook/description/title-info");
     }
 
     public Document getDocument() {
         return fieldDocument;
-    }
-
-    public String getBookName() {
-        if (fieldDocument == null) {
-            return null;
-        }
-        if (fieldBookName == null) {
-            try {
-                fieldBookName = XmlUtils.getString(fieldTitleInfo, "book-title").trim();
-            } catch (final Throwable th) {
-            }
-        }
-        return fieldBookName;
-    }
-
-    public void setBookName(final String bookName) {
-        if (fieldDocument == null) {
-            return;
-        }
-        fieldBookName = bookName.trim();
-        try {
-            Element element = (Element) XmlUtils.selectNode(fieldTitleInfo, "book-title");
-            if (element == null) {
-                element = createElement(fieldTitleInfo, "book-title");
-            }
-            element.setTextContent(fieldBookName);
-        } catch (final Throwable th) {
-            th.printStackTrace();
-        }
-    }
-
-    public String getSequence() {
-        if (fieldDocument == null) {
-            return null;
-        }
-        try {
-            return XmlUtils.getString(fieldTitleInfo, "sequence/@name").trim();
-        } catch (final Throwable th) {
-        }
-        return "";
-    }
-
-    public void setSequence(final String seq) {
-        if (fieldDocument == null) {
-            return;
-        }
-        try {
-            Element seqElement = (Element) XmlUtils.selectNode(fieldTitleInfo, "sequence");
-            if (seqElement == null) {
-                seqElement = createElement(fieldTitleInfo, "sequence");
-            }
-            seqElement.setAttribute("name", seq.trim());
-        } catch (final Throwable th) {
-        }
-    }
-
-    public String getSequenceNo() {
-        if (fieldDocument == null) {
-            return null;
-        }
-        try {
-            return XmlUtils.getString(fieldTitleInfo, "sequence/@number").trim();
-        } catch (final Throwable th) {
-        }
-        return "";
-    }
-
-    public void setSequenceNo(final String seqNo) {
-        if (fieldDocument == null) {
-            return;
-        }
-        try {
-            Element seqElement = (Element) XmlUtils.selectNode(fieldTitleInfo, "sequence");
-            if (seqElement == null) {
-                seqElement = createElement(fieldTitleInfo, "sequence");
-            }
-            seqElement.setAttribute("number", seqNo.trim());
-        } catch (final Throwable th) {
-        }
-    }
-
-    public BookAuthor getAuthor() {
-        if (fieldDocument == null) {
-            return null;
-        }
-        if (fieldAuthor == null) {
-            final String firstName = XmlUtils.getString(fieldTitleInfo, "author/first-name").trim();
-            final String lastName = XmlUtils.getString(fieldTitleInfo, "author/last-name").trim();
-            fieldAuthor = new BookAuthor(firstName, lastName);
-        }
-        return fieldAuthor;
-    }
-
-    public void setAuthor(final BookAuthor author) {
-        if (fieldDocument == null) {
-            return;
-        }
-        if (author == null) {
-            return;
-        }
-
-        fieldAuthor = author;
-        Element aElement = (Element) XmlUtils.selectNode(fieldTitleInfo, "author");
-        if (aElement == null) {
-            aElement = createElement(fieldTitleInfo, "author");
-        }
-        Element fnElement = (Element) XmlUtils.selectNode(aElement, "first-name");
-        if (fnElement == null) {
-            fnElement = createElement(aElement, "first-name");
-        }
-        fnElement.setTextContent(author.getFirstName());
-
-        Element lnElement = (Element) XmlUtils.selectNode(aElement, "last-name");
-        if (lnElement == null) {
-            lnElement = createElement(aElement, "last-name");
-        }
-        lnElement.setTextContent(author.getLastName());
     }
 
     public int getImageIndex(final String imageFileName) {
@@ -223,14 +100,6 @@ public class FictionBook {
         } catch (final UnsupportedEncodingException ex) {
             return text.getBytes();
         }
-    }
-
-    private Element createElement(final Element parent, final String... tagNames) {
-        Element e = parent;
-        for (final String tagName : tagNames) {
-            e = (Element) e.appendChild(fieldDocument.createElement(tagName));
-        }
-        return e;
     }
 
 }
