@@ -209,27 +209,36 @@ public class RenameFiles extends AbstractCommand {
                 MSG_DEBUG_VALUE.log("Book name   ", bookName);
             }
 
-            if (LengthUtils.isNotEmpty(seqNo)) {
-                while (seqNo.length() < 3) {
-                    seqNo = "0" + seqNo;
-                }
-                bookName = seqNo + ". " + bookName;
-            }
+            final File bookFolder = getBookFolder(outputFolder, author, seq, outPath);
+            final String bookFileName = getBookFileName(bookName, seqNo);
 
-            seq = fixName(seq);
-            bookName = fixName(bookName);
-
-            String authorName = authors.getProperty(author.getName(), author.getName());
-            seq = series.getProperty(seq, seq);
-
-            final File bookFolder = outPath.getFolder(outputFolder, authorName, seq);
-            final String bookFileName = bookName + ".fb2";
             return outFormat.createFile(bookFolder, bookFileName, book);
         } catch (final ProcessingException ex) {
             throw ex;
         } catch (final Exception ex) {
             throw new ProcessingException(ex);
         }
+    }
+
+    File getBookFolder(final File outputFolder, final BookAuthor author, final String seq, final OutputPath outPath) throws IOException {
+        String authorName = authors.getProperty(author.getName(), author.getName());
+        String seqq = fixName(series.getProperty(seq, seq));
+        return outPath.getFolder(outputFolder, authorName, seqq);
+    }
+
+    String getBookFileName(final String bookName, final String seqNo) {
+        String bookFileName = bookName;
+        if (LengthUtils.isNotEmpty(seqNo)) {
+            try {
+                int seqNum = Integer.parseInt(seqNo);
+                bookFileName = String.format("%03d. %s", seqNum, bookName);
+            } catch (NumberFormatException ex) {
+                // TODO Auto-generated catch block
+                ex.printStackTrace();
+            }
+        }
+
+        return fixName(bookFileName) + ".fb2";
     }
 
     private static String fixName(String name) {
