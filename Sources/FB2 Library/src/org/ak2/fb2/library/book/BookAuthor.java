@@ -74,6 +74,23 @@ public class BookAuthor {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof BookAuthor) {
+            BookAuthor that = (BookAuthor) obj;
+            return LengthUtils.equals(this.m_name, that.m_name);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return m_name.hashCode();
+    }
+
+    @Override
     public String toString() {
         return m_name;
     }
