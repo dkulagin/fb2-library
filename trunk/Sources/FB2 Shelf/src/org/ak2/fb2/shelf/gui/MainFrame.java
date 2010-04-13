@@ -12,11 +12,18 @@ import java.io.File;
 
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.TreeSelectionModel;
 
 import org.ak2.fb2.shelf.catalog.ShelfCatalog;
 import org.ak2.fb2.shelf.gui.models.catalog.ShelfCatalogModel;
+import org.ak2.fb2.shelf.gui.models.tree.AuthorFilterNode;
+import org.ak2.fb2.shelf.gui.models.tree.ShelfFilterModel;
 import org.ak2.gui.controls.table.TableEx;
 import org.ak2.gui.controls.table.policies.ContentResizePolicy;
+import org.ak2.gui.controls.tree.TreeEx;
 
 public class MainFrame extends JFrame {
 
@@ -32,6 +39,16 @@ public class MainFrame extends JFrame {
 
     private JScrollPane bookTableScrollPane;
 
+    private ShelfCatalog m_catalog;
+
+    private JScrollPane treeScrollPane;
+
+    private TreeEx tree;
+
+    private ShelfFilterModel treeModel;
+
+    private JSplitPane leftSplitPane;
+
     public MainFrame() {
         super("FB2 Shelf");
         setName("MainFrame");
@@ -39,7 +56,7 @@ public class MainFrame extends JFrame {
 
         final Container contentPane = getContentPane();
         contentPane.setLayout(new BorderLayout());
-        contentPane.add(getBookTableScrollPane());
+        contentPane.add(getLeftSplitPane());
 
         addWindowListener(new WindowAdapter() {
             @Override
@@ -69,6 +86,55 @@ public class MainFrame extends JFrame {
         }
     }
 
+    private JSplitPane getLeftSplitPane() {
+        if (leftSplitPane == null) {
+            leftSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+            leftSplitPane.setLeftComponent(getTreeScrollPane());
+            leftSplitPane.setRightComponent(getBookTableScrollPane());
+            leftSplitPane.setResizeWeight(0.25);
+            leftSplitPane.setDividerLocation(0.25);
+        }
+        return leftSplitPane;
+    }
+    private JScrollPane getTreeScrollPane() {
+        if (treeScrollPane == null) {
+            treeScrollPane = new JScrollPane(getTree());
+            treeScrollPane.setName("treeScrollPane");
+        }
+        return treeScrollPane;
+    }
+
+    private TreeEx getTree() {
+        if (tree == null) {
+            tree = new TreeEx();
+            tree.setName("tree");
+
+            tree.setModel(getTreeModel());
+            tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+            tree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
+
+                @Override
+                public void valueChanged(TreeSelectionEvent e) {
+                    AuthorFilterNode node = (AuthorFilterNode) tree.getSelectedNode();
+                    if (node == null || node.getObject() == null) {
+                        getTableModel().setFilter(null);
+                    } else {
+                        getTableModel().setFilter(node);
+                    }
+                }
+            });
+        }
+
+        return tree;
+    }
+
+    private ShelfFilterModel getTreeModel() {
+        if (treeModel == null) {
+            treeModel = new ShelfFilterModel(getCatalog());
+        }
+        return treeModel;
+    }
+
     private JScrollPane getBookTableScrollPane() {
         if (bookTableScrollPane == null) {
             bookTableScrollPane = new JScrollPane(getBookTable());
@@ -91,9 +157,15 @@ public class MainFrame extends JFrame {
 
     private ShelfCatalogModel getTableModel() {
         if (tableModel == null) {
-            ShelfCatalog catalog = new ShelfCatalog(XML_CATALOG);
-            tableModel = new ShelfCatalogModel(catalog);
+            tableModel = new ShelfCatalogModel(getCatalog());
         }
         return tableModel;
+    }
+
+    private ShelfCatalog getCatalog() {
+        if (m_catalog == null) {
+            m_catalog = new ShelfCatalog(XML_CATALOG);
+        }
+        return m_catalog;
     }
 }
