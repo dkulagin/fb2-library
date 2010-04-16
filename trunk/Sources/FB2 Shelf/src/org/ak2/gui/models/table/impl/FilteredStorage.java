@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.ak2.gui.models.table.IStorage;
+import org.ak2.utils.LengthUtils;
 
 /**
  * @param <Entity>
@@ -14,12 +15,12 @@ import org.ak2.gui.models.table.IStorage;
  * @author Whippet
  */
 public class FilteredStorage<Entity> extends AbstractProxyStorage<Entity> {
-    private IEntityFilter<Entity> m_filter;
+    private IEntityFilter<Entity>[] m_filter;
 
     /**
      * @return the filter
      */
-    public IEntityFilter<Entity> getFilter() {
+    public IEntityFilter<Entity>[] getFilter() {
         return m_filter;
     }
 
@@ -27,7 +28,7 @@ public class FilteredStorage<Entity> extends AbstractProxyStorage<Entity> {
      * @param comparator
      *            the comparator to set
      */
-    public void setFilter(final IEntityFilter<Entity> filter) {
+    public void setFilter(final IEntityFilter<Entity>... filter) {
         m_filter = filter;
         refresh();
     }
@@ -41,13 +42,28 @@ public class FilteredStorage<Entity> extends AbstractProxyStorage<Entity> {
         ArrayList<Integer> list = new ArrayList<Integer>();
         final IStorage<Entity> original = getOriginal();
         if (original != null) {
-            for (int originalIndex = 0; originalIndex < original.getEntityCount(); originalIndex++) {
-                final Entity entity = original.getEntity(originalIndex);
-                if (m_filter == null || m_filter.accept(entity)) {
+            if (LengthUtils.isNotEmpty(m_filter)) {
+                for (int originalIndex = 0; originalIndex < original.getEntityCount(); originalIndex++) {
+                    final Entity entity = original.getEntity(originalIndex);
+                    if (accept(entity)) {
+                        list.add(originalIndex);
+                    }
+                }
+            } else {
+                for (int originalIndex = 0; originalIndex < original.getEntityCount(); originalIndex++) {
                     list.add(originalIndex);
                 }
             }
         }
         return list;
+    }
+
+    private boolean accept(Entity entity) {
+        for (IEntityFilter<Entity> f : m_filter) {
+            if (f != null && !f.accept(entity)) {
+                return false;
+            }
+        }
+        return true;
     }
 }
