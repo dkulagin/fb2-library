@@ -27,7 +27,7 @@ import org.ak2.gui.controls.tree.TreeEx;
 
 public class MainFrame extends JFrame {
 
-    private static final File XML_CATALOG = new File("/home/whippet/Work/0000.My/FictionBook/SRC/FB2 Library/Sources/FB2 Library/catalog.xml");
+    private static final File XML_CATALOG = new File("catalog.xml");
 
     private static final long serialVersionUID = 3595272628118286814L;
 
