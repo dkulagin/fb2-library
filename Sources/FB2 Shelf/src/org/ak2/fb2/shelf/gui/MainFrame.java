@@ -10,20 +10,28 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 
+import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.SwingConstants;
+import javax.swing.SwingWorker;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreeSelectionModel;
 
+import org.ak2.fb2.shelf.catalog.BookInfo;
 import org.ak2.fb2.shelf.catalog.ShelfCatalog;
 import org.ak2.fb2.shelf.gui.models.catalog.ShelfCatalogModel;
-import org.ak2.fb2.shelf.gui.models.tree.AuthorFilterNode;
 import org.ak2.fb2.shelf.gui.models.tree.ShelfFilterModel;
 import org.ak2.gui.controls.table.TableEx;
 import org.ak2.gui.controls.table.policies.ContentResizePolicy;
 import org.ak2.gui.controls.tree.TreeEx;
+import org.ak2.gui.models.table.impl.IEntityFilter;
+import org.ak2.gui.models.tree.AbstractTreeNode;
 
 public class MainFrame extends JFrame {
 
@@ -34,6 +42,8 @@ public class MainFrame extends JFrame {
     private final Object lock = new Object();
 
     private ShelfCatalogModel tableModel;
+
+    private JPanel mainPanel;
 
     private TableEx bookTable;
 
@@ -56,9 +66,27 @@ public class MainFrame extends JFrame {
 
         final Container contentPane = getContentPane();
         contentPane.setLayout(new BorderLayout());
-        contentPane.add(getLeftSplitPane());
+        contentPane.add(getMainPanel(), BorderLayout.CENTER);
 
         addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowOpened(WindowEvent e) {
+                final SwingWorker<JComponent, String> task = new SwingWorker<JComponent, String>() {
+                    @Override
+                    protected JComponent doInBackground() throws Exception {
+                        return getLeftSplitPane();
+                    }
+
+                    @Override
+                    protected void done() {
+                        getMainPanel().removeAll();
+                        getMainPanel().add(getLeftSplitPane(), BorderLayout.CENTER);
+                        pack();
+                    }
+                };
+                task.execute();
+            }
+
             @Override
             public void windowClosing(WindowEvent e) {
                 setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -86,6 +114,16 @@ public class MainFrame extends JFrame {
         }
     }
 
+    private JPanel getMainPanel() {
+        if (mainPanel == null) {
+            mainPanel = new JPanel();
+            mainPanel.setName("mainPanel");
+            mainPanel.setLayout(new BorderLayout());
+            mainPanel.add(new JLabel("Loading book shelf...", SwingConstants.CENTER), BorderLayout.SOUTH);
+        }
+        return mainPanel;
+    }
+
     private JSplitPane getLeftSplitPane() {
         if (leftSplitPane == null) {
             leftSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -96,6 +134,7 @@ public class MainFrame extends JFrame {
         }
         return leftSplitPane;
     }
+
     private JScrollPane getTreeScrollPane() {
         if (treeScrollPane == null) {
             treeScrollPane = new JScrollPane(getTree());
@@ -112,14 +151,19 @@ public class MainFrame extends JFrame {
             tree.setModel(getTreeModel());
             tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
             tree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
-
+                @SuppressWarnings("unchecked")
                 @Override
                 public void valueChanged(TreeSelectionEvent e) {
-                    AuthorFilterNode node = (AuthorFilterNode) tree.getSelectedNode();
-                    if (node == null || node.getObject() == null) {
-                        getTableModel().setFilter(null);
+                    AbstractTreeNode<?> node = tree.getSelectedNode();
+                    if (node instanceof IEntityFilter<?>) {
+                        TreeNode[] path = node.getPath();
+                        IEntityFilter<BookInfo>[] filters = new IEntityFilter[path.length];
+                        for (int i = 0; i < path.length; i++) {
+                            filters[i] = (IEntityFilter<BookInfo>) path[i];
+                        }
+                        getTableModel().setFilter(filters);
                     } else {
-                        getTableModel().setFilter(node);
+                        getTableModel().setFilter();
                     }
                 }
             });

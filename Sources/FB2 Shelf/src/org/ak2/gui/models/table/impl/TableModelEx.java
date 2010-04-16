@@ -108,7 +108,7 @@ public class TableModelEx<Entity, EntityContainer> extends AbstractTableModel im
         fireTableDataChanged();
     }
 
-    public void setFilter(final IEntityFilter<Entity> filter) {
+    public void setFilter(final IEntityFilter<Entity>... filter) {
         beforeEntitiesSet();
 
         getFilteredStorage().setFilter(filter);
