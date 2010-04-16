@@ -1,5 +1,6 @@
 package org.ak2.fb2.library.book;
 
+import org.ak2.utils.LengthUtils;
 import org.ak2.utils.XmlUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -14,6 +15,12 @@ public class FictionBookInfo {
     private String fieldBookName;
 
     private BookAuthor fieldAuthor;
+
+    private String fieldSequence;
+
+    private String fieldSeqNo;
+
+    private Integer fieldIntSeqNo;
 
     public FictionBookInfo(final Node root) throws Exception {
         fieldDocument = root.getOwnerDocument();
@@ -53,11 +60,13 @@ public class FictionBookInfo {
         if (fieldDocument == null) {
             return null;
         }
-        try {
-            return XmlUtils.getString(fieldTitleInfo, "sequence/@name").trim();
-        } catch (final Throwable th) {
+        if (fieldSequence == null) {
+            try {
+                fieldSequence = XmlUtils.getString(fieldTitleInfo, "sequence/@name").trim();
+            } catch (final Throwable th) {
+            }
         }
-        return "";
+        return fieldSequence;
     }
 
     public final void setSequence(final String seq) {
@@ -65,11 +74,12 @@ public class FictionBookInfo {
             return;
         }
         try {
+            fieldSequence = seq.trim();
             Element seqElement = (Element) XmlUtils.selectNode(fieldTitleInfo, "sequence");
             if (seqElement == null) {
                 seqElement = createElement(fieldTitleInfo, "sequence");
             }
-            seqElement.setAttribute("name", seq.trim());
+            seqElement.setAttribute("name", fieldSequence);
         } catch (final Throwable th) {
         }
     }
@@ -78,11 +88,25 @@ public class FictionBookInfo {
         if (fieldDocument == null) {
             return null;
         }
-        try {
-            return XmlUtils.getString(fieldTitleInfo, "sequence/@number").trim();
-        } catch (final Throwable th) {
+        if (fieldSeqNo == null) {
+            try {
+                fieldSeqNo = XmlUtils.getString(fieldTitleInfo, "sequence/@number").trim();
+            } catch (final Throwable th) {
+            }
         }
-        return "";
+        return fieldSeqNo;
+    }
+
+    public final Integer getIntSequenceNo() {
+        if (fieldIntSeqNo == null) {
+        String seqNo = getSequenceNo();
+        if (LengthUtils.isNotEmpty(seqNo)) {
+            try {
+                fieldIntSeqNo = new Integer(seqNo);
+            } catch (NumberFormatException ex) {
+            }
+        }}
+        return fieldIntSeqNo;
     }
 
     public final void setSequenceNo(final String seqNo) {
@@ -90,11 +114,13 @@ public class FictionBookInfo {
             return;
         }
         try {
+            fieldIntSeqNo = null;
+            fieldSeqNo = seqNo.trim();
             Element seqElement = (Element) XmlUtils.selectNode(fieldTitleInfo, "sequence");
             if (seqElement == null) {
                 seqElement = createElement(fieldTitleInfo, "sequence");
             }
-            seqElement.setAttribute("number", seqNo.trim());
+            seqElement.setAttribute("number", fieldSeqNo);
         } catch (final Throwable th) {
         }
     }
