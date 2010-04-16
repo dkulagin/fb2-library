@@ -55,7 +55,7 @@ public class Starter {
 
 
     static void initLog() {
-        final String logFilePattern = MessageFormat.format("fb2-shelf.{0,date,yyyyMMdd.HHmmss}.log", new Date());
+        final String logFilePattern = MessageFormat.format("fb2-shelf.log", new Date());
         final JLogLevel consoleLogLevel = EnumUtils.valueOf(JLogLevel.class, System.getProperty("jlog.console.level"), JLogLevel.INFO);
         final JLogLevel fileLogLevel = EnumUtils.valueOf(JLogLevel.class, System.getProperty("jlog.file.level"), JLogLevel.INFO);
         JLog.setConsoleLevel(consoleLogLevel);
