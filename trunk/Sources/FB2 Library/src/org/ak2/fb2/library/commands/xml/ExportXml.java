@@ -155,14 +155,14 @@ public class ExportXml extends AbstractCommand {
         final String parentPath = FileUtils.getRelativeFileName(parent.getFullName(), inFile);
         MSG_DEBUG_VALUE.log("File", FileUtils.getRelativeFileName(file.getFullName(), inFile));
 
-        final String title = m_handler.parse(file);
-        if (LengthUtils.isNotEmpty(title)) {
+        final String titleInfo = m_handler.parse(file);
+        if (LengthUtils.isNotEmpty(titleInfo)) {
             out.append("<book ");
             out.append("container=\"").append(XmlBuilder.escape(parentPath)).append("\"");
             out.append(" ");
             out.append("file=\"").append(XmlBuilder.escape(file.getName())).append("\"");
             out.append(">");
-            out.append(XmlBuilder.escape(title));
+            out.append(titleInfo);
             out.append("</book>\n");
             // out.flush();
         } else {
