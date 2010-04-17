@@ -22,6 +22,7 @@ import org.ak2.utils.files.IFileFilter;
 import org.ak2.utils.files.IFolder;
 import org.ak2.utils.jlog.JLogLevel;
 import org.ak2.utils.jlog.JLogMessage;
+import org.ak2.utils.xml.XmlBuilder;
 import org.xml.sax.SAXException;
 
 /**
@@ -30,7 +31,7 @@ import org.xml.sax.SAXException;
 public class ExportXml extends AbstractCommand {
 
     private static final ICommandParameter[] PARAMS = {
-    /** -input  <path list> - input file or folders separated by standard system path separator */
+    /** -input <path list> - input file or folders separated by standard system path separator */
     new FileSystemParameter(PARAM_INPUT, "input file or folder", true, true),
     /** -output <target file> - xml file to store book catalog */
     new FileSystemParameter(PARAM_OUTPUT, "xml file to store book catalog", false, true), };
@@ -111,7 +112,7 @@ public class ExportXml extends AbstractCommand {
     }
 
     private void processLocation(final FileWriter out, final File inFile) throws IOException {
-        out.append("<location base=\"").append(inFile.getAbsolutePath()).append("\">\n");
+        out.append("<location base=\"").append(XmlBuilder.escape(inFile.getAbsolutePath())).append("\">\n");
         out.flush();
 
         MSG_INFO_VALUE.log("Location", inFile.getAbsolutePath());
@@ -121,7 +122,7 @@ public class ExportXml extends AbstractCommand {
         FileScanner.enumerate(inFile, new IFileFilter() {
             @Override
             public boolean accept(final IFile file) {
-                if (file.getName().endsWith(".fb2")) {
+                if (file != null && LengthUtils.safeString(file.getName()).endsWith(".fb2")) {
                     try {
                         processFile(out, inFile, file);
                     } catch (final Throwable th) {
@@ -151,16 +152,17 @@ public class ExportXml extends AbstractCommand {
 
     private void processFile(final FileWriter out, final File inFile, final IFile file) throws IOException, ParserConfigurationException, SAXException {
         final IFolder parent = file.getParent();
+        final String parentPath = FileUtils.getRelativeFileName(parent.getFullName(), inFile);
         MSG_DEBUG_VALUE.log("File", FileUtils.getRelativeFileName(file.getFullName(), inFile));
 
         final String title = m_handler.parse(file);
         if (LengthUtils.isNotEmpty(title)) {
             out.append("<book ");
-            out.append("container=\"").append(FileUtils.getRelativeFileName(parent.getFullName(), inFile)).append("\"");
+            out.append("container=\"").append(XmlBuilder.escape(parentPath)).append("\"");
             out.append(" ");
-            out.append("file=\"").append(file.getName()).append("\"");
+            out.append("file=\"").append(XmlBuilder.escape(file.getName())).append("\"");
             out.append(">");
-            out.append(title);
+            out.append(XmlBuilder.escape(title));
             out.append("</book>\n");
             // out.flush();
         } else {

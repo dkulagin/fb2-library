@@ -162,7 +162,7 @@ public class XmlBuilder {
    * @return self
    */
   public XmlBuilder attr(final String name, final String value) {
-    attrs.put(name, value);
+    attrs.put(name, escape(value));
     return this;
   }
 
@@ -371,7 +371,7 @@ public class XmlBuilder {
   public XmlBuilder text(final String text) {
     finishDecl();
     if (text != null) {
-      buf.append(text);
+      buf.append(escape(text));
     }
     return this;
   }
@@ -698,5 +698,9 @@ public class XmlBuilder {
   @Override
   public String toString() {
     return buf.toString();
+  }
+  
+  public static String escape(String text) {
+      return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
   }
 }
