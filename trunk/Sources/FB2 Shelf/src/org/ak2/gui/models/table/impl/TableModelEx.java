@@ -602,6 +602,13 @@ public class TableModelEx<Entity, EntityContainer> extends AbstractTableModel im
     }
 
     /**
+     * @return the adapters
+     */
+    protected final ITableColumnAdapter[] getAdapters() {
+        return fieldAdapters;
+    }
+
+    /**
      *
      */
     private class ColumnComparator implements Comparator<Entity> {

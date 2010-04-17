@@ -4,6 +4,7 @@
 package org.ak2.gui.models.table.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -39,6 +40,19 @@ public class CompositeTableModel<Entity> extends TableModelEx<Entity, List<? ext
      */
     public CompositeTableModel(final ITableColumnAdapter[] adapters) {
         super(new Factory<Entity>(), adapters);
+    }
+
+    /**
+     * Constructor
+     *
+     * @param factory
+     * @param columns
+     * @param adapters
+     */
+    @SuppressWarnings("unchecked")
+    public CompositeTableModel(final TableModelEx<Entity, ?> model) {
+        super(new Factory<Entity>(), model.getAdapters());
+        setData(Arrays.asList(model));
     }
 
     /**
