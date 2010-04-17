@@ -22,7 +22,7 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 final class BookTitleInfoHandler extends DefaultHandler {
 
-    private final static Set<String> EXCLUDED = new HashSet<String>(Arrays.asList("annotation", "coverpage"));
+    private final static Set<String> EXCLUDED = new HashSet<String>(Arrays.asList("annotation", "coverpage", "id", "date", "lang"));
 
     private final XmlBuilder m_buffer = new XmlBuilder(false);
 
