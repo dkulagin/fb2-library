@@ -46,6 +46,10 @@ public class StreamUtils {
         }
     }
 
+    public static StringBuilder loadText(final InputStream stream, final String encoding) throws IOException {
+        return loadText(new InputStreamReader(stream, encoding), new TextLoader());
+    }
+
     public static byte[] getBytes(final InputStream stream) throws IOException {
         try {
             final InputStream in = stream;
