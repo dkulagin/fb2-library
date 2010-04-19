@@ -22,10 +22,10 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.text.html.HTML;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreeSelectionModel;
 
@@ -33,6 +33,7 @@ import org.ak2.fb2.shelf.catalog.BookInfo;
 import org.ak2.fb2.shelf.catalog.ShelfCatalog;
 import org.ak2.fb2.shelf.gui.models.catalog.ShelfCatalogModel;
 import org.ak2.fb2.shelf.gui.models.tree.ShelfFilterModel;
+import org.ak2.fb2.shelf.gui.renderers.FilterTreeDecorator;
 import org.ak2.gui.controls.table.TableEx;
 import org.ak2.gui.controls.table.policies.WeightResizePolicy;
 import org.ak2.gui.controls.tree.TreeEx;
@@ -41,10 +42,25 @@ import org.ak2.gui.models.table.impl.IEntityFilter;
 import org.ak2.gui.models.table.impl.TableModelEx;
 import org.ak2.gui.models.tree.AbstractTreeNode;
 import org.ak2.utils.LengthUtils;
+import org.ak2.utils.html.HtmlBuilder;
 import org.ak2.utils.jlog.JLogLevel;
 import org.ak2.utils.jlog.JLogMessage;
 
 public class MainFrame extends JFrame {
+
+    private static final JLogMessage MSG_SELECTION_EVENT = new JLogMessage(JLogLevel.DEBUG, "Tree node selected");
+
+    private static final JLogMessage MSG_SELECTION = new JLogMessage(JLogLevel.DEBUG, "Tree selection: ");
+
+    private static final JLogMessage MSG_DLG_CREATED = new JLogMessage(JLogLevel.DEBUG, "Info dialog created.");
+
+    private static final JLogMessage MSG_WORKER_STARTED = new JLogMessage(JLogLevel.DEBUG, "Worker started.");
+
+    private static final JLogMessage MSG_WORKER_FINISHED = new JLogMessage(JLogLevel.DEBUG, "Worker finished.");
+
+    private static final JLogMessage MSG_MODEL_SET = new JLogMessage(JLogLevel.DEBUG, "New model set.");
+
+    private static final JLogMessage MSG_DLG_SHOWING = new JLogMessage(JLogLevel.DEBUG, "Info dialog showing...");
 
     private static final File XML_CATALOG = new File("catalog.xml");
 
@@ -64,11 +80,15 @@ public class MainFrame extends JFrame {
 
     private JScrollPane treeScrollPane;
 
-    private TreeEx tree;
+    private TreeEx filterTree;
 
     private ShelfFilterModel treeModel;
 
     private JSplitPane leftSplitPane;
+
+    private JDialog selectedDlg;
+
+    private JLabel selectionLabel;
 
     public MainFrame() {
         super("FB2 Shelf");
@@ -159,38 +179,42 @@ public class MainFrame extends JFrame {
 
     private JScrollPane getTreeScrollPane() {
         if (treeScrollPane == null) {
-            treeScrollPane = new JScrollPane(getTree());
+            treeScrollPane = new JScrollPane(getFilterTree());
             treeScrollPane.setName("treeScrollPane");
         }
         return treeScrollPane;
     }
 
-    private TreeEx getTree() {
-        if (tree == null) {
-            tree = new TreeEx();
-            tree.setName("tree");
+    private TreeEx getFilterTree() {
+        if (filterTree == null) {
+            filterTree = new TreeEx();
+            filterTree.setName("filterTree");
 
-            tree.setModel(getTreeModel());
-            tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-            tree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
+            FilterTreeDecorator.decorate(filterTree);
+
+            filterTree.setModel(getTreeModel());
+            filterTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+            filterTree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
                 @Override
                 public void valueChanged(TreeSelectionEvent e) {
-                    new JLogMessage(JLogLevel.INFO, "Tree node selected").log();
+                    MSG_SELECTION_EVENT.log();
 
                     try {
-                        AbstractTreeNode<?> node = tree.getSelectedNode();
+                        AbstractTreeNode<?> node = filterTree.getSelectedNode();
                         final IEntityFilter<BookInfo>[] ffilters = getFilter(node);
 
-                        new JLogMessage(JLogLevel.INFO, "Tree selection: ").log(Arrays.toString(ffilters));
+                        MSG_SELECTION.log(Arrays.toString(ffilters));
 
                         final JDialog dlg = createDialog(ffilters);
 
-                        new JLogMessage(JLogLevel.INFO, "Info dialog created.").log();
+                        MSG_DLG_CREATED.log();
+
+                        final long startTime = System.currentTimeMillis();
 
                         final SwingWorker<TableModelEx<BookInfo, ?>, String> task = new SwingWorker<TableModelEx<BookInfo, ?>, String>() {
                             @Override
                             protected TableModelEx<BookInfo, ?> doInBackground() {
-                                new JLogMessage(JLogLevel.INFO, "Worker started.").log();
+                                MSG_WORKER_STARTED.log();
                                 try {
                                     if (LengthUtils.length(ffilters) > 0) {
                                         CompositeTableModel<BookInfo> model = new CompositeTableModel<BookInfo>(getTableModel());
@@ -205,50 +229,33 @@ public class MainFrame extends JFrame {
 
                             @Override
                             protected void done() {
-                                new JLogMessage(JLogLevel.INFO, "Worker finished.").log();
+                                MSG_WORKER_FINISHED.log();
                                 try {
                                     getBookTable().setModel(this.get());
-                                    getTree().setEnabled(true);
+
+                                    final long endTime = System.currentTimeMillis();
+                                    final long delta = (startTime + 500) - endTime;
+                                    if (delta > 50) {
+                                        Thread.sleep(delta);
+                                    }
+
+                                    getFilterTree().setEnabled(true);
                                     dlg.setVisible(false);
                                 } catch (Exception ex) {
                                     ex.printStackTrace();
                                 }
-                                new JLogMessage(JLogLevel.INFO, "New model set.").log();
+                                MSG_MODEL_SET.log();
                             }
                         };
                         task.execute();
 
-                        SwingUtilities.invokeLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                new JLogMessage(JLogLevel.INFO, "Info dialog showing...").log();
-                                try {
-                                    getTree().setEnabled(false);
-                                    dlg.setVisible(true);
-                                } catch (Exception ex) {
-                                    ex.printStackTrace();
-                                }
-                            }
-                        });
+                        MSG_DLG_SHOWING.log();
+                        getFilterTree().setEnabled(false);
+                        dlg.setVisible(true);
+
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
-                }
-
-                private JDialog createDialog(final IEntityFilter<BookInfo>[] ffilters) {
-                    final JDialog dlg = new JDialog(MainFrame.this);
-                    dlg.setTitle("Please wait...");
-                    dlg.setModal(true);
-                    dlg.setUndecorated(true);
-                    dlg.getContentPane().setLayout(new GridBagLayout());
-                    JLabel label = new JLabel();
-                    label.setText("<html>Selected: " + (ffilters.length > 0 ? Arrays.toString(ffilters) : "ALL") + "</html>");
-                    GridBagConstraints c = new GridBagConstraints();
-                    c.insets = new Insets(8, 16, 8, 16);
-                    dlg.getContentPane().add(label, c);
-                    dlg.pack();
-                    dlg.setLocationRelativeTo(MainFrame.this);
-                    return dlg;
                 }
 
                 @SuppressWarnings("unchecked")
@@ -266,7 +273,45 @@ public class MainFrame extends JFrame {
             });
         }
 
-        return tree;
+        return filterTree;
+    }
+
+    private JDialog createDialog(final IEntityFilter<BookInfo>[] ffilters) {
+        if (selectedDlg == null) {
+            selectedDlg = new JDialog(MainFrame.this);
+            selectedDlg.setTitle("Please wait...");
+            selectedDlg.setModal(true);
+            selectedDlg.setUndecorated(true);
+            selectedDlg.getContentPane().setLayout(new GridBagLayout());
+
+            GridBagConstraints c = new GridBagConstraints();
+            c.insets = new Insets(8, 16, 8, 16);
+            selectedDlg.getContentPane().add(getSelectionLabel(), c);
+        }
+
+        JLabel label = getSelectionLabel();
+        HtmlBuilder buf = new HtmlBuilder().start();
+        buf.start(HTML.Tag.DIV).text("Selected ");
+        if (LengthUtils.isEmpty(ffilters)) {
+            buf.text("All");
+        } else {
+            buf.end().start(HTML.Tag.UL);
+            for (int i = 0; i < ffilters.length; i++) {
+                buf.start(HTML.Tag.LI).text(ffilters[i].toString()).end();
+            }
+        }
+        label.setText(buf.finish());
+        selectedDlg.pack();
+        selectedDlg.setLocationRelativeTo(this);
+        return selectedDlg;
+    }
+
+    private JLabel getSelectionLabel() {
+        if (selectionLabel == null) {
+            selectionLabel = new JLabel();
+            selectionLabel.setName("label");
+        }
+        return selectionLabel;
     }
 
     private ShelfFilterModel getTreeModel() {
