@@ -49,6 +49,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.StyledDocument;
+import javax.swing.text.html.HTML;
 
 import org.ak2.fb2.library.commands.CommandArgs;
 import org.ak2.fb2.library.commands.ICommand;
@@ -209,16 +210,16 @@ public class Starter {
 
             styleSheet.selector("html").attr("color", "black").attr("background", "FFFFC4");
 
-            buf.start("html");
+            buf.start();
             buf.style(styleSheet);
 
             Stack<Integer> indents = new Stack<Integer>();
             Pattern p = Pattern.compile("^\\s*");
 
             if (param == null) {
-                buf.start("div");
-                buf.start("b").text(cmd.getName()).end();
-                buf.end("div");
+                buf.start(HTML.Tag.DIV);
+                buf.start(HTML.Tag.B).text(cmd.getName()).end();
+                buf.end(HTML.Tag.DIV);
 
                 final String[] lines = cmd.getDescription().split("\n+");
                 for (final String string : lines) {
@@ -234,50 +235,50 @@ public class Starter {
                         Integer peek = indents.isEmpty() ? null : indents.peek();
                         if (peek == null) {
                             indents.push(indent);
-                            buf.start("ul");
-                            buf.start("li").text(text).end();
+                            buf.start(HTML.Tag.UL);
+                            buf.start(HTML.Tag.LI).text(text).end();
                         } else if (indent == peek.intValue()) {
-                            buf.start("li").text(text).end();
+                            buf.start(HTML.Tag.LI).text(text).end();
                         } else if (indent > peek.intValue()) {
                             indents.push(indent);
-                            buf.start("ul");
-                            buf.start("li").text(text).end();
+                            buf.start(HTML.Tag.UL);
+                            buf.start(HTML.Tag.LI).text(text).end();
                         } else {
-                            buf.end("ul");
+                            buf.end(HTML.Tag.UL);
                             indents.pop();
                             while (!indents.isEmpty()) {
                                 peek = indents.peek();
                                 if (indent == peek.intValue()) {
-                                    buf.start("li").text(text).end();
+                                    buf.start(HTML.Tag.LI).text(text).end();
                                     break;
                                 } else if (indent > peek.intValue()) {
                                     indents.push(indent);
-                                    buf.start("ul");
-                                    buf.start("li").text(text).end();
+                                    buf.start(HTML.Tag.UL);
+                                    buf.start(HTML.Tag.LI).text(text).end();
                                     break;
                                 } else {
-                                    buf.end("ul");
+                                    buf.end(HTML.Tag.UL);
                                     indents.pop();
                                 }
                             }
                         }
                     } else {
                         while (!indents.isEmpty()) {
-                            buf.end("ul");
+                            buf.end(HTML.Tag.UL);
                             indents.pop();
                         }
-                        buf.start("div").text(text).end();
+                        buf.start(HTML.Tag.DIV).text(text).end();
                     }
                 }
             } else {
-                buf.start("div");
-                buf.start("b").text(cmd.getName()).text(":").text(param.getName()).end();
-                buf.end("div");
+                buf.start(HTML.Tag.DIV);
+                buf.start(HTML.Tag.B).text(cmd.getName()).text(":").text(param.getName()).end();
+                buf.end(HTML.Tag.DIV);
 
                 final String[] lines = param.getDescription().split("\n+");
                 for (final String string : lines) {
                     if (LengthUtils.isNotEmpty(string.trim())) {
-                        buf.start("div").text(string).end();
+                        buf.start(HTML.Tag.DIV).text(string).end();
                     }
                 }
             }

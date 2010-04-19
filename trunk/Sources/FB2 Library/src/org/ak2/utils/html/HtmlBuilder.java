@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 
+import javax.swing.text.html.HTML;
+
 import org.ak2.utils.LengthUtils;
 
 /**
@@ -12,11 +14,17 @@ import org.ak2.utils.LengthUtils;
  */
 public class HtmlBuilder
 {
-    private StringBuilder m_text = new StringBuilder();
+    private static final String CLOSE_TAG_BRACKET = ">";
 
-    private LinkedList<String> m_stack = new LinkedList<String>();
+    private static final String OPEN_TAG_BRACKET = "<";
 
-    private boolean m_tagOpened = false;
+    private static final String SPACE = " ";
+
+    private final StringBuilder m_text = new StringBuilder();
+
+    private final LinkedList<String> m_stack = new LinkedList<String>();
+
+    private boolean m_tagOpened;
 
     /**
      * Constructor
@@ -43,26 +51,37 @@ public class HtmlBuilder
     /**
      * Creates HTML tag.
      *
-     * @param tagName tag name
+     * @param tag HTML tag
      * @return this
      */
-    public HtmlBuilder tag(final String tagName)
+    public HtmlBuilder tag(final HTML.Tag tag)
     {
         closeTag();
-        m_text.append("<").append(tagName).append(">");
+        m_text.append(OPEN_TAG_BRACKET).append(tag.toString()).append(CLOSE_TAG_BRACKET);
         return this;
+    }
+
+    /**
+     * Starts HTML
+     *
+     * @return this
+     */
+    public HtmlBuilder start()
+    {
+        return start(HTML.Tag.HTML);
     }
 
     /**
      * Starts HTML tag
      *
-     * @param tagName tag name
+     * @param tag HTML tag
      * @return this
      */
-    public HtmlBuilder start(final String tagName)
+    public HtmlBuilder start(final HTML.Tag tag)
     {
         closeTag();
-        m_text.append("<").append(tagName);
+        String tagName = tag.toString();
+        m_text.append(OPEN_TAG_BRACKET).append(tagName);
         m_tagOpened = true;
         m_stack.add(tagName);
         return this;
@@ -71,28 +90,29 @@ public class HtmlBuilder
     /**
      * Starts HTML tag.
      *
-     * @param tagName the tag name
+     * @param tag HTML tag
      * @param className the class name
      *
      * @return this
      */
-    public HtmlBuilder start(final String tagName, final String className)
+    public HtmlBuilder start(final HTML.Tag tag, final String className)
     {
-        return start(tagName).attr("class", className);
+        return start(tag).attr(HTML.Attribute.CLASS, className);
     }
 
     /**
      * Creates tag attribute
      *
-     * @param name attribute name
+     * @param attr HTML attribute
      * @param value attribute value
      * @return this
      */
-    public HtmlBuilder attr(final String name, final Object value)
+    public HtmlBuilder attr(final HTML.Attribute attr, final Object value)
     {
         if (m_tagOpened)
         {
-            m_text.append(" ").append(name).append("=").append("'").append(LengthUtils.toString(value)).append("'");
+            m_text.append(SPACE).append(attr.toString()).append("=");
+            m_text.append("'").append(LengthUtils.toString(value)).append("'");
         }
         return this;
     }
@@ -107,8 +127,8 @@ public class HtmlBuilder
     {
         closeTag();
         String string = LengthUtils.toString(text);
-        string = string.replaceAll("<", "&lt;");
-        string = string.replaceAll(">", "&gt;");
+        string = string.replaceAll(OPEN_TAG_BRACKET, "&lt;");
+        string = string.replaceAll(CLOSE_TAG_BRACKET, "&gt;");
         m_text.append(string);
         return this;
     }
@@ -123,8 +143,8 @@ public class HtmlBuilder
         closeTag();
         if (!m_stack.isEmpty())
         {
-            String tagName = m_stack.removeLast();
-            m_text.append("</").append(tagName).append(">");
+            final String tagName = m_stack.removeLast();
+            m_text.append(OPEN_TAG_BRACKET).append("/").append(tagName).append(CLOSE_TAG_BRACKET);
         }
         return this;
     }
@@ -132,16 +152,17 @@ public class HtmlBuilder
     /**
      * Ends HTML tags in tag stack including the given one.
      *
-     * @param upTo name of HTML tag
+     * @param tag name of HTML tag
      * @return this
      */
-    public HtmlBuilder end(final String upTo)
+    public HtmlBuilder end(final HTML.Tag tag)
     {
         closeTag();
+        String upTo = tag.toString();
         while (!m_stack.isEmpty())
         {
-            String tagName = m_stack.removeLast();
-            m_text.append("</").append(tagName).append(">");
+            final String tagName = m_stack.removeLast();
+            m_text.append(OPEN_TAG_BRACKET).append("/").append(tagName).append(CLOSE_TAG_BRACKET);
             if (tagName.equalsIgnoreCase(upTo))
             {
                 break;
@@ -158,7 +179,7 @@ public class HtmlBuilder
      */
     public HtmlBuilder tagClass(final String className)
     {
-        return this.attr("class", className);
+        return this.attr(HTML.Attribute.CLASS, className);
     }
 
     /**
@@ -169,7 +190,7 @@ public class HtmlBuilder
      */
     public HtmlBuilder style(final StyleSheet styleSheet)
     {
-        return this.start("style").text(styleSheet.toString()).end();
+        return this.start(HTML.Tag.STYLE).text(styleSheet.toString()).end();
     }
 
     /**
@@ -180,7 +201,7 @@ public class HtmlBuilder
         if (m_tagOpened)
         {
             m_tagOpened = false;
-            m_text.append(">");
+            m_text.append(CLOSE_TAG_BRACKET);
         }
     }
 
@@ -189,7 +210,7 @@ public class HtmlBuilder
      */
     public static class StyleSheet
     {
-        private Map<String, Map<String, String>> m_data = new TreeMap<String, Map<String, String>>();
+        private final Map<String, Map<String, String>> m_data = new TreeMap<String, Map<String, String>>();
 
         private String m_selector;
 
@@ -252,19 +273,20 @@ public class HtmlBuilder
          * @return style sheet text
          * @see java.lang.Object#toString()
          */
+        @Override
         public String toString()
         {
-            StringBuilder buf = new StringBuilder();
-            for(Entry<String, Map<String, String>> selector : m_data.entrySet())
+            final StringBuilder buf = new StringBuilder();
+            for(final Entry<String, Map<String, String>> selector : m_data.entrySet())
             {
                 final Map<String, String> attributes = selector.getValue();
                 if (!attributes.isEmpty())
                 {
                     buf.append(selector.getKey());
-                    buf.append(" ");
+                    buf.append(SPACE);
                     buf.append("{");
 
-                    for(Entry<String, String> attr : attributes.entrySet())
+                    for(final Entry<String, String> attr : attributes.entrySet())
                     {
                         buf.append(attr.getKey());
                         buf.append(":");
@@ -272,7 +294,7 @@ public class HtmlBuilder
                         buf.append(";");
                     }
                     buf.append("}");
-                    buf.append(" ");
+                    buf.append(SPACE);
                 }
             }
 
