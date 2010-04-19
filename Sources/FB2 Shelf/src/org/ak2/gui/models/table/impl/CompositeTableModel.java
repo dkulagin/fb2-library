@@ -51,7 +51,7 @@ public class CompositeTableModel<Entity> extends TableModelEx<Entity, List<? ext
      */
     @SuppressWarnings("unchecked")
     public CompositeTableModel(final TableModelEx<Entity, ?> model) {
-        super(new Factory<Entity>(), model.getAdapters());
+        super(new Factory<Entity>(), model.getColumnNames(), model.getAdapters());
         setData(Arrays.asList(model));
     }
 

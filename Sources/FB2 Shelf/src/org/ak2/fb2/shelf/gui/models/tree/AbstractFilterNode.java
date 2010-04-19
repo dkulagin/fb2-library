@@ -4,6 +4,8 @@ import org.ak2.fb2.shelf.catalog.BookInfo;
 import org.ak2.gui.models.table.impl.IEntityFilter;
 import org.ak2.gui.models.tree.AbstractTreeModel;
 import org.ak2.gui.models.tree.AbstractTreeNode;
+import org.ak2.utils.LengthUtils;
+import org.ak2.utils.LengthUtils;
 
 public abstract class AbstractFilterNode<T> extends AbstractTreeNode<T> implements IEntityFilter<BookInfo> {
 
@@ -22,4 +24,8 @@ public abstract class AbstractFilterNode<T> extends AbstractTreeNode<T> implemen
 
     protected abstract boolean accept(BookInfo entity, T userObject);
 
+    @Override
+    public String toString() {
+        return LengthUtils.toString(getObject());
+    }
 }
