@@ -1,5 +1,8 @@
 package org.ak2.fb2.shelf.catalog;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.ak2.fb2.library.book.BookAuthor;
 import org.ak2.fb2.library.book.FictionBookInfo;
 import org.ak2.utils.LengthUtils;
@@ -9,6 +12,11 @@ import org.json.JSONObject;
 import org.w3c.dom.Node;
 
 public class BookInfo implements Comparable<BookInfo> {
+
+    /**
+     * Escaped symbols
+     */
+    private static final Pattern ESCAPED = Pattern.compile("\\&\\#(\\d+)\\;");
 
     private final String m_location;
 
@@ -28,9 +36,9 @@ public class BookInfo implements Comparable<BookInfo> {
 
     public BookInfo(final String location, final Node root) throws Exception {
         final FictionBookInfo fbi = new FictionBookInfo(root);
-        m_location = location;
-        m_container = XmlUtils.getString(root, "@container");
-        m_file = XmlUtils.getString(root, "@file");
+        m_location = normalize(location);
+        m_container = normalize(XmlUtils.getString(root, "@container"));
+        m_file = normalize(XmlUtils.getString(root, "@file"));
         m_author = fbi.getAuthor();
         m_bookName = fbi.getBookName();
         m_sequence = fbi.getSequence();
@@ -39,13 +47,13 @@ public class BookInfo implements Comparable<BookInfo> {
     }
 
     public BookInfo(final String location, final JSONObject book) throws Exception {
-        m_location = location;
-        m_container = book.getString("container");
-        m_file = book.getString("file");
+        m_location = normalize(location);
+        m_container = normalize(book.getString("container"));
+        m_file = normalize(book.getString("file"));
 
         final JSONObject titleInfo = book.getJSONObject("title-info");
 
-        m_bookName = titleInfo.getString("book-title");
+        m_bookName = normalize(titleInfo.getString("book-title"));
 
         final Object authorObject = titleInfo.get("author");
         JSONObject author = null;
@@ -58,15 +66,15 @@ public class BookInfo implements Comparable<BookInfo> {
             }
         }
         if (author != null) {
-            m_author = new BookAuthor(author.optString("first-name"), author.optString("last-name"));
+            m_author = new BookAuthor(normalize(author.optString("first-name")), normalize(author.optString("last-name")));
         } else {
             m_author = null;
         }
 
         final JSONObject seq = titleInfo.optJSONObject("sequence");
         if (seq != null) {
-            m_sequence = seq.getString("name");
-            m_seqNo = seq.optString("number");
+            m_sequence = normalize(seq.getString("name"));
+            m_seqNo = normalize(seq.optString("number"));
             Integer number = null;
             if (LengthUtils.isNotEmpty(m_seqNo)) {
                 try {
@@ -179,5 +187,16 @@ public class BookInfo implements Comparable<BookInfo> {
         return "BookInfo [m_author=" + m_author + ", m_sequence=" + m_sequence + ", m_seqNo=" + m_seqNo + ", m_bookName=" + m_bookName + "]";
     }
 
-
+    public static String normalize(String text) {
+        final Matcher m = ESCAPED.matcher(text);
+        final StringBuffer buf = new StringBuffer();
+        while (m.find()) {
+            final String code = m.group(1);
+            final char ch = (char) Integer.parseInt(code);
+            final String repl = "" + ch;
+            m.appendReplacement(buf, repl);
+        }
+        m.appendTail(buf);
+        return buf.toString();
+    }
 }

@@ -9,24 +9,28 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.text.html.HTML;
-import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.ak2.fb2.shelf.catalog.BookInfo;
@@ -194,83 +198,7 @@ public class MainFrame extends JFrame {
 
             filterTree.setModel(getTreeModel());
             filterTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-            filterTree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
-                @Override
-                public void valueChanged(TreeSelectionEvent e) {
-                    MSG_SELECTION_EVENT.log();
-
-                    try {
-                        AbstractTreeNode<?> node = filterTree.getSelectedNode();
-                        final IEntityFilter<BookInfo>[] ffilters = getFilter(node);
-
-                        MSG_SELECTION.log(Arrays.toString(ffilters));
-
-                        final JDialog dlg = createDialog(ffilters);
-
-                        MSG_DLG_CREATED.log();
-
-                        final long startTime = System.currentTimeMillis();
-
-                        final SwingWorker<TableModelEx<BookInfo, ?>, String> task = new SwingWorker<TableModelEx<BookInfo, ?>, String>() {
-                            @Override
-                            protected TableModelEx<BookInfo, ?> doInBackground() {
-                                MSG_WORKER_STARTED.log();
-                                try {
-                                    if (LengthUtils.length(ffilters) > 0) {
-                                        CompositeTableModel<BookInfo> model = new CompositeTableModel<BookInfo>(getTableModel());
-                                        model.setFilter(ffilters);
-                                        return model;
-                                    }
-                                } catch (Throwable th) {
-                                    th.printStackTrace();
-                                }
-                                return getTableModel();
-                            }
-
-                            @Override
-                            protected void done() {
-                                MSG_WORKER_FINISHED.log();
-                                try {
-                                    getBookTable().setModel(this.get());
-
-                                    final long endTime = System.currentTimeMillis();
-                                    final long delta = (startTime + 500) - endTime;
-                                    if (delta > 50) {
-                                        Thread.sleep(delta);
-                                    }
-
-                                    getFilterTree().setEnabled(true);
-                                    dlg.setVisible(false);
-                                } catch (Exception ex) {
-                                    ex.printStackTrace();
-                                }
-                                MSG_MODEL_SET.log();
-                            }
-                        };
-                        task.execute();
-
-                        MSG_DLG_SHOWING.log();
-                        getFilterTree().setEnabled(false);
-                        dlg.setVisible(true);
-
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                }
-
-                @SuppressWarnings("unchecked")
-                private IEntityFilter<BookInfo>[] getFilter(AbstractTreeNode<?> node) {
-                    IEntityFilter<BookInfo>[] filters = null;
-                    if (node instanceof IEntityFilter<?>) {
-                        TreeNode[] path = node.getPath();
-                        filters = new IEntityFilter[path.length - 1];
-                        for (int i = 1; i < path.length; i++) {
-                            filters[i - 1] = (IEntityFilter<BookInfo>) path[i];
-                        }
-                    }
-                    return filters;
-                }
-            });
+            filterTree.getSelectionModel().addTreeSelectionListener(new TreeListener());
         }
 
         return filterTree;
@@ -335,6 +263,59 @@ public class MainFrame extends JFrame {
             bookTable.setName("bookTable");
             bookTable.setResizePolicy(new WeightResizePolicy(30, 10, 60));
             bookTable.setModel(getTableModel());
+
+            bookTable.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (SwingUtilities.isLeftMouseButton(e) && e.getClickCount() > 1) {
+                        int selectedRow = getBookTable().getSelectedRow();
+                        if (selectedRow == -1) {
+                            return;
+                        }
+
+                        BookInfo entity = getTableModel().getEntity(selectedRow);
+
+                        new JLogMessage(JLogLevel.DEBUG, "Selected book: {0}").log(entity);
+
+                        File location = new File(entity.getLocation());
+                        if (!location.exists()) {
+                            JOptionPane.showMessageDialog(MainFrame.this, "Selected base location not found: \n" + location, "Opening book...", JOptionPane.WARNING_MESSAGE);
+                            return;
+                        }
+
+                        File container = new File(location, entity.getContainer());
+                        if (!container.exists()) {
+                            JOptionPane.showMessageDialog(MainFrame.this, "Selected book container not found: \n" + container, "Opening book...", JOptionPane.WARNING_MESSAGE);
+                            return;
+                        }
+                        File book = container;
+                        if (container.isDirectory()) {
+                            book = new File(container, entity.getFile());
+                        }
+                        if (!book.exists()) {
+                            JOptionPane.showMessageDialog(MainFrame.this, "Selected book file not found: \n" + book, "Opening book...", JOptionPane.WARNING_MESSAGE);
+                            return;
+                        }
+                        String fb2readerProperty = System.getProperty("fb2.reader");
+                        if (LengthUtils.isEmpty(fb2readerProperty)) {
+                            JOptionPane.showMessageDialog(MainFrame.this, "The 'fb2.reader' system property is not set", "Opening book...", JOptionPane.WARNING_MESSAGE);
+                            return;
+                        }
+                        File fb2reader = new File(fb2readerProperty);
+                        if (!fb2reader.exists()) {
+                            JOptionPane.showMessageDialog(MainFrame.this, "FB2 Reader program not found: \n" + fb2reader, "Opening book...", JOptionPane.WARNING_MESSAGE);
+                            return;
+                        }
+
+                        try {
+                            String[] cmdarray = { fb2reader.getCanonicalPath(), book.getCanonicalPath() };
+                            Runtime.getRuntime().exec(cmdarray, null, fb2reader.getParentFile());
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                }
+            });
         }
 
         return bookTable;
@@ -352,5 +333,80 @@ public class MainFrame extends JFrame {
             m_catalog = new ShelfCatalog(XML_CATALOG);
         }
         return m_catalog;
+    }
+
+    private final class TreeListener implements TreeSelectionListener {
+        @Override
+        public void valueChanged(TreeSelectionEvent e) {
+            MSG_SELECTION_EVENT.log();
+
+            try {
+                AbstractTreeNode<?> node = filterTree.getSelectedNode();
+                final IEntityFilter<BookInfo>[] ffilters = getFilter(node);
+
+                MSG_SELECTION.log(Arrays.toString(ffilters));
+
+                final JDialog dlg = createDialog(ffilters);
+
+                MSG_DLG_CREATED.log();
+
+                final long startTime = System.currentTimeMillis();
+
+                final SwingWorker<TableModelEx<BookInfo, ?>, String> task = new SwingWorker<TableModelEx<BookInfo, ?>, String>() {
+                    @Override
+                    protected TableModelEx<BookInfo, ?> doInBackground() {
+                        MSG_WORKER_STARTED.log();
+                        try {
+                            if (LengthUtils.length(ffilters) > 0) {
+                                CompositeTableModel<BookInfo> model = new CompositeTableModel<BookInfo>(getTableModel());
+                                model.setFilter(ffilters);
+                                return model;
+                            }
+                        } catch (Throwable th) {
+                            th.printStackTrace();
+                        }
+                        return getTableModel();
+                    }
+
+                    @Override
+                    protected void done() {
+                        MSG_WORKER_FINISHED.log();
+                        try {
+                            getBookTable().setModel(this.get());
+
+                            final long endTime = System.currentTimeMillis();
+                            final long delta = (startTime + 500) - endTime;
+                            if (delta > 50) {
+                                Thread.sleep(delta);
+                            }
+
+                            getFilterTree().setEnabled(true);
+                            dlg.setVisible(false);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                        MSG_MODEL_SET.log();
+                    }
+                };
+                task.execute();
+
+                MSG_DLG_SHOWING.log();
+                getFilterTree().setEnabled(false);
+                dlg.setVisible(true);
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        private IEntityFilter<BookInfo>[] getFilter(AbstractTreeNode<?> node) {
+            IEntityFilter<BookInfo>[] filters = null;
+            if (node instanceof IEntityFilter<?>) {
+                filters = new IEntityFilter[1];
+                filters[0] = (IEntityFilter<BookInfo>) node;
+            }
+            return filters;
+        }
     }
 }
