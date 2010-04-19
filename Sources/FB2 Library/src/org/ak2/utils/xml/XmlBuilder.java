@@ -4,21 +4,15 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Stack;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.ak2.utils.LengthUtils;
 import org.ak2.utils.threadlocal.ThreadLocalBuffer;
+import org.json.XML;
 
 /**
  * @author Alexander Kasatkin
  */
 public class XmlBuilder {
-
-    /**
-     * Escaped symbols
-     */
-    private static final Pattern ESCAPED = Pattern.compile("[\\&\\<\\\"\\>\\/]");
 
     /**
     *
@@ -79,7 +73,7 @@ public class XmlBuilder {
 
     /**
      * Constructor.
-     * 
+     *
      * @param encoding
      *            XML encoding
      * @param prettyPrint
@@ -94,7 +88,7 @@ public class XmlBuilder {
 
     /**
      * Constructor. No XML prolog written.
-     * 
+     *
      * @param prettyPrint
      *            the pretty print flag
      */
@@ -117,7 +111,7 @@ public class XmlBuilder {
 
     /**
      * Starts new tag.
-     * 
+     *
      * @param name
      *            tag name
      * @return self
@@ -133,7 +127,7 @@ public class XmlBuilder {
 
     /**
      * Starts new tag.
-     * 
+     *
      * @param name
      *            tag name
      * @param ns
@@ -146,7 +140,7 @@ public class XmlBuilder {
 
     /**
      * Starts new tag.
-     * 
+     *
      * @param name
      *            tag name
      * @param ns
@@ -161,7 +155,7 @@ public class XmlBuilder {
 
     /**
      * Adds the given attribute to the opened tag.
-     * 
+     *
      * @param name
      *            attribute name
      * @param value
@@ -175,7 +169,7 @@ public class XmlBuilder {
 
     /**
      * Adds the given attribute to the opened tag.
-     * 
+     *
      * @param name
      *            attribute name
      * @param value
@@ -190,7 +184,7 @@ public class XmlBuilder {
 
     /**
      * Adds the given attribute to the opened tag.
-     * 
+     *
      * @param name
      *            attribute name
      * @param value
@@ -205,7 +199,7 @@ public class XmlBuilder {
 
     /**
      * Adds the given attribute to the opened tag.
-     * 
+     *
      * @param name
      *            attribute name
      * @param value
@@ -220,7 +214,7 @@ public class XmlBuilder {
 
     /**
      * Adds the given attribute to the opened tag.
-     * 
+     *
      * @param name
      *            attribute name
      * @param value
@@ -235,7 +229,7 @@ public class XmlBuilder {
 
     /**
      * Adds the given attribute to the opened tag.
-     * 
+     *
      * @param name
      *            attribute name
      * @param value
@@ -250,7 +244,7 @@ public class XmlBuilder {
 
     /**
      * Adds the given attribute to the opened tag.
-     * 
+     *
      * @param name
      *            attribute name
      * @param value
@@ -265,7 +259,7 @@ public class XmlBuilder {
 
     /**
      * Adds the given attribute to the opened tag.
-     * 
+     *
      * @param name
      *            attribute name
      * @param ns
@@ -280,7 +274,7 @@ public class XmlBuilder {
 
     /**
      * Adds the given attribute to the opened tag.
-     * 
+     *
      * @param name
      *            attribute name
      * @param ns
@@ -295,7 +289,7 @@ public class XmlBuilder {
 
     /**
      * Adds the given attribute to the opened tag.
-     * 
+     *
      * @param name
      *            attribute name
      * @param ns
@@ -310,7 +304,7 @@ public class XmlBuilder {
 
     /**
      * Adds the given attribute to the opened tag.
-     * 
+     *
      * @param name
      *            attribute name
      * @param ns
@@ -325,7 +319,7 @@ public class XmlBuilder {
 
     /**
      * Adds the given attribute to the opened tag.
-     * 
+     *
      * @param name
      *            attribute name
      * @param ns
@@ -340,7 +334,7 @@ public class XmlBuilder {
 
     /**
      * Adds the given attribute to the opened tag.
-     * 
+     *
      * @param name
      *            attribute name
      * @param ns
@@ -355,7 +349,7 @@ public class XmlBuilder {
 
     /**
      * Adds the given attribute to the opened tag.
-     * 
+     *
      * @param name
      *            attribute name
      * @param ns
@@ -370,7 +364,7 @@ public class XmlBuilder {
 
     /**
      * Adds the given text to the opened tag.
-     * 
+     *
      * @param text
      *            text to add
      * @return self
@@ -385,7 +379,7 @@ public class XmlBuilder {
 
     /**
      * Ends the top tag in stack.
-     * 
+     *
      * @return self
      */
     public XmlBuilder end() {
@@ -395,7 +389,7 @@ public class XmlBuilder {
 
     /**
      * Ends opened tags in stack including the given one.
-     * 
+     *
      * @param name
      *            tag name
      * @return self
@@ -424,7 +418,7 @@ public class XmlBuilder {
 
     /**
      * Ends opened tags in stack including the given one.
-     * 
+     *
      * @param name
      *            tag name
      * @param ns
@@ -437,12 +431,12 @@ public class XmlBuilder {
 
     /**
      * Adds new element with the given text.
-     * 
+     *
      * @param name
      *            the tag name
      * @param text
      *            the element text
-     * 
+     *
      * @return self
      */
     public XmlBuilder element(final String name, final String text) {
@@ -451,14 +445,14 @@ public class XmlBuilder {
 
     /**
      * Adds new element with the given text.
-     * 
+     *
      * @param name
      *            the tag name
      * @param ns
      *            namespace prefix
      * @param text
      *            the element text
-     * 
+     *
      * @return self
      */
     public XmlBuilder element(final String name, final String ns, final String text) {
@@ -467,12 +461,12 @@ public class XmlBuilder {
 
     /**
      * Adds new element with the given text.
-     * 
+     *
      * @param name
      *            the tag name
      * @param text
      *            the element text
-     * 
+     *
      * @return self
      */
     public XmlBuilder elementOpt(final String name, final String text) {
@@ -484,14 +478,14 @@ public class XmlBuilder {
 
     /**
      * Adds new element with the given text only if the checking text if empty.
-     * 
+     *
      * @param name
      *            the tag name
      * @param text
      *            the element text
      * @param textToCheck
      *            the text to check
-     * 
+     *
      * @return self
      */
     public XmlBuilder elementOptCond(final String name, final String textToCheck, final String text) {
@@ -505,14 +499,14 @@ public class XmlBuilder {
 
     /**
      * Adds new element with the given text.
-     * 
+     *
      * @param name
      *            the tag name
      * @param ns
      *            namespace prefix
      * @param text
      *            the element text
-     * 
+     *
      * @return self
      */
     public XmlBuilder elementOpt(final String name, final String ns, final String text) {
@@ -524,7 +518,7 @@ public class XmlBuilder {
 
     /**
      * Adds new sequence.
-     * 
+     *
      * @param name
      *            sequence tag name
      * @param strings
@@ -550,7 +544,7 @@ public class XmlBuilder {
 
     /**
      * Adds new sequence.
-     * 
+     *
      * @param name
      *            sequence tag name
      * @param ns
@@ -578,7 +572,7 @@ public class XmlBuilder {
 
     /**
      * Adds new sequence.
-     * 
+     *
      * @param name
      *            sequence tag name
      * @param strings
@@ -606,7 +600,7 @@ public class XmlBuilder {
 
     /**
      * Adds new sequence.
-     * 
+     *
      * @param name
      *            sequence tag name
      * @param ns
@@ -636,7 +630,7 @@ public class XmlBuilder {
 
     /**
      * Ends all opened tags and return raw XML text.
-     * 
+     *
      * @return raw XML text
      */
     public String finish() {
@@ -678,7 +672,7 @@ public class XmlBuilder {
 
     /**
      * Returns fully qualified tag name
-     * 
+     *
      * @param name
      *            tag name
      * @param ns
@@ -697,7 +691,7 @@ public class XmlBuilder {
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * @see java.lang.Object#toString()
      */
     @Override
@@ -706,15 +700,6 @@ public class XmlBuilder {
     }
 
     public static String escape(final String text) {
-        final Matcher m = ESCAPED.matcher(text);
-        final StringBuffer buf = new StringBuffer();
-        while (m.find()) {
-            final String s = m.group();
-            final char ch = s.charAt(0);
-            final String repl = "&#" + Integer.toString(ch) + ";";
-            m.appendReplacement(buf, repl);
-        }
-        m.appendTail(buf);
-        return buf.toString();
+        return XML.escape(text);
     }
 }
