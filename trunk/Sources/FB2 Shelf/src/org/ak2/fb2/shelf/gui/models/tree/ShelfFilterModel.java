@@ -1,8 +1,10 @@
 package org.ak2.fb2.shelf.gui.models.tree;
 
-import java.util.LinkedHashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.ak2.fb2.library.book.BookAuthor;
@@ -23,7 +25,7 @@ public class ShelfFilterModel extends AbstractTreeModel {
     public ShelfFilterModel(ShelfCatalog catalog) {
         this.catalog = catalog;
 
-        Map<BookAuthor, Set<String>> authors = new LinkedHashMap<BookAuthor, Set<String>>();
+        Map<BookAuthor, Set<String>> authors = new TreeMap<BookAuthor, Set<String>>();
         for (BookInfo book : catalog) {
             BookAuthor author = book.getAuthor();
             Set<String> set = authors.get(author);
@@ -40,16 +42,25 @@ public class ShelfFilterModel extends AbstractTreeModel {
         RootFilterNode root = new RootFilterNode(this);
         this.setRootNode(root);
 
-        for (Map.Entry<BookAuthor, Set<String>> author : authors.entrySet()) {
-            AuthorFilterNode node = new AuthorFilterNode(this, author.getKey());
-            Set<String> set = author.getValue();
-            if (LengthUtils.isNotEmpty(set)) {
-                for (String sequence : set) {
-                    SequenceFilterNode seqNode = new SequenceFilterNode(this, sequence);
-                    node.add(seqNode);
+        int size = 20;
+        Iterator<BookAuthor> iter = authors.keySet().iterator();
+        while (iter.hasNext()) {
+            AuthorPackFilterNode packNode = new AuthorPackFilterNode(this, iter, size);
+            root.add(packNode);
+
+            List<BookAuthor> packAuthors = packNode.getAuthors();
+            for (BookAuthor bookAuthor : packAuthors) {
+                AuthorFilterNode authorNode = new AuthorFilterNode(this, bookAuthor);
+                packNode.add(authorNode);
+
+                Set<String> set = authors.get(bookAuthor);
+                if (LengthUtils.isNotEmpty(set)) {
+                    for (String sequence : set) {
+                        SequenceFilterNode seqNode = new SequenceFilterNode(this, sequence);
+                        authorNode.add(seqNode);
+                    }
                 }
             }
-            root.add(node);
         }
     }
 

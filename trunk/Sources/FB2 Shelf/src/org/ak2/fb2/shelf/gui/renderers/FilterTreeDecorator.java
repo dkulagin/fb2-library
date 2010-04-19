@@ -11,6 +11,7 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
 
 import org.ak2.fb2.shelf.gui.models.tree.AuthorFilterNode;
+import org.ak2.fb2.shelf.gui.models.tree.AuthorPackFilterNode;
 import org.ak2.fb2.shelf.gui.models.tree.RootFilterNode;
 import org.ak2.fb2.shelf.gui.models.tree.SequenceFilterNode;
 import org.ak2.gui.controls.tree.TreeEx;
@@ -96,11 +97,7 @@ public class FilterTreeDecorator extends DefaultTreeCellRenderer {
      * @return text
      */
     public static String text(final Object userObject) {
-        if (userObject instanceof String) {
-            return (String) userObject;
-        } else if (userObject instanceof AbstractTreeNode<?>) {
-            return text(((AbstractTreeNode<?>) userObject).getObject());
-        } else if (userObject instanceof TreePath) {
+        if (userObject instanceof TreePath) {
             final TreePath path = (TreePath) userObject;
             final Object[] nodes = path.getPath();
             final StringBuilder builder = new StringBuilder();
@@ -132,6 +129,9 @@ public class FilterTreeDecorator extends DefaultTreeCellRenderer {
         if (userObject instanceof AuthorFilterNode) {
             return "Author";
         }
+        if (userObject instanceof AuthorPackFilterNode) {
+            return "Authors";
+        }
         if (userObject instanceof SequenceFilterNode) {
             return "Book sequence";
         }
@@ -162,6 +162,9 @@ public class FilterTreeDecorator extends DefaultTreeCellRenderer {
             return ResourceManager.getInstance().getIcon((String) userObject);
         }
         if (userObject instanceof RootFilterNode) {
+            return icon("ui/tree/all.png");
+        }
+        if (userObject instanceof AuthorPackFilterNode) {
             return icon("ui/tree/all.png");
         }
         if (userObject instanceof AuthorFilterNode) {

@@ -608,6 +608,10 @@ public class TableModelEx<Entity, EntityContainer> extends AbstractTableModel im
         return fieldAdapters;
     }
 
+    public String[] getColumnNames() {
+        return fieldColumnNames;
+    }
+
     /**
      *
      */

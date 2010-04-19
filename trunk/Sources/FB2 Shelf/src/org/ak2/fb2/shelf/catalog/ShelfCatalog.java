@@ -3,6 +3,7 @@ package org.ak2.fb2.shelf.catalog;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,13 +21,13 @@ import org.json.XML;
 public class ShelfCatalog implements IFactory<BookInfo, ShelfCatalog>, Iterable<BookInfo> {
 
     private static final JLogMessage MSG_LOAD_START = new JLogMessage(JLogLevel.DEBUG, "Loading catalog from {0} started...");
-    
+
     private static final JLogMessage MSG_LOAD_BOOK = new JLogMessage(JLogLevel.DEBUG, "Book loaded: {0} {1}");
-    
+
     private static final JLogMessage MSG_LOAD_ERROR = new JLogMessage(JLogLevel.ERROR, "Loading catalog from {0} failed: ");
 
     private static final JLogMessage MSG_LOAD_FINISH = new JLogMessage(JLogLevel.DEBUG, "Loading catalog from {0} finished.");
-    
+
     private final File m_original;
 
     private final List<BookInfo> m_books = new LinkedList<BookInfo>();
@@ -44,7 +45,7 @@ public class ShelfCatalog implements IFactory<BookInfo, ShelfCatalog>, Iterable<
             JSONObject location = root.getJSONObject("location");
             String locationBase = location.getString("base");
             JSONArray books = location.getJSONArray("book");
-            
+
             for (int i = 0; i < books.length(); i++) {
                 JSONObject book = books.getJSONObject(i);
                 m_books.add(new BookInfo(locationBase, book));
@@ -52,6 +53,9 @@ public class ShelfCatalog implements IFactory<BookInfo, ShelfCatalog>, Iterable<
         } catch (Exception ex) {
             MSG_LOAD_ERROR.log(ex, m_original.getName());
         } finally {
+
+            Collections.sort(m_books);
+
             if (MSG_LOAD_FINISH.isEnabled()) {
                 MSG_LOAD_FINISH.log(m_original.getName());
             }

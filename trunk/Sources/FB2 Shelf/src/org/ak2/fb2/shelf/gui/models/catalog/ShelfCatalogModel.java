@@ -19,9 +19,9 @@ public class ShelfCatalogModel extends TableModelEx<BookInfo, ShelfCatalog> {
     /*  */
     new BeanPropertyAdapter(BookInfo.class, "Author"),
     /* */
-    new BeanPropertyAdapter(BookInfo.class, "IntSequenceNo"), 
+    new BeanPropertyAdapter(BookInfo.class, "IntSequenceNo"),
     /* */
-    new BeanPropertyAdapter(BookInfo.class, "BookName"), 
+    new BeanPropertyAdapter(BookInfo.class, "BookName"),
     /* */
     };
 

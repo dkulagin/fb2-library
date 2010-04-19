@@ -14,11 +14,4 @@ public class AuthorFilterNode extends AbstractFilterNode<BookAuthor> {
     protected boolean accept(BookInfo entity, BookAuthor author) {
         return author.equals(entity.getAuthor());
     }
-
-    @Override
-    public String toString() {
-        BookAuthor object = getObject();
-        return object == null ? "ALL" : object.toString();
-    }
-
 }
