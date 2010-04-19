@@ -15,7 +15,6 @@ import org.ak2.fb2.shelf.gui.models.tree.AuthorPackFilterNode;
 import org.ak2.fb2.shelf.gui.models.tree.RootFilterNode;
 import org.ak2.fb2.shelf.gui.models.tree.SequenceFilterNode;
 import org.ak2.gui.controls.tree.TreeEx;
-import org.ak2.gui.models.tree.AbstractTreeNode;
 import org.ak2.gui.resources.ResourceManager;
 import org.ak2.utils.LengthUtils;
 import org.ak2.utils.html.HtmlBuilder;
