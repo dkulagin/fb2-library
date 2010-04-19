@@ -14,7 +14,7 @@ import org.ak2.utils.files.IFileFilter;
 import org.ak2.utils.jlog.JLogLevel;
 import org.ak2.utils.jlog.JLogMessage;
 
-public class Author extends BookAuthor implements Comparable<Author> {
+public class Author extends BookAuthor {
 
     private static final JLogMessage MSG_SCAN = new JLogMessage(JLogLevel.INFO, "Scan folder {0}");
 
@@ -79,14 +79,10 @@ public class Author extends BookAuthor implements Comparable<Author> {
     }
 
     @Override
-    public int compareTo(final Author obj) {
-        if (this == obj) {
-            return 0;
-        }
-
-        int result = this.getName().compareToIgnoreCase(obj.getName());
-        if (result == 0) {
-            result = this.m_folder.getAbsolutePath().compareTo(obj.m_folder.getAbsolutePath());
+    public int compareTo(final BookAuthor that) {
+        int result = super.compareTo(that);
+        if (result == 0 && that instanceof Author) {
+            result = this.m_folder.getAbsolutePath().compareTo(((Author) that).m_folder.getAbsolutePath());
         }
 
         return result < 0 ? -1 : result > 0 ? 1 : 0;

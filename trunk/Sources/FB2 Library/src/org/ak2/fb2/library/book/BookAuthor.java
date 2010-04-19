@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 
 import org.ak2.utils.LengthUtils;
 
-public class BookAuthor {
+public class BookAuthor implements Comparable<BookAuthor> {
 
     private String m_name;
 
@@ -74,12 +74,40 @@ public class BookAuthor {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public int compareTo(final BookAuthor that) {
+        if (this == that) {
+            return 0;
+        }
+        final String ln1 = this.getName();
+        final String ln2 = that.getName();
+
+        int result = ln1.compareToIgnoreCase(ln2);
+        return result < 0 ? -1 : (result > 0 ? 1 : 0);
+    }
+
+    public boolean before(final BookAuthor that) {
+        return this.compareTo(that) < 0;
+    }
+
+    public boolean after(final BookAuthor that) {
+        return this.compareTo(that) > 0;
+    }
+
+    public boolean beforeOrSame(final BookAuthor that) {
+        return this.compareTo(that) <= 0;
+    }
+
+    public boolean afterOrSame(final BookAuthor that) {
+        return this.compareTo(that) >= 0;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
         if (this == obj) {
             return true;
         }
         if (obj instanceof BookAuthor) {
-            BookAuthor that = (BookAuthor) obj;
+            final BookAuthor that = (BookAuthor) obj;
             return LengthUtils.equals(this.m_name, that.m_name);
         }
         return false;
