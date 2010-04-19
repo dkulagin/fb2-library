@@ -18,7 +18,11 @@ public class ShelfFilterModel extends AbstractTreeModel {
      */
     private static final long serialVersionUID = -3597351806379855067L;
 
+    private final ShelfCatalog catalog;
+
     public ShelfFilterModel(ShelfCatalog catalog) {
+        this.catalog = catalog;
+
         Map<BookAuthor, Set<String>> authors = new LinkedHashMap<BookAuthor, Set<String>>();
         for (BookInfo book : catalog) {
             BookAuthor author = book.getAuthor();
@@ -33,14 +37,14 @@ public class ShelfFilterModel extends AbstractTreeModel {
             }
         }
 
-        AuthorFilterNode root = new AuthorFilterNode(this, null);
+        RootFilterNode root = new RootFilterNode(this);
         this.setRootNode(root);
 
         for (Map.Entry<BookAuthor, Set<String>> author : authors.entrySet()) {
             AuthorFilterNode node = new AuthorFilterNode(this, author.getKey());
             Set<String> set = author.getValue();
             if (LengthUtils.isNotEmpty(set)) {
-                for(String sequence: set) {
+                for (String sequence : set) {
                     SequenceFilterNode seqNode = new SequenceFilterNode(this, sequence);
                     node.add(seqNode);
                 }
@@ -49,4 +53,7 @@ public class ShelfFilterModel extends AbstractTreeModel {
         }
     }
 
+    public ShelfCatalog getCatalog() {
+        return catalog;
+    }
 }
