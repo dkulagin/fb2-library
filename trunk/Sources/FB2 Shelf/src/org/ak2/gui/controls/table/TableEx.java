@@ -52,7 +52,7 @@ public class TableEx extends JTable {
 
     /**
      * Constructor
-     * 
+     *
      * @param dm
      *            the data model
      */
@@ -63,7 +63,7 @@ public class TableEx extends JTable {
 
     /**
      * Sets the data model for this table to <code>newModel</code> and registers with it for listener notifications from the new data model.
-     * 
+     *
      * @param model
      *            the new data source for this table
      * @see javax.swing.JTable#setModel(javax.swing.table.TableModel)
@@ -91,8 +91,24 @@ public class TableEx extends JTable {
     }
 
     /**
+     * Returns entity model.
+     *
+     * @param <Entity>
+     *            entity type
+     * @return an instance of the {@link ITableModel} object or <code>null</code>
+     */
+    @SuppressWarnings("unchecked")
+    public <Entity> ITableModel<Entity, ?> getEntityModel() {
+        TableModel model = getModel();
+        if (model instanceof ITableModel<?, ?>) {
+            return (ITableModel<Entity, ?>) model;
+        }
+        return null;
+    }
+
+    /**
      * Getter for the ResizePolicy properrty
-     * 
+     *
      * @return a <code>ITableColumnsResizePolicy</code> object or <code>null</code>
      */
     public ITableColumnsResizePolicy getResizePolicy() {
@@ -101,7 +117,7 @@ public class TableEx extends JTable {
 
     /**
      * Setter for the ResizePolicy properrty
-     * 
+     *
      * @param policy
      *            new resize policy
      */
@@ -112,7 +128,7 @@ public class TableEx extends JTable {
     /**
      * Moves and resizes this component. The new location of the top-left corner is specified by <code>x</code> and <code>y</code>, and the new size is
      * specified by <code>width</code> and <code>height</code>.
-     * 
+     *
      * @param x
      *            the new <i>x</i>-coordinate of this component
      * @param y
@@ -139,7 +155,7 @@ public class TableEx extends JTable {
      * Application code will not use these methods explicitly, they are used internally by <code>JTable</code>.
      * <p>
      * Note that as of 1.3, this method clears the selection, if any.
-     * 
+     *
      * @param e
      *            table event
      * @see javax.swing.event.TableModelListener#tableChanged(javax.swing.event.TableModelEvent)
@@ -155,7 +171,7 @@ public class TableEx extends JTable {
     /**
      * If the <code>preferredSize</code> has been set to a non-<code>null</code> value just returns it. If the UI delegate's <code>getPreferredSize</code>
      * method returns a non <code>null</code> value then return that; otherwise defer to the component's layout manager.
-     * 
+     *
      * @return the value of the <code>preferredSize</code> property
      * @see java.awt.Component#getPreferredSize()
      */
@@ -169,7 +185,7 @@ public class TableEx extends JTable {
 
     /**
      * Returns an appropriate renderer for the cell specified by this row and column.
-     * 
+     *
      * @param row
      *            the row of the cell to render, where 0 is the first row
      * @param column
@@ -193,7 +209,7 @@ public class TableEx extends JTable {
 
     /**
      * Returns the cell renderer to be used when no renderer has been set in a <code>TableColumn</code>.
-     * 
+     *
      * @param columnClass
      *            return the default cell renderer for this columnClass
      * @return the renderer for this columnClass
@@ -223,7 +239,7 @@ public class TableEx extends JTable {
 
     /**
      * Overrides <code>JComponent</code>'s <code>getToolTipText</code> method in order to allow the model's tips to be used if it has text set.
-     * 
+     *
      * @param event
      *            mouse event
      * @return string
@@ -239,7 +255,7 @@ public class TableEx extends JTable {
         String tip = null;
 
         if ((hitColumnIndex != -1) && (hitRowIndex != -1)) {
-            if (model instanceof ITableModel) {
+            if (model instanceof ITableModel<?, ?>) {
                 tip = ((ITableModel<?, ?>) model).getTooltip(hitRowIndex);
             }
         }
@@ -269,7 +285,7 @@ public class TableEx extends JTable {
 
         /**
          * Paints the given component.
-         * 
+         *
          * @param g
          *            graphics to paint info
          * @param c
@@ -349,7 +365,7 @@ public class TableEx extends JTable {
 
         /**
          * Paint cell.
-         * 
+         *
          * @param g
          *            the graphics to paint into
          * @param cellRect
@@ -386,10 +402,10 @@ public class TableEx extends JTable {
 
         /**
          * Calculates a view index for column.
-         * 
+         *
          * @param aColumn
          *            the column
-         * 
+         *
          * @return the int
          */
         private int viewIndexForColumn(final TableColumn aColumn) {

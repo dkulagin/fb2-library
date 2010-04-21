@@ -53,7 +53,6 @@ public class Starter {
         frame.showFrame();
     }
 
-
     static void initLog() {
         final String logFilePattern = MessageFormat.format("fb2-shelf.log", new Date());
         final JLogLevel consoleLogLevel = EnumUtils.valueOf(JLogLevel.class, System.getProperty("jlog.console.level"), JLogLevel.INFO);
