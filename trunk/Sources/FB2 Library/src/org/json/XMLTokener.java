@@ -1,5 +1,7 @@
 package org.json;
 
+import java.io.Reader;
+
 /*
  Copyright (c) 2002 JSON.org
 
@@ -54,6 +56,10 @@ public class XMLTokener extends JSONTokener {
      */
     public XMLTokener(String s) {
         super(s);
+    }
+
+    public XMLTokener(Reader r) {
+        super(r);
     }
 
     /**
