@@ -118,7 +118,7 @@ public class HtmlBuilder
     }
 
     /**
-     * Adds text info HTML.
+     * Adds text into HTML.
      *
      * @param text text to add
      * @return this
@@ -132,6 +132,19 @@ public class HtmlBuilder
         m_text.append(string);
         return this;
     }
+
+    /**
+     * Adds space into HTML.
+     *
+     * @return this
+     */
+    public HtmlBuilder nbsp()
+    {
+        closeTag();
+        m_text.append("&nbsp;");
+        return this;
+    }
+
 
     /**
      * Ends HTML tag.
