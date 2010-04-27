@@ -1,28 +1,33 @@
 package org.ak2.fb2.shelf.gui.models.catalog;
 
+import java.util.List;
+
 import javax.swing.text.html.HTML;
 
 import org.ak2.fb2.shelf.catalog.BookInfo;
 import org.ak2.fb2.shelf.catalog.FileInfo;
 import org.ak2.fb2.shelf.catalog.ShelfCatalog;
+import org.ak2.gui.models.table.IFactory;
+import org.ak2.gui.models.table.IStorage;
 import org.ak2.gui.models.table.ITableColumnAdapter;
 import org.ak2.gui.models.table.ITableModel;
 import org.ak2.gui.models.table.impl.BeanPropertyAdapter;
+import org.ak2.gui.models.table.impl.ListStorage;
 import org.ak2.gui.models.table.impl.TableModelEx;
 import org.ak2.utils.LengthUtils;
 import org.ak2.utils.html.HtmlBuilder;
 import org.ak2.utils.html.HtmlBuilder.StyleSheet;
 
-public class ShelfCatalogModel extends TableModelEx<BookInfo, ShelfCatalog> {
+public class ShelfCatalogModel extends TableModelEx<BookInfo, List<BookInfo>> {
 
     /**
      * Serial version UID.
      */
     private static final long serialVersionUID = -2331163205004452784L;
 
-    private static final String[] COLUMNS = { "Author", "No", "Title" };
+    public static final String[] COLUMNS = { "Author", "No", "Title" };
 
-    private static final ITableColumnAdapter[] ADAPTERS = {
+    public static final ITableColumnAdapter[] ADAPTERS = {
     /*  */
     new BeanPropertyAdapter(BookInfo.class, "Author"),
     /* */
@@ -35,8 +40,13 @@ public class ShelfCatalogModel extends TableModelEx<BookInfo, ShelfCatalog> {
     private static final StyleSheet TOOLTIP_CSS = createTooltipCss();
 
     public ShelfCatalogModel(final ShelfCatalog catalog) {
-        super(catalog, COLUMNS, ADAPTERS);
-        this.setData(catalog);
+        super(new Factory(), COLUMNS, ADAPTERS);
+        this.setData(catalog.getBooks());
+    }
+
+    public ShelfCatalogModel(final List<BookInfo> books) {
+        super(new Factory(), COLUMNS, ADAPTERS);
+        this.setData(books);
     }
 
     /**
@@ -85,14 +95,14 @@ public class ShelfCatalogModel extends TableModelEx<BookInfo, ShelfCatalog> {
 
         buf.start(HTML.Tag.TR);
         buf.start(HTML.Tag.TD, "label").nbsp().end();
-        buf.start(HTML.Tag.TD,  exists ? "location" : "err_location").text(fileInfo.getContainerPath()).end();
+        buf.start(HTML.Tag.TD, exists ? "location" : "err_location").text(fileInfo.getContainerPath()).end();
         buf.end(HTML.Tag.TR);
 
         exists = exists && fileInfo.getBook().exists();
 
         buf.start(HTML.Tag.TR);
         buf.start(HTML.Tag.TD, "label").nbsp().end();
-        buf.start(HTML.Tag.TD,  exists ? "location" : "err_location").text(fileInfo.getBookPath()).end();
+        buf.start(HTML.Tag.TD, exists ? "location" : "err_location").text(fileInfo.getBookPath()).end();
         buf.end(HTML.Tag.TR);
 
         return buf.finish();
@@ -108,6 +118,18 @@ public class ShelfCatalogModel extends TableModelEx<BookInfo, ShelfCatalog> {
         styleSheet.selector(".label").attr("text-align", "right");
         styleSheet.selector(".err_location").attr("color", "red").attr("font-style", "italic");
         return styleSheet;
+    }
+
+    private static class Factory implements IFactory<BookInfo, List<BookInfo>> {
+        @Override
+        public BookInfo newInstance() {
+            return null;
+        }
+
+        @Override
+        public IStorage<BookInfo> newStorage(List<BookInfo> container) {
+            return new ListStorage<BookInfo>(container);
+        }
     }
 
 }

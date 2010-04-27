@@ -2,10 +2,8 @@ package org.ak2.fb2.shelf.gui.models.tree;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 
 import org.ak2.fb2.library.book.BookAuthor;
 import org.ak2.fb2.shelf.catalog.BookInfo;
@@ -26,45 +24,34 @@ public class ShelfFilterModel extends AbstractTreeModel {
     public ShelfFilterModel(ShelfCatalog catalog) {
         this.catalog = catalog;
 
-        Map<BookAuthor, Set<String>> authors = new TreeMap<BookAuthor, Set<String>>();
-        for (BookInfo book : catalog) {
-            BookAuthor author = book.getAuthor();
-            Set<String> set = authors.get(author);
-            if (set == null) {
-                set = new TreeSet<String>();
-                authors.put(author, set);
-            }
-            String sequence = book.getSequence();
-            if (LengthUtils.isNotEmpty(sequence)) {
-                set.add(sequence);
-            }
-        }
-
-        RootFilterNode root = new RootFilterNode(this);
+        RootFilterNode root = new RootFilterNode(this, catalog);
         this.setRootNode(root);
 
+        Collection<BookAuthor> authors = catalog.getAuthors();
+
         int size = 20;
-        if (authors.size() < size) {
-            addAuthors((AbstractTreeNode<?>) root, authors.keySet(), authors);
+        if (LengthUtils.length(authors) < size) {
+            addAuthors((AbstractTreeNode<?>) root, authors);
         } else {
-            Iterator<BookAuthor> iter = authors.keySet().iterator();
+            Iterator<BookAuthor> iter = authors.iterator();
             while (iter.hasNext()) {
                 AuthorPackFilterNode packNode = new AuthorPackFilterNode(this, iter, size);
                 root.add(packNode);
-                addAuthors((AbstractTreeNode<?>) packNode, packNode.getAuthors(), authors);
+                addAuthors((AbstractTreeNode<?>) packNode, packNode.getAuthors());
             }
         }
     }
 
-    private void addAuthors(AbstractTreeNode<?> parent, Collection<BookAuthor> packAuthors, Map<BookAuthor, Set<String>> authors) {
+    private void addAuthors(AbstractTreeNode<?> parent, Collection<BookAuthor> packAuthors) {
         for (BookAuthor bookAuthor : packAuthors) {
-            AuthorFilterNode authorNode = new AuthorFilterNode(this, bookAuthor, false);
+            List<BookInfo> books = catalog.getBooks(bookAuthor);
+            AuthorFilterNode authorNode = new AuthorFilterNode(this, bookAuthor, books, false);
             parent.add(authorNode);
 
-            Set<String> set = authors.get(bookAuthor);
+            Set<String> set = catalog.getSequences(bookAuthor);
             if (LengthUtils.isNotEmpty(set)) {
                 for (String sequence : set) {
-                    AuthorSequenceFilterNode seqNode = new AuthorSequenceFilterNode(this, bookAuthor, sequence);
+                    AuthorSequenceFilterNode seqNode = new AuthorSequenceFilterNode(this, bookAuthor, sequence, books);
                     authorNode.add(seqNode);
                 }
             }

@@ -29,7 +29,7 @@ public class ShelfCatalogTest {
     public void testXML() {
         ShelfCatalog catalog = new ShelfCatalog(CATALOG);
         Assert.assertNotNull(catalog);
-        System.out.println("Books: " + catalog.newStorage(catalog).getEntityCount());
+        System.out.println("Books: " + catalog.getBooks().size());
     }
 
     @Test
@@ -41,9 +41,9 @@ public class ShelfCatalogTest {
         JSONObject location = root.getJSONObject("location");
         String locationBase = location.getString("base");
         JSONArray books = location.getJSONArray("book");
-        
+
         List<BookInfo> list = new ArrayList<BookInfo>();
-        
+
         for (int i = 0; i < books.length(); i++) {
             JSONObject book = books.getJSONObject(i);
             list.add(new BookInfo(locationBase, book));

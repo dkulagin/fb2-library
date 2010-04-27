@@ -14,7 +14,7 @@ public class AuthorPackFilterNode extends AbstractFilterNode<String> {
     private final LinkedList<BookAuthor> authors;
 
     public AuthorPackFilterNode(final AbstractTreeModel model, final Iterator<BookAuthor> authors, final int size) {
-        super(model, "");
+        super(model, "", null);
 
         this.authors = new LinkedList<BookAuthor>();
         for (int i = 0; i < size && authors.hasNext(); i++) {

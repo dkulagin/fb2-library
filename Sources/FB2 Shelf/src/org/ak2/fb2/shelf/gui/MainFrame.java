@@ -15,7 +15,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -38,15 +37,13 @@ import org.ak2.fb2.shelf.catalog.FileInfo;
 import org.ak2.fb2.shelf.catalog.ShelfCatalog;
 import org.ak2.fb2.shelf.catalog.ShelfCatalogProvider;
 import org.ak2.fb2.shelf.gui.models.catalog.ShelfCatalogModel;
+import org.ak2.fb2.shelf.gui.models.tree.AbstractFilterNode;
 import org.ak2.fb2.shelf.gui.models.tree.ShelfFilterModel;
 import org.ak2.fb2.shelf.gui.renderers.FilterTreeDecorator;
 import org.ak2.gui.controls.table.TableEx;
 import org.ak2.gui.controls.table.policies.WeightResizePolicy;
 import org.ak2.gui.controls.tree.TreeEx;
 import org.ak2.gui.models.table.ITableModel;
-import org.ak2.gui.models.table.impl.CompositeTableModel;
-import org.ak2.gui.models.table.impl.IEntityFilter;
-import org.ak2.gui.models.table.impl.TableModelEx;
 import org.ak2.gui.models.tree.AbstractTreeNode;
 import org.ak2.utils.LengthUtils;
 import org.ak2.utils.html.HtmlBuilder;
@@ -55,9 +52,9 @@ import org.ak2.utils.jlog.JLogMessage;
 
 public class MainFrame extends JFrame {
 
-    private static final JLogMessage MSG_SELECTION_EVENT = new JLogMessage(JLogLevel.DEBUG, "Tree node selected");
+    private static final JLogMessage MSG_SELECTION_EVENT = new JLogMessage(JLogLevel.DEBUG, "Tree selection: {0}");
 
-    private static final JLogMessage MSG_SELECTION = new JLogMessage(JLogLevel.DEBUG, "Tree selection: ");
+    private static final JLogMessage MSG_SELECTION = new JLogMessage(JLogLevel.DEBUG, "Filter node selected: {0}");
 
     private static final JLogMessage MSG_DLG_CREATED = new JLogMessage(JLogLevel.DEBUG, "Info dialog created.");
 
@@ -207,7 +204,7 @@ public class MainFrame extends JFrame {
         return filterTree;
     }
 
-    private JDialog createDialog(final IEntityFilter<BookInfo>[] ffilters) {
+    private JDialog createDialog(final AbstractFilterNode<?> node) {
         if (selectedDlg == null) {
             selectedDlg = new JDialog(MainFrame.this);
             selectedDlg.setTitle("Please wait...");
@@ -223,12 +220,15 @@ public class MainFrame extends JFrame {
         final JLabel label = getSelectionLabel();
         final HtmlBuilder buf = new HtmlBuilder().start();
         buf.start(HTML.Tag.DIV).text("Selected ");
-        if (LengthUtils.isEmpty(ffilters)) {
+
+        Object[] path = node != null ? node.getUserObjectPath() : null;
+
+        if (LengthUtils.length(path) < 2) {
             buf.text("All");
         } else {
             buf.end().start(HTML.Tag.UL);
-            for (int i = 0; i < ffilters.length; i++) {
-                buf.start(HTML.Tag.LI).text(ffilters[i].toString()).end();
+            for (int i = 1; i < path.length; i++) {
+                buf.start(HTML.Tag.LI).text(path[i].toString()).end();
             }
         }
         label.setText(buf.finish());
@@ -267,60 +267,7 @@ public class MainFrame extends JFrame {
             bookTable.setResizePolicy(new WeightResizePolicy(30, 10, 60));
             bookTable.setModel(getTableModel());
 
-            bookTable.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(final MouseEvent e) {
-                    if (SwingUtilities.isLeftMouseButton(e) && e.getClickCount() > 1) {
-                        final int selectedRow = getBookTable().getSelectedRow();
-                        if (selectedRow == -1) {
-                            return;
-                        }
-
-                        final ITableModel<BookInfo, ?> currentModel = getBookTable().getEntityModel();
-                        final BookInfo entity = currentModel.getEntity(selectedRow);
-
-                        MSG_SELECTED_BOOK.log(entity);
-
-                        FileInfo fileInfo = entity.getFileInfo();
-
-                        if (!fileInfo.getLocation().exists()) {
-                            JOptionPane.showMessageDialog(MainFrame.this, "Selected base location not found: \n" + fileInfo.getLocationPath(),
-                                    "Opening book...", JOptionPane.WARNING_MESSAGE);
-                            return;
-                        }
-
-                        if (!fileInfo.getContainer().exists()) {
-                            JOptionPane.showMessageDialog(MainFrame.this, "Selected book container not found: \n" + fileInfo.getFullContainerPath(),
-                                    "Opening book...", JOptionPane.WARNING_MESSAGE);
-                            return;
-                        }
-                        if (!fileInfo.getBook().exists()) {
-                            JOptionPane.showMessageDialog(MainFrame.this, "Selected book file not found: \n" + fileInfo.getFullBookPath(), "Opening book...",
-                                    JOptionPane.WARNING_MESSAGE);
-                            return;
-                        }
-                        final String fb2readerProperty = System.getProperty("fb2.reader");
-                        if (LengthUtils.isEmpty(fb2readerProperty)) {
-                            JOptionPane.showMessageDialog(MainFrame.this, "The 'fb2.reader' system property is not set", "Opening book...",
-                                    JOptionPane.WARNING_MESSAGE);
-                            return;
-                        }
-                        final File fb2reader = new File(fb2readerProperty);
-                        if (!fb2reader.exists()) {
-                            JOptionPane.showMessageDialog(MainFrame.this, "FB2 Reader program not found: \n" + fb2reader, "Opening book...",
-                                    JOptionPane.WARNING_MESSAGE);
-                            return;
-                        }
-
-                        try {
-                            final String[] cmdarray = { fb2reader.getCanonicalPath(), fileInfo.getFullBookPath() };
-                            Runtime.getRuntime().exec(cmdarray, null, fb2reader.getParentFile());
-                        } catch (final IOException ex) {
-                            ex.printStackTrace();
-                        }
-                    }
-                }
-            });
+            bookTable.addMouseListener(new TableListener());
         }
 
         return bookTable;
@@ -343,32 +290,29 @@ public class MainFrame extends JFrame {
     private final class TreeListener implements TreeSelectionListener {
         @Override
         public void valueChanged(final TreeSelectionEvent e) {
-            MSG_SELECTION_EVENT.log();
+            MSG_SELECTION_EVENT.log(e);
 
             try {
-                final AbstractTreeNode<?> node = filterTree.getSelectedNode();
-                final IEntityFilter<BookInfo>[] ffilters = getFilter(node);
+                final AbstractFilterNode<?> node = getFilterNode();
 
-                MSG_SELECTION.log(Arrays.toString(ffilters));
+                MSG_SELECTION.log(node);
 
-                final JDialog dlg = createDialog(ffilters);
+                final JDialog dlg = createDialog(node);
 
                 MSG_DLG_CREATED.log();
 
                 final long startTime = System.currentTimeMillis();
 
-                final SwingWorker<TableModelEx<BookInfo, ?>, String> task = new SwingWorker<TableModelEx<BookInfo, ?>, String>() {
+                final SwingWorker<ITableModel<BookInfo, ?>, String> task = new SwingWorker<ITableModel<BookInfo, ?>, String>() {
                     @Override
-                    protected TableModelEx<BookInfo, ?> doInBackground() {
+                    protected ITableModel<BookInfo, ?> doInBackground() {
                         MSG_WORKER_STARTED.log();
-                        try {
-                            if (LengthUtils.length(ffilters) > 0) {
-                                final CompositeTableModel<BookInfo> model = new CompositeTableModel<BookInfo>(getTableModel());
-                                model.setFilter(ffilters);
-                                return model;
+                        if (node != null) {
+                            try {
+                                return node.getBooksModel();
+                            } catch (final Throwable th) {
+                                th.printStackTrace();
                             }
-                        } catch (final Throwable th) {
-                            th.printStackTrace();
                         }
                         return getTableModel();
                     }
@@ -404,14 +348,67 @@ public class MainFrame extends JFrame {
             }
         }
 
-        @SuppressWarnings("unchecked")
-        private IEntityFilter<BookInfo>[] getFilter(final AbstractTreeNode<?> node) {
-            IEntityFilter<BookInfo>[] filters = null;
-            if (node instanceof IEntityFilter<?>) {
-                filters = new IEntityFilter[1];
-                filters[0] = (IEntityFilter<BookInfo>) node;
+        private AbstractFilterNode<?> getFilterNode() {
+            AbstractTreeNode<?> selectedNode = filterTree.getSelectedNode();
+            if (selectedNode instanceof AbstractFilterNode<?>) {
+                return (AbstractFilterNode<?>) selectedNode;
             }
-            return filters;
+            return null;
+        }
+    }
+
+    private final class TableListener extends MouseAdapter {
+        @Override
+        public void mouseClicked(final MouseEvent e) {
+            if (SwingUtilities.isLeftMouseButton(e) && e.getClickCount() > 1) {
+                final int selectedRow = getBookTable().getSelectedRow();
+                if (selectedRow == -1) {
+                    return;
+                }
+
+                final ITableModel<BookInfo, ?> currentModel = getBookTable().getEntityModel();
+                final BookInfo entity = currentModel.getEntity(selectedRow);
+
+                MSG_SELECTED_BOOK.log(entity);
+
+                FileInfo fileInfo = entity.getFileInfo();
+
+                if (!fileInfo.getLocation().exists()) {
+                    JOptionPane.showMessageDialog(MainFrame.this, "Selected base location not found: \n" + fileInfo.getLocationPath(), "Opening book...",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                if (!fileInfo.getContainer().exists()) {
+                    JOptionPane.showMessageDialog(MainFrame.this, "Selected book container not found: \n" + fileInfo.getFullContainerPath(), "Opening book...",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                if (!fileInfo.getBook().exists()) {
+                    JOptionPane.showMessageDialog(MainFrame.this, "Selected book file not found: \n" + fileInfo.getFullBookPath(), "Opening book...",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                final String fb2readerProperty = System.getProperty("fb2.reader");
+                if (LengthUtils.isEmpty(fb2readerProperty)) {
+                    JOptionPane
+                            .showMessageDialog(MainFrame.this, "The 'fb2.reader' system property is not set", "Opening book...", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                final File fb2reader = new File(fb2readerProperty);
+                if (!fb2reader.exists()) {
+                    JOptionPane.showMessageDialog(MainFrame.this, "FB2 Reader program not found: \n" + fb2reader, "Opening book...",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                try {
+                    final String[] cmdarray = { fb2reader.getCanonicalPath(), fileInfo.getFullBookPath() };
+                    Runtime.getRuntime().exec(cmdarray, null, fb2reader.getParentFile());
+                } catch (final IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
         }
     }
 }
