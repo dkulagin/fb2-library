@@ -14,7 +14,7 @@ import org.ak2.gui.models.table.impl.IEntityHandler;
  *            entity class
  * @param <EntityContainer>
  *            entity container class
- * 
+ *
  * @author Alexander Kasatkin
  */
 public interface ITableModel<Entity, EntityContainer> extends TableModel {
@@ -25,7 +25,7 @@ public interface ITableModel<Entity, EntityContainer> extends TableModel {
 
     /**
      * Gets an entity for the given index.
-     * 
+     *
      * @param rowIndex
      *            the entity index
      * @return corresponding entity or null.
@@ -34,14 +34,14 @@ public interface ITableModel<Entity, EntityContainer> extends TableModel {
 
     /**
      * Gets the entities.
-     * 
+     *
      * @return the entities
      */
     public List<Entity> getEntities();
 
     /**
      * Returns the index of row contained the given entity
-     * 
+     *
      * @param entity
      *            entity to find
      * @return index or -1
@@ -50,7 +50,7 @@ public interface ITableModel<Entity, EntityContainer> extends TableModel {
 
     /**
      * Sort by the given column.
-     * 
+     *
      * @param columnIndex
      *            the column index
      * @param type
@@ -58,9 +58,11 @@ public interface ITableModel<Entity, EntityContainer> extends TableModel {
      */
     public void sortBy(final int columnIndex, SortType type);
 
+    public void setFilter(final IEntityFilter<Entity>... filter);
+
     /**
      * Returns row tooltip for the given row index
-     * 
+     *
      * @param row
      *            row index
      * @return string
@@ -69,7 +71,7 @@ public interface ITableModel<Entity, EntityContainer> extends TableModel {
 
     /**
      * Sets data to model
-     * 
+     *
      * @param container
      *            data container
      */
@@ -77,7 +79,7 @@ public interface ITableModel<Entity, EntityContainer> extends TableModel {
 
     /**
      * Adds entity
-     * 
+     *
      * @param entity
      *            new entity
      */
@@ -85,7 +87,7 @@ public interface ITableModel<Entity, EntityContainer> extends TableModel {
 
     /**
      * Set entity insead of existing
-     * 
+     *
      * @param row
      *            row to change
      * @param entity
@@ -95,7 +97,7 @@ public interface ITableModel<Entity, EntityContainer> extends TableModel {
 
     /**
      * Swaps two entities
-     * 
+     *
      * @param row1
      *            index of first entity
      * @param row2
@@ -105,7 +107,7 @@ public interface ITableModel<Entity, EntityContainer> extends TableModel {
 
     /**
      * Update entities.
-     * 
+     *
      * @param handler
      *            the entity handler
      * @param rows
@@ -115,13 +117,13 @@ public interface ITableModel<Entity, EntityContainer> extends TableModel {
 
     /**
      * Remove all entities from the model
-     * 
+     *
      */
     public void removeAllEntities();
 
     /**
      * Remove entity from the model
-     * 
+     *
      * @param row
      *            row to delete
      */
@@ -129,7 +131,7 @@ public interface ITableModel<Entity, EntityContainer> extends TableModel {
 
     /**
      * Remove entity from the model
-     * 
+     *
      * @param row
      *            row to delete
      */
@@ -137,7 +139,7 @@ public interface ITableModel<Entity, EntityContainer> extends TableModel {
 
     /**
      * Remove entities from the model
-     * 
+     *
      * @param rows
      *            rows to delete
      */
@@ -145,7 +147,7 @@ public interface ITableModel<Entity, EntityContainer> extends TableModel {
 
     /**
      * Remove entities from the model
-     * 
+     *
      * @param removeFilter
      *            entity filter accepting entities to remove
      * @param rows
@@ -156,7 +158,7 @@ public interface ITableModel<Entity, EntityContainer> extends TableModel {
     /**
      * Notifies all listeners that all cell values in the table's rows may have changed. The number of rows may also have changed and the <code>JTable</code>
      * should redraw the table from scratch. The structure of the table (as in the order of the columns) is assumed to be the same.
-     * 
+     *
      * @see TableModelEvent
      * @see EventListenerList
      * @see javax.swing.JTable#tableChanged(TableModelEvent)
@@ -168,7 +170,7 @@ public interface ITableModel<Entity, EntityContainer> extends TableModel {
      * different from the previous state. If the <code>JTable</code> receives this event and its <code>autoCreateColumnsFromModel</code> flag is set it discards
      * any table columns that it had and reallocates default columns in the order they appear in the model. This is the same as calling
      * <code>setModel(TableModel)</code> on the <code>JTable</code>.
-     * 
+     *
      * @see TableModelEvent
      * @see EventListenerList
      */
@@ -176,26 +178,26 @@ public interface ITableModel<Entity, EntityContainer> extends TableModel {
 
     /**
      * Notifies all listeners that rows in the range <code>[firstRow, lastRow]</code>, inclusive, have been inserted.
-     * 
+     *
      * @param firstRow
      *            the first row
      * @param lastRow
      *            the last row
-     * 
+     *
      * @see TableModelEvent
      * @see EventListenerList
-     * 
+     *
      */
     public void fireTableRowsInserted(int firstRow, int lastRow);
 
     /**
      * Notifies all listeners that rows in the range <code>[firstRow, lastRow]</code>, inclusive, have been updated.
-     * 
+     *
      * @param firstRow
      *            the first row
      * @param lastRow
      *            the last row
-     * 
+     *
      * @see TableModelEvent
      * @see EventListenerList
      */
@@ -203,12 +205,12 @@ public interface ITableModel<Entity, EntityContainer> extends TableModel {
 
     /**
      * Notifies all listeners that rows in the range <code>[firstRow, lastRow]</code>, inclusive, have been deleted.
-     * 
+     *
      * @param firstRow
      *            the first row
      * @param lastRow
      *            the last row
-     * 
+     *
      * @see TableModelEvent
      * @see EventListenerList
      */
@@ -216,7 +218,7 @@ public interface ITableModel<Entity, EntityContainer> extends TableModel {
 
     /**
      * Notifies all listeners that the value of the cell at <code>[row, column]</code> has been updated.
-     * 
+     *
      * @param row
      *            row of cell which has been updated
      * @param column
@@ -228,10 +230,10 @@ public interface ITableModel<Entity, EntityContainer> extends TableModel {
 
     /**
      * Forwards the given notification event to all <code>TableModelListeners</code> that registered themselves as listeners for this table model.
-     * 
+     *
      * @param e
      *            the event to be forwarded
-     * 
+     *
      * @see #addTableModelListener
      * @see TableModelEvent
      * @see EventListenerList

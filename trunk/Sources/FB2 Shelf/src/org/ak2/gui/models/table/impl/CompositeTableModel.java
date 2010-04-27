@@ -4,7 +4,6 @@
 package org.ak2.gui.models.table.impl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -24,7 +23,7 @@ import org.ak2.utils.LengthUtils;
 /**
  * @author Whippet
  */
-public class CompositeTableModel<Entity> extends TableModelEx<Entity, List<? extends ITableModel<Entity, ?>>> {
+public class CompositeTableModel<Entity> extends TableModelEx<Entity, List<ITableModel<Entity, ?>>> {
     private static final long serialVersionUID = 5359642786956347446L;
 
     private final Listener m_listener = new Listener();
@@ -38,8 +37,8 @@ public class CompositeTableModel<Entity> extends TableModelEx<Entity, List<? ext
      * @param columns
      * @param adapters
      */
-    public CompositeTableModel(final ITableColumnAdapter[] adapters) {
-        super(new Factory<Entity>(), adapters);
+    public CompositeTableModel(final String[] columns, final ITableColumnAdapter[] adapters) {
+        super(new Factory<Entity>(), columns, adapters);
     }
 
     /**
@@ -49,10 +48,11 @@ public class CompositeTableModel<Entity> extends TableModelEx<Entity, List<? ext
      * @param columns
      * @param adapters
      */
-    @SuppressWarnings("unchecked")
     public CompositeTableModel(final TableModelEx<Entity, ?> model) {
         super(new Factory<Entity>(), model.getColumnNames(), model.getAdapters());
-        setData(Arrays.asList(model));
+        List<ITableModel<Entity, ?>> models = new ArrayList<ITableModel<Entity, ?>>(1);
+        models.add(model);
+        setData(models);
     }
 
     /**
@@ -79,7 +79,7 @@ public class CompositeTableModel<Entity> extends TableModelEx<Entity, List<? ext
      * @see TableModelEx#setData(java.lang.Object)
      */
     @Override
-    public void setData(final List<? extends ITableModel<Entity, ?>> container) {
+    public void setData(final List<ITableModel<Entity, ?>> container) {
         if (LengthUtils.isNotEmpty(container)) {
             final List<ITableModel<Entity, ?>> models = new ArrayList<ITableModel<Entity, ?>>(container.size());
             fillModelList(models, container);
@@ -154,12 +154,12 @@ public class CompositeTableModel<Entity> extends TableModelEx<Entity, List<? ext
         return (Storage<Entity>) getOriginalStorage();
     }
 
-    private static class Factory<Entity> implements IFactory<Entity, List<? extends ITableModel<Entity, ?>>> {
+    private static class Factory<Entity> implements IFactory<Entity, List<ITableModel<Entity, ?>>> {
         public Entity newInstance() {
             return null;
         }
 
-        public IStorage<Entity> newStorage(final List<? extends ITableModel<Entity, ?>> container) {
+        public IStorage<Entity> newStorage(final List<ITableModel<Entity, ?>> container) {
             return new Storage<Entity>(container);
         }
     }

@@ -3,21 +3,26 @@ package org.ak2.fb2.shelf.catalog;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
-import org.ak2.gui.models.table.IFactory;
-import org.ak2.gui.models.table.IStorage;
-import org.ak2.gui.models.table.impl.ListStorage;
+import org.ak2.fb2.library.book.BookAuthor;
+import org.ak2.utils.LengthUtils;
+import org.ak2.utils.collections.SafeSortedMap;
+import org.ak2.utils.collections.factories.IMapValueFactory;
 import org.ak2.utils.jlog.JLogLevel;
 import org.ak2.utils.jlog.JLogMessage;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.XML;
 
-public class ShelfCatalog implements IFactory<BookInfo, ShelfCatalog>, Iterable<BookInfo> {
+public class ShelfCatalog implements Iterable<BookInfo> {
 
     private static final JLogMessage MSG_LOAD_START = new JLogMessage(JLogLevel.DEBUG, "Loading catalog from {0} started...");
 
@@ -29,28 +34,42 @@ public class ShelfCatalog implements IFactory<BookInfo, ShelfCatalog>, Iterable<
 
     private final List<BookInfo> m_books = new LinkedList<BookInfo>();
 
-    public ShelfCatalog(File xmlCatalog) {
+    private final Map<BookAuthor, List<BookInfo>> m_authors = new SafeSortedMap<BookAuthor, List<BookInfo>>(new IMapValueFactory<BookAuthor, List<BookInfo>>() {
+        @Override
+        public List<BookInfo> create(final BookAuthor key) {
+            return new LinkedList<BookInfo>();
+        }
+    });
+
+    private final Map<BookAuthor, Set<String>> m_sequences = new SafeSortedMap<BookAuthor, Set<String>>(new IMapValueFactory<BookAuthor, Set<String>>() {
+        @Override
+        public Set<String> create(final BookAuthor key) {
+            return new TreeSet<String>();
+        }
+    });
+
+    public ShelfCatalog(final File xmlCatalog) {
         m_original = xmlCatalog;
         if (MSG_LOAD_START.isEnabled()) {
             MSG_LOAD_START.log(m_original.getName());
         }
         try {
-            InputStreamReader r = new InputStreamReader(new FileInputStream(m_original), "UTF-8");
-            JSONObject jsonObject = XML.toJSONObject(r);
+            final InputStreamReader r = new InputStreamReader(new FileInputStream(m_original), "UTF-8");
+            final JSONObject jsonObject = XML.toJSONObject(r);
 
-            JSONObject root = jsonObject.getJSONObject("books");
-            JSONObject location = root.getJSONObject("location");
+            final JSONObject root = jsonObject.getJSONObject("books");
+            final JSONObject location = root.getJSONObject("location");
 
             String locationBase = location.getString("base");
             locationBase = ShelfCatalogProvider.getLocationMapping(locationBase);
 
-            JSONArray books = location.getJSONArray("book");
+            final JSONArray books = location.getJSONArray("book");
 
             for (int i = 0; i < books.length(); i++) {
-                JSONObject book = books.getJSONObject(i);
-                m_books.add(new BookInfo(locationBase, book));
+                final JSONObject book = books.getJSONObject(i);
+                addBook(new BookInfo(locationBase, book));
             }
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             MSG_LOAD_ERROR.log(ex, m_original.getName());
         } finally {
 
@@ -62,14 +81,33 @@ public class ShelfCatalog implements IFactory<BookInfo, ShelfCatalog>, Iterable<
         }
     }
 
-    @Override
-    public BookInfo newInstance() {
-        return null;
+    public void addBook(final BookInfo book) {
+        final BookAuthor author = book.getAuthor();
+        final String sequence = book.getSequence();
+
+        m_authors.get(author).add(book);
+
+        if (LengthUtils.isNotEmpty(sequence)) {
+            m_sequences.get(author).add(sequence);
+        }
+
+        m_books.add(book);
     }
 
-    @Override
-    public IStorage<BookInfo> newStorage(ShelfCatalog catalog) {
-        return new ListStorage<BookInfo>(catalog.m_books);
+    public Collection<BookAuthor> getAuthors() {
+        return m_authors.keySet();
+    }
+
+    public List<BookInfo> getBooks() {
+        return m_books;
+    }
+
+    public List<BookInfo> getBooks(final BookAuthor author) {
+        return m_authors.get(author);
+    }
+
+    public Set<String> getSequences(final BookAuthor author) {
+        return m_sequences.get(author);
     }
 
     @Override

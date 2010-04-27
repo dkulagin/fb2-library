@@ -1,5 +1,7 @@
 package org.ak2.fb2.shelf.gui.models.tree;
 
+import java.util.List;
+
 import org.ak2.fb2.library.book.BookAuthor;
 import org.ak2.fb2.shelf.catalog.BookInfo;
 import org.ak2.gui.models.tree.AbstractTreeModel;
@@ -8,8 +10,8 @@ public class AuthorSequenceFilterNode extends SequenceFilterNode {
 
     private final BookAuthor author;
 
-    public AuthorSequenceFilterNode(AbstractTreeModel model, BookAuthor author, String sequence) {
-        super(model, sequence);
+    public AuthorSequenceFilterNode(AbstractTreeModel model, BookAuthor author, String sequence, List<BookInfo> books) {
+        super(model, sequence, books);
         this.author = author;
     }
 
