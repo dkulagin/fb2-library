@@ -34,7 +34,9 @@ import javax.swing.text.html.HTML;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.ak2.fb2.shelf.catalog.BookInfo;
+import org.ak2.fb2.shelf.catalog.FileInfo;
 import org.ak2.fb2.shelf.catalog.ShelfCatalog;
+import org.ak2.fb2.shelf.catalog.ShelfCatalogProvider;
 import org.ak2.fb2.shelf.gui.models.catalog.ShelfCatalogModel;
 import org.ak2.fb2.shelf.gui.models.tree.ShelfFilterModel;
 import org.ak2.fb2.shelf.gui.renderers.FilterTreeDecorator;
@@ -68,8 +70,6 @@ public class MainFrame extends JFrame {
     private static final JLogMessage MSG_DLG_SHOWING = new JLogMessage(JLogLevel.DEBUG, "Info dialog showing...");
 
     private static final JLogMessage MSG_SELECTED_BOOK = new JLogMessage(JLogLevel.DEBUG, "Selected book: {0}");
-
-    private static final File XML_CATALOG = new File("catalog.xml");
 
     private static final long serialVersionUID = 3595272628118286814L;
 
@@ -281,25 +281,21 @@ public class MainFrame extends JFrame {
 
                         MSG_SELECTED_BOOK.log(entity);
 
-                        final File location = new File(entity.getLocation());
-                        if (!location.exists()) {
-                            JOptionPane.showMessageDialog(MainFrame.this, "Selected base location not found: \n" + location, "Opening book...",
-                                    JOptionPane.WARNING_MESSAGE);
+                        FileInfo fileInfo = entity.getFileInfo();
+
+                        if (!fileInfo.getLocation().exists()) {
+                            JOptionPane.showMessageDialog(MainFrame.this, "Selected base location not found: \n" + fileInfo.getLocationPath(),
+                                    "Opening book...", JOptionPane.WARNING_MESSAGE);
                             return;
                         }
 
-                        final File container = new File(location, entity.getContainer());
-                        if (!container.exists()) {
-                            JOptionPane.showMessageDialog(MainFrame.this, "Selected book container not found: \n" + container, "Opening book...",
-                                    JOptionPane.WARNING_MESSAGE);
+                        if (!fileInfo.getContainer().exists()) {
+                            JOptionPane.showMessageDialog(MainFrame.this, "Selected book container not found: \n" + fileInfo.getFullContainerPath(),
+                                    "Opening book...", JOptionPane.WARNING_MESSAGE);
                             return;
                         }
-                        File book = container;
-                        if (container.isDirectory()) {
-                            book = new File(container, entity.getFile());
-                        }
-                        if (!book.exists()) {
-                            JOptionPane.showMessageDialog(MainFrame.this, "Selected book file not found: \n" + book, "Opening book...",
+                        if (!fileInfo.getBook().exists()) {
+                            JOptionPane.showMessageDialog(MainFrame.this, "Selected book file not found: \n" + fileInfo.getFullBookPath(), "Opening book...",
                                     JOptionPane.WARNING_MESSAGE);
                             return;
                         }
@@ -317,7 +313,7 @@ public class MainFrame extends JFrame {
                         }
 
                         try {
-                            final String[] cmdarray = { fb2reader.getCanonicalPath(), book.getCanonicalPath() };
+                            final String[] cmdarray = { fb2reader.getCanonicalPath(), fileInfo.getFullBookPath() };
                             Runtime.getRuntime().exec(cmdarray, null, fb2reader.getParentFile());
                         } catch (final IOException ex) {
                             ex.printStackTrace();
@@ -339,7 +335,7 @@ public class MainFrame extends JFrame {
 
     private ShelfCatalog getCatalog() {
         if (m_catalog == null) {
-            m_catalog = new ShelfCatalog(XML_CATALOG);
+            m_catalog = ShelfCatalogProvider.getCatalog();
         }
         return m_catalog;
     }
