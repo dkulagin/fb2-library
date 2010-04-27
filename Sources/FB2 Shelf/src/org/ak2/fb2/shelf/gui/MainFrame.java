@@ -38,6 +38,7 @@ import org.ak2.fb2.shelf.catalog.ShelfCatalog;
 import org.ak2.fb2.shelf.catalog.ShelfCatalogProvider;
 import org.ak2.fb2.shelf.gui.models.catalog.ShelfCatalogModel;
 import org.ak2.fb2.shelf.gui.models.tree.AbstractFilterNode;
+import org.ak2.fb2.shelf.gui.models.tree.RootFilterNode;
 import org.ak2.fb2.shelf.gui.models.tree.ShelfFilterModel;
 import org.ak2.fb2.shelf.gui.renderers.FilterTreeDecorator;
 import org.ak2.gui.controls.table.TableEx;
@@ -350,6 +351,9 @@ public class MainFrame extends JFrame {
 
         private AbstractFilterNode<?> getFilterNode() {
             AbstractTreeNode<?> selectedNode = filterTree.getSelectedNode();
+            if (selectedNode instanceof RootFilterNode) {
+                return null;
+            }
             if (selectedNode instanceof AbstractFilterNode<?>) {
                 return (AbstractFilterNode<?>) selectedNode;
             }
