@@ -11,7 +11,7 @@ public interface IRef<Entity>
      * @return holding entity
      * @throws Exception exception
      */
-    public Entity get() throws Exception;
+    public Entity get();
 
     /**
      * @param entity new entity to hold

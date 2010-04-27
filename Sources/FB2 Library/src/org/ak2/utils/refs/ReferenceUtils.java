@@ -7,7 +7,7 @@ import java.lang.ref.WeakReference;
 
 /**
  * @author Whippet
- * 
+ *
  */
 public final class ReferenceUtils {
     /**
@@ -18,12 +18,12 @@ public final class ReferenceUtils {
 
     /**
      * Creates a weak reference for the given entity.
-     * 
+     *
      * @param <Entity>
      *            entity type
      * @param entity
      *            the entity
-     * 
+     *
      * @return the weak reference<entity>
      */
     public static <Entity> WeakReference<Entity> create(final Entity entity) {
@@ -32,12 +32,12 @@ public final class ReferenceUtils {
 
     /**
      * Gets an entity from the given reference.
-     * 
+     *
      * @param <Entity>
      *            entity type
      * @param ref
      *            the weak reference
-     * 
+     *
      * @return the entity
      */
     public static <Entity> Entity get(final WeakReference<Entity> ref) {
@@ -46,7 +46,7 @@ public final class ReferenceUtils {
 
     /**
      * Gets an entity from the given reference.
-     * 
+     *
      * @param <Entity>
      *            entity type
      * @param ref
@@ -55,13 +55,13 @@ public final class ReferenceUtils {
      *                exceptions
      * @return the entity
      */
-    public static <Entity> Entity get(final IRef<Entity> ref) throws Exception {
+    public static <Entity> Entity get(final IRef<Entity> ref) {
         return ref != null ? ref.get() : null;
     }
 
     /**
      * Sets an entity to the given reference.
-     * 
+     *
      * @param <Entity>
      *            entity type
      * @param ref
@@ -80,10 +80,10 @@ public final class ReferenceUtils {
 
     /**
      * Creates direct reference.
-     * 
+     *
      * @param <Entity>
      *            entity type
-     * 
+     *
      * @param ref
      *            original reference
      * @return an instance of the {@link DirectRef} object
@@ -99,10 +99,10 @@ public final class ReferenceUtils {
 
     /**
      * Creates weak reference.
-     * 
+     *
      * @param <Entity>
      *            entity type
-     * 
+     *
      * @param ref
      *            original reference
      * @return an instance of the {@link WeakRef} object
