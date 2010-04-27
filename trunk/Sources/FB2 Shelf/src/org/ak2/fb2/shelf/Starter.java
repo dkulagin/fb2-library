@@ -1,5 +1,6 @@
 package org.ak2.fb2.shelf;
 
+import java.io.File;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.text.MessageFormat;
@@ -18,6 +19,7 @@ import javax.swing.text.StyledDocument;
 
 import org.ak2.fb2.library.Main;
 import org.ak2.fb2.library.commands.CommandArgs;
+import org.ak2.fb2.shelf.catalog.ShelfCatalogProvider;
 import org.ak2.fb2.shelf.gui.MainFrame;
 import org.ak2.utils.LengthUtils;
 import org.ak2.utils.collections.SafeMap;
@@ -46,6 +48,16 @@ public class Starter {
         initConsole();
         initXalan();
         initLog();
+
+        if (args.length > 0) {
+            ShelfCatalogProvider.setCatalogFile(new File(args[0]));
+            for (int i = 1; i < args.length; i++) {
+                String[] locations = args[i].split("=");
+                if (locations.length > 1) {
+                    ShelfCatalogProvider.setLocationMapping(locations[0], locations[1]);
+                }
+            }
+        }
 
         final MainFrame frame = new MainFrame();
 

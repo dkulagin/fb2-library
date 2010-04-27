@@ -18,11 +18,7 @@ public class BookInfo implements Comparable<BookInfo> {
      */
     private static final Pattern ESCAPED = Pattern.compile("\\&\\#(\\d+)\\;");
 
-    private final String m_location;
-
-    private final String m_container;
-
-    private final String m_file;
+    private final FileInfo m_fileInfo;
 
     private final BookAuthor m_author;
 
@@ -36,9 +32,9 @@ public class BookInfo implements Comparable<BookInfo> {
 
     public BookInfo(final String location, final Node root) throws Exception {
         final FictionBookInfo fbi = new FictionBookInfo(root);
-        m_location = normalize(location);
-        m_container = normalize(XmlUtils.getString(root, "@container"));
-        m_file = normalize(XmlUtils.getString(root, "@file"));
+
+        m_fileInfo = new FileInfo(normalize(location), normalize(XmlUtils.getString(root, "@container")), normalize(XmlUtils.getString(root, "@file")));
+
         m_author = fbi.getAuthor();
         m_bookName = fbi.getBookName();
         m_sequence = fbi.getSequence();
@@ -47,12 +43,9 @@ public class BookInfo implements Comparable<BookInfo> {
     }
 
     public BookInfo(final String location, final JSONObject book) throws Exception {
-        m_location = normalize(location);
-        m_container = normalize(book.getString("container"));
-        m_file = normalize(book.getString("file"));
+        m_fileInfo = new FileInfo(normalize(location), normalize(book.getString("container")), normalize(book.getString("file")));
 
         final JSONObject titleInfo = book.getJSONObject("title-info");
-
         m_bookName = normalize(titleInfo.getString("book-title"));
 
         final Object authorObject = titleInfo.get("author");
@@ -73,16 +66,21 @@ public class BookInfo implements Comparable<BookInfo> {
 
         final JSONObject seq = titleInfo.optJSONObject("sequence");
         if (seq != null) {
-            m_sequence = normalize(seq.getString("name"));
-            m_seqNo = normalize(seq.optString("number"));
-            Integer number = null;
-            if (LengthUtils.isNotEmpty(m_seqNo)) {
-                try {
-                    number = Integer.parseInt(m_seqNo);
-                } catch (final Exception ex) {
+            m_sequence = LengthUtils.unsafeString(normalize(seq.optString("name")));
+            if (m_sequence == null) {
+                m_seqNo = normalize(seq.optString("number"));
+                Integer number = null;
+                if (LengthUtils.isNotEmpty(m_seqNo)) {
+                    try {
+                        number = Integer.parseInt(m_seqNo);
+                    } catch (final Exception ex) {
+                    }
                 }
+                m_intSeqNo = number;
+            } else {
+                m_seqNo = null;
+                m_intSeqNo = null;
             }
-            m_intSeqNo = number;
         } else {
             m_sequence = null;
             m_seqNo = null;
@@ -90,16 +88,8 @@ public class BookInfo implements Comparable<BookInfo> {
         }
     }
 
-    public String getLocation() {
-        return m_location;
-    }
-
-    public String getContainer() {
-        return m_container;
-    }
-
-    public String getFile() {
-        return m_file;
+    public final FileInfo getFileInfo() {
+        return m_fileInfo;
     }
 
     /**
