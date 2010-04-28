@@ -27,9 +27,15 @@ import javax.swing.JSplitPane;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.event.TreeWillExpandListener;
 import javax.swing.text.html.HTML;
+import javax.swing.tree.ExpandVetoException;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.ak2.fb2.shelf.catalog.BookInfo;
@@ -53,7 +59,7 @@ import org.ak2.utils.jlog.JLogMessage;
 
 public class MainFrame extends JFrame {
 
-    private static final JLogMessage MSG_SELECTION_EVENT = new JLogMessage(JLogLevel.DEBUG, "Tree selection: {0}");
+    private static final JLogMessage MSG_TREE_EVENT = new JLogMessage(JLogLevel.DEBUG, "Tree event: {0}");
 
     private static final JLogMessage MSG_SELECTION = new JLogMessage(JLogLevel.DEBUG, "Filter node selected: {0}");
 
@@ -199,7 +205,11 @@ public class MainFrame extends JFrame {
 
             filterTree.setModel(getTreeModel());
             filterTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-            filterTree.getSelectionModel().addTreeSelectionListener(new TreeListener());
+
+            final TreeListener x = new TreeListener();
+            filterTree.getSelectionModel().addTreeSelectionListener(x);
+            filterTree.addTreeExpansionListener(x);
+            filterTree.addTreeWillExpandListener(x);
         }
 
         return filterTree;
@@ -222,7 +232,7 @@ public class MainFrame extends JFrame {
         final HtmlBuilder buf = new HtmlBuilder().start();
         buf.start(HTML.Tag.DIV).text("Selected ");
 
-        Object[] path = node != null ? node.getUserObjectPath() : null;
+        final Object[] path = node != null ? node.getUserObjectPath() : null;
 
         if (LengthUtils.length(path) < 2) {
             buf.text("All");
@@ -288,10 +298,10 @@ public class MainFrame extends JFrame {
         return m_catalog;
     }
 
-    private final class TreeListener implements TreeSelectionListener {
+    private final class TreeListener implements TreeSelectionListener, TreeExpansionListener, TreeWillExpandListener {
         @Override
         public void valueChanged(final TreeSelectionEvent e) {
-            MSG_SELECTION_EVENT.log(e);
+            MSG_TREE_EVENT.log(e);
 
             try {
                 final AbstractFilterNode<?> node = getFilterNode();
@@ -350,7 +360,7 @@ public class MainFrame extends JFrame {
         }
 
         private AbstractFilterNode<?> getFilterNode() {
-            AbstractTreeNode<?> selectedNode = filterTree.getSelectedNode();
+            final AbstractTreeNode<?> selectedNode = filterTree.getSelectedNode();
             if (selectedNode instanceof RootFilterNode) {
                 return null;
             }
@@ -358,6 +368,39 @@ public class MainFrame extends JFrame {
                 return (AbstractFilterNode<?>) selectedNode;
             }
             return null;
+        }
+
+        @Override
+        public void treeWillCollapse(final TreeExpansionEvent event) throws ExpandVetoException {
+            MSG_TREE_EVENT.log(event);
+
+            final TreePath collapsingPath = event.getPath();
+            final Object[] path = collapsingPath.getPath();
+            final AbstractTreeNode<?> selectedNode = getFilterTree().getSelectedNode();
+            if (selectedNode != null) {
+                final TreeNode[] selectedPath = selectedNode.getPath();
+                boolean eq = true;
+                for (int i = 0, n = Math.min(path.length, selectedPath.length); eq && i < n; i++) {
+                    eq = path[i] == selectedPath[i];
+                }
+                if (eq) {
+                    final Object collapsedNode = collapsingPath.getLastPathComponent();
+                    getFilterTree().setSelectedNode((AbstractTreeNode<?>) collapsedNode);
+                }
+            }
+        }
+
+        @Override
+        public void treeCollapsed(final TreeExpansionEvent event) {
+            MSG_TREE_EVENT.log(event);
+        }
+
+        @Override
+        public void treeWillExpand(final TreeExpansionEvent event) throws ExpandVetoException {
+        }
+
+        @Override
+        public void treeExpanded(final TreeExpansionEvent event) {
         }
     }
 
@@ -375,7 +418,7 @@ public class MainFrame extends JFrame {
 
                 MSG_SELECTED_BOOK.log(entity);
 
-                FileInfo fileInfo = entity.getFileInfo();
+                final FileInfo fileInfo = entity.getFileInfo();
 
                 if (!fileInfo.getLocation().exists()) {
                     JOptionPane.showMessageDialog(MainFrame.this, "Selected base location not found: \n" + fileInfo.getLocationPath(), "Opening book...",
