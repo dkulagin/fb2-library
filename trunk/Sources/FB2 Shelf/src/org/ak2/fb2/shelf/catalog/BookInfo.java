@@ -67,7 +67,7 @@ public class BookInfo implements Comparable<BookInfo> {
         final JSONObject seq = titleInfo.optJSONObject("sequence");
         if (seq != null) {
             m_sequence = LengthUtils.unsafeString(normalize(seq.optString("name")));
-            if (m_sequence == null) {
+            if (m_sequence != null) {
                 m_seqNo = normalize(seq.optString("number"));
                 Integer number = null;
                 if (LengthUtils.isNotEmpty(m_seqNo)) {
