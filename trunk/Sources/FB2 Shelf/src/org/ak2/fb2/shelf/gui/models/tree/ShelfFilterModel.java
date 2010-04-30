@@ -1,7 +1,7 @@
 package org.ak2.fb2.shelf.gui.models.tree;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -21,37 +21,62 @@ public class ShelfFilterModel extends AbstractTreeModel {
 
     private final ShelfCatalog catalog;
 
-    public ShelfFilterModel(ShelfCatalog catalog) {
+    public ShelfFilterModel(final ShelfCatalog catalog) {
         this.catalog = catalog;
 
-        RootFilterNode root = new RootFilterNode(this, catalog);
+        final RootFilterNode root = new RootFilterNode(this, catalog);
         this.setRootNode(root);
 
-        Collection<BookAuthor> authors = catalog.getAuthors();
+        final Collection<BookAuthor> authors = catalog.getAuthors();
 
-        int size = 20;
+        final int size = 20;
         if (LengthUtils.length(authors) < size) {
-            addAuthors((AbstractTreeNode<?>) root, authors);
+            addAuthors(root, authors);
         } else {
-            Iterator<BookAuthor> iter = authors.iterator();
-            while (iter.hasNext()) {
-                AuthorPackFilterNode packNode = new AuthorPackFilterNode(this, iter, size);
+            final List<BookAuthor> nodeAuthors = new ArrayList<BookAuthor>();
+            char prevChar = '&';
+            for (final BookAuthor bookAuthor : authors) {
+                final char firstChar = getFirstChar(bookAuthor.getName());
+                if (prevChar != firstChar && nodeAuthors.size() > 0 || nodeAuthors.size() >= size) {
+                    final AuthorPackFilterNode packNode = new AuthorPackFilterNode(this, nodeAuthors);
+                    root.add(packNode);
+                    addAuthors(packNode, nodeAuthors);
+                    nodeAuthors.clear();
+                }
+                prevChar = firstChar;
+                nodeAuthors.add(bookAuthor);
+            }
+            if (nodeAuthors.size() > 0) {
+                final AuthorPackFilterNode packNode = new AuthorPackFilterNode(this, nodeAuthors);
                 root.add(packNode);
-                addAuthors((AbstractTreeNode<?>) packNode, packNode.getAuthors());
+                addAuthors(packNode, nodeAuthors);
+                nodeAuthors.clear();
             }
         }
     }
 
-    private void addAuthors(AbstractTreeNode<?> parent, Collection<BookAuthor> packAuthors) {
-        for (BookAuthor bookAuthor : packAuthors) {
-            List<BookInfo> books = catalog.getBooks(bookAuthor);
-            AuthorFilterNode authorNode = new AuthorFilterNode(this, bookAuthor, books, false);
+    private char getFirstChar(final String str) {
+        char firstChar = LengthUtils.safeString(str, " ").charAt(0);
+        if (Character.isLetter(firstChar)) {
+            firstChar = Character.toLowerCase(firstChar);
+        } else if (Character.isDigit(firstChar)) {
+            firstChar = '0';
+        } else {
+            firstChar = ' ';
+        }
+        return firstChar;
+    }
+
+    private void addAuthors(final AbstractTreeNode<?> parent, final Collection<BookAuthor> packAuthors) {
+        for (final BookAuthor bookAuthor : packAuthors) {
+            final List<BookInfo> books = catalog.getBooks(bookAuthor);
+            final AuthorFilterNode authorNode = new AuthorFilterNode(this, bookAuthor, books, false);
             parent.add(authorNode);
 
-            Set<String> set = catalog.getSequences(bookAuthor);
+            final Set<String> set = catalog.getSequences(bookAuthor);
             if (LengthUtils.isNotEmpty(set)) {
-                for (String sequence : set) {
-                    AuthorSequenceFilterNode seqNode = new AuthorSequenceFilterNode(this, bookAuthor, sequence, books);
+                for (final String sequence : set) {
+                    final AuthorSequenceFilterNode seqNode = new AuthorSequenceFilterNode(this, bookAuthor, sequence, books);
                     authorNode.add(seqNode);
                 }
             }

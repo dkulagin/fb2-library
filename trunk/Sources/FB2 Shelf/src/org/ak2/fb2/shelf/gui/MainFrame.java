@@ -43,7 +43,7 @@ import org.ak2.fb2.shelf.catalog.FileInfo;
 import org.ak2.fb2.shelf.catalog.ShelfCatalog;
 import org.ak2.fb2.shelf.catalog.ShelfCatalogProvider;
 import org.ak2.fb2.shelf.gui.models.catalog.ShelfCatalogModel;
-import org.ak2.fb2.shelf.gui.models.tree.AbstractFilterNode;
+import org.ak2.fb2.shelf.gui.models.tree.AbstractBooksNode;
 import org.ak2.fb2.shelf.gui.models.tree.RootFilterNode;
 import org.ak2.fb2.shelf.gui.models.tree.ShelfFilterModel;
 import org.ak2.fb2.shelf.gui.renderers.FilterTreeDecorator;
@@ -215,7 +215,7 @@ public class MainFrame extends JFrame {
         return filterTree;
     }
 
-    private JDialog createDialog(final AbstractFilterNode<?> node) {
+    private JDialog createDialog(final AbstractTreeNode<?> node) {
         if (selectedDlg == null) {
             selectedDlg = new JDialog(MainFrame.this);
             selectedDlg.setTitle("Please wait...");
@@ -304,7 +304,7 @@ public class MainFrame extends JFrame {
             MSG_TREE_EVENT.log(e);
 
             try {
-                final AbstractFilterNode<?> node = getFilterNode();
+                final AbstractBooksNode<?> node = getFilterNode();
 
                 MSG_SELECTION.log(node);
 
@@ -359,13 +359,13 @@ public class MainFrame extends JFrame {
             }
         }
 
-        private AbstractFilterNode<?> getFilterNode() {
+        private AbstractBooksNode<?> getFilterNode() {
             final AbstractTreeNode<?> selectedNode = filterTree.getSelectedNode();
             if (selectedNode instanceof RootFilterNode) {
                 return null;
             }
-            if (selectedNode instanceof AbstractFilterNode<?>) {
-                return (AbstractFilterNode<?>) selectedNode;
+            if (selectedNode instanceof AbstractBooksNode<?>) {
+                return (AbstractBooksNode<?>) selectedNode;
             }
             return null;
         }
