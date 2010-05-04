@@ -22,7 +22,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -48,6 +47,7 @@ import org.ak2.fb2.shelf.gui.models.tree.RootFilterNode;
 import org.ak2.fb2.shelf.gui.models.tree.ShelfFilterModel;
 import org.ak2.fb2.shelf.gui.renderers.FilterTreeDecorator;
 import org.ak2.gui.controls.panels.FilterField;
+import org.ak2.gui.controls.panels.TitledTablePanel;
 import org.ak2.gui.controls.panels.TitledTreePanel;
 import org.ak2.gui.controls.table.TableEx;
 import org.ak2.gui.controls.table.policies.WeightResizePolicy;
@@ -85,9 +85,7 @@ public class MainFrame extends JFrame {
 
     private JPanel mainPanel;
 
-    private TableEx bookTable;
-
-    private JScrollPane bookTableScrollPane;
+    private TitledTablePanel tablePanel;
 
     private ShelfCatalog m_catalog;
 
@@ -181,7 +179,7 @@ public class MainFrame extends JFrame {
         if (leftSplitPane == null) {
             leftSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
             leftSplitPane.setLeftComponent(getTreePanel());
-            leftSplitPane.setRightComponent(getBookTableScrollPane());
+            leftSplitPane.setRightComponent(getTablePanel());
             leftSplitPane.setResizeWeight(0.25);
             leftSplitPane.setDividerLocation(0.25);
         }
@@ -249,6 +247,21 @@ public class MainFrame extends JFrame {
         return buf.finish();
     }
 
+    private String getTableTitle(final AbstractTreeNode<?> node) {
+        final Object[] path = (node != null ? node : getTreeModel().getRootNode()).getUserObjectPath();
+        if (path.length == 1) {
+            return path[0].toString();
+        }
+        StringBuilder buf = new StringBuilder();
+        for (int i = 1; i < path.length; i++) {
+            if (i > 1) {
+                buf.append(" :: ");
+            }
+            buf.append(path[i].toString());
+        }
+        return buf.toString();
+    }
+
     private JLabel getSelectionLabel() {
         if (selectionLabel == null) {
             selectionLabel = new JLabel();
@@ -264,25 +277,22 @@ public class MainFrame extends JFrame {
         return treeModel;
     }
 
-    private JScrollPane getBookTableScrollPane() {
-        if (bookTableScrollPane == null) {
-            bookTableScrollPane = new JScrollPane(getBookTable());
-            bookTableScrollPane.setName("bookTableScrollPane");
+    private TitledTablePanel getTablePanel() {
+        if (tablePanel == null) {
+            tablePanel = new TitledTablePanel();
+            tablePanel.setName("bookTableScrollPane");
+            tablePanel.setTitle(getTableTitle(null));
+
+            TableEx bookTable = tablePanel.getInner();
+            bookTable.setResizePolicy(new WeightResizePolicy(30, 10, 60));
+            bookTable.setModel(getTableModel());
+            bookTable.addMouseListener(new TableListener());
         }
-        return bookTableScrollPane;
+        return tablePanel;
     }
 
     private TableEx getBookTable() {
-        if (bookTable == null) {
-            bookTable = new TableEx();
-            bookTable.setName("bookTable");
-            bookTable.setResizePolicy(new WeightResizePolicy(30, 10, 60));
-            bookTable.setModel(getTableModel());
-
-            bookTable.addMouseListener(new TableListener());
-        }
-
-        return bookTable;
+        return getTablePanel().getInner();
     }
 
     private ShelfCatalogModel getTableModel() {
@@ -341,8 +351,11 @@ public class MainFrame extends JFrame {
                                 Thread.sleep(delta);
                             }
 
+                            tablePanel.setTitle(getTableTitle(node));
+
                             getFilterTree().setEnabled(true);
                             dlg.setVisible(false);
+
                         } catch (final Exception ex) {
                             ex.printStackTrace();
                         }
