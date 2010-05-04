@@ -1,0 +1,6 @@
+{
+	actions=[
+		{id="filter", desc="Enter filter text", icon="/ui/tree/filter.gif"},
+		{id="clear", desc="Clear filter text", icon="/ui/tree/clear.gif"}
+	]
+}

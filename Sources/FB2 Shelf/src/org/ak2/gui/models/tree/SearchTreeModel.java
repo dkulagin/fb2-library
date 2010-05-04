@@ -8,45 +8,38 @@ import javax.swing.tree.TreeNode;
 
 import org.ak2.utils.LengthUtils;
 
-/**
- * @author Dmitriy Kondratenko
- */
-public class SearchTreeModel extends AbstractTreeModel
-{
+public class SearchTreeModel extends AbstractTreeModel {
     private static final long serialVersionUID = 8078565145638245032L;
 
-    private final HashMap<AbstractTreeNode<?>, AbstractTreeNode<?>> m_map =
-        new HashMap<AbstractTreeNode<?>, AbstractTreeNode<?>>();
+    private final HashMap<AbstractTreeNode<?>, AbstractTreeNode<?>> m_map = new HashMap<AbstractTreeNode<?>, AbstractTreeNode<?>>();
 
     private String m_lastText;
 
     /**
      * Constructor.
      */
-    protected SearchTreeModel()
-    {
+    protected SearchTreeModel() {
         super();
     }
 
     /**
      * This method filtering text
      *
-     * @param treeModel model of tree
-     * @param text current text
+     * @param treeModel
+     *            model of tree
+     * @param text
+     *            current text
      * @return this
      */
-    public AbstractTreeModel filter(final AbstractTreeModel treeModel, final String text)
-    {
+    public AbstractTreeModel filter(final AbstractTreeModel treeModel, final String text) {
         m_lastText = text;
 
         final AbstractTreeNode<?> root = treeModel.getRootNode();
         final AbstractTreeNode<?> newRoot = createRoot(root);
 
-        for(final Enumeration<AbstractTreeNode<?>> en = root.preorderEnumeration(); en.hasMoreElements();)
-        {
+        for (final Enumeration<AbstractTreeNode<?>> en = root.preorderEnumeration(); en.hasMoreElements();) {
             final AbstractTreeNode<?> node = (AbstractTreeNode<?>) en.nextElement();
-            if (accept(node, text))
-            {
+            if (accept(node, text)) {
                 addNode(node, newRoot);
             }
         }
@@ -56,12 +49,9 @@ public class SearchTreeModel extends AbstractTreeModel
 
         m_map.clear();
 
-        SwingUtilities.invokeLater(new Runnable()
-        {
-            public void run()
-            {
-                if (oldRoot != null)
-                {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                if (oldRoot != null) {
                     oldRoot.release();
                 }
             }
@@ -73,15 +63,15 @@ public class SearchTreeModel extends AbstractTreeModel
     /**
      * Fires node changes to a tree
      *
-     * @param parent parent node
-     * @param child changed node
+     * @param parent
+     *            parent node
+     * @param child
+     *            changed node
      */
     @Override
-    public void fireNodeChanged(final AbstractTreeNode<?> parent, final AbstractTreeNode<?> child)
-    {
+    public void fireNodeChanged(final AbstractTreeNode<?> parent, final AbstractTreeNode<?> child) {
         final String lastText = getLastText();
-        if (LengthUtils.isNotEmpty(lastText) && !accept(child, lastText))
-        {
+        if (LengthUtils.isNotEmpty(lastText) && !accept(child, lastText)) {
             this.fireTransactionStarted();
             this.removeNodeFromParent(child);
             this.fireTransactionFinished();
@@ -93,55 +83,46 @@ public class SearchTreeModel extends AbstractTreeModel
     /**
      * Invoke this method after you've removed some TreeNodes from node.
      *
-     * @param node parent node
-     * @param childIndices indexes of the removed elements
-     * @param removedChildren array of the children objects that were
-     *            removed.
-     * @see javax.swing.tree.DefaultTreeModel#nodesWereRemoved(javax.swing.tree.TreeNode,
-     *      int[], java.lang.Object[])
+     * @param node
+     *            parent node
+     * @param childIndices
+     *            indexes of the removed elements
+     * @param removedChildren
+     *            array of the children objects that were removed.
+     * @see javax.swing.tree.DefaultTreeModel#nodesWereRemoved(javax.swing.tree.TreeNode, int[], java.lang.Object[])
      */
     @Override
-    public void nodesWereRemoved(final TreeNode node, final int[] childIndices, final Object[] removedChildren)
-    {
-        try
-        {
+    public void nodesWereRemoved(final TreeNode node, final int[] childIndices, final Object[] removedChildren) {
+        try {
             super.nodesWereRemoved(node, childIndices, removedChildren);
             final AbstractTreeNode<?> parent = (AbstractTreeNode<?>) node;
             final String lastText = getLastText();
 
-            if (LengthUtils.isNotEmpty(lastText) && !checkParent(parent, lastText))
-            {
-                if (parent.getParentNode() != null)
-                {
+            if (LengthUtils.isNotEmpty(lastText) && !checkParent(parent, lastText)) {
+                if (parent.getParentNode() != null) {
                     this.removeNodeFromParent(parent);
                 }
             }
-        }
-        catch (Throwable th)
-        {
+        } catch (Throwable th) {
         }
     }
 
     /**
-     * Check if the parent node or one of its children accept the filter
-     * condition.
+     * Check if the parent node or one of its children accept the filter condition.
      *
-     * @param parent parent node
-     * @param text filter text
-     * @return <code>true</code> if the parent node or one of its children
-     *         accept the filter condition.
+     * @param parent
+     *            parent node
+     * @param text
+     *            filter text
+     * @return <code>true</code> if the parent node or one of its children accept the filter condition.
      */
-    protected boolean checkParent(final AbstractTreeNode<?> parent, final String text)
-    {
-        if (accept(parent, text))
-        {
+    protected boolean checkParent(final AbstractTreeNode<?> parent, final String text) {
+        if (accept(parent, text)) {
             return true;
         }
-        for(final Enumeration<?> en = parent.depthFirstEnumeration(); en.hasMoreElements();)
-        {
+        for (final Enumeration<?> en = parent.depthFirstEnumeration(); en.hasMoreElements();) {
             final AbstractTreeNode<?> childNode = (AbstractTreeNode<?>) en.nextElement();
-            if (accept(childNode, text))
-            {
+            if (accept(childNode, text)) {
                 return true;
             }
         }
@@ -152,57 +133,41 @@ public class SearchTreeModel extends AbstractTreeModel
     /**
      * Checks the given node.
      *
-     * @param node tree node
-     * @param text any text
+     * @param node
+     *            tree node
+     * @param text
+     *            any text
      * @return accept(nodeName,text)
      */
-    protected boolean accept(final AbstractTreeNode<?> node, final String text)
-    {
-        final String nodeName = getNodeText(node);
-        final boolean accept = accept(nodeName, text);
-        return accept;
-    }
-
-    /**
-     * Correct string which contains any string.
-     *
-     * @param string text
-     * @param expected text
-     * @return string
-     */
-    protected boolean accept(final String string, final String expected)
-    {
-        final String text = LengthUtils.safeString(string).toLowerCase();
-        return text.contains(expected.toLowerCase());
+    protected boolean accept(final AbstractTreeNode<?> node, final String text) {
+        return node.containsText(text);
     }
 
     /**
      * Returns node text to check.
      *
-     * @param node node of tree
+     * @param node
+     *            node of tree
      * @return node text
      */
-    protected String getNodeText(final AbstractTreeNode<?> node)
-    {
+    protected String getNodeText(final AbstractTreeNode<?> node) {
         return node.toString();
     }
 
     /**
-     * @param original node of tree
-     * @param newRoot new model root
+     * @param original
+     *            node of tree
+     * @param newRoot
+     *            new model root
      */
-    @SuppressWarnings("unchecked")
-    protected void addNode(final AbstractTreeNode<?> original, final AbstractTreeNode<?> newRoot)
-    {
+    protected void addNode(final AbstractTreeNode<?> original, final AbstractTreeNode<?> newRoot) {
         final TreeNode[] originalPath = original.getPath();
 
         AbstractTreeNode<?> parent = newRoot;
-        for(int i = 1; i < originalPath.length; i++)
-        {
+        for (int i = 1; i < originalPath.length; i++) {
             final AbstractTreeNode<?> current = (AbstractTreeNode<?>) originalPath[i];
             AbstractTreeNode<?> copy = m_map.get(current);
-            if (copy == null)
-            {
+            if (copy == null) {
                 copy = createNode(current);
                 m_map.put(current, copy);
                 parent.add(copy);
@@ -216,22 +181,20 @@ public class SearchTreeModel extends AbstractTreeModel
     /**
      * Creates a copy of root node.
      *
-     * @param original original root node
+     * @param original
+     *            original root node
      * @return an instance of the {@link AbstractTreeNode} object
      */
-    @SuppressWarnings("unchecked")
-    protected AbstractTreeNode<?> createRoot(final AbstractTreeNode<?> original)
-    {
+    protected AbstractTreeNode<?> createRoot(final AbstractTreeNode<?> original) {
         return createNode(original);
     }
 
     /**
-     * @param original node of tree
+     * @param original
+     *            node of tree
      * @return new node containing the same user object
      */
-    @SuppressWarnings("unchecked")
-    protected AbstractTreeNode<?> createNode(final AbstractTreeNode<?> original)
-    {
+    protected AbstractTreeNode<?> createNode(final AbstractTreeNode<?> original) {
         final AbstractTreeNode<?> node = (AbstractTreeNode<?>) original.clone();
         node.setModel(this);
         return node;
@@ -240,8 +203,22 @@ public class SearchTreeModel extends AbstractTreeModel
     /**
      * @return the lastText
      */
-    protected String getLastText()
-    {
+    protected String getLastText() {
         return m_lastText;
     }
+
+    /**
+     * Correct string which contains any string.
+     *
+     * @param string
+     *            text
+     * @param expected
+     *            text
+     * @return string
+     */
+    public static boolean containsText(final String string, final String expected) {
+        final String text = LengthUtils.safeString(string).toLowerCase();
+        return text.contains(expected.toLowerCase());
+    }
+
 }

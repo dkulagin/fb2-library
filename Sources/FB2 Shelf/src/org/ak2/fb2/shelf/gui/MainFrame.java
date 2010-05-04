@@ -47,6 +47,8 @@ import org.ak2.fb2.shelf.gui.models.tree.AbstractBooksNode;
 import org.ak2.fb2.shelf.gui.models.tree.RootFilterNode;
 import org.ak2.fb2.shelf.gui.models.tree.ShelfFilterModel;
 import org.ak2.fb2.shelf.gui.renderers.FilterTreeDecorator;
+import org.ak2.gui.controls.panels.FilterField;
+import org.ak2.gui.controls.panels.TitledTreePanel;
 import org.ak2.gui.controls.table.TableEx;
 import org.ak2.gui.controls.table.policies.WeightResizePolicy;
 import org.ak2.gui.controls.tree.TreeEx;
@@ -89,9 +91,7 @@ public class MainFrame extends JFrame {
 
     private ShelfCatalog m_catalog;
 
-    private JScrollPane treeScrollPane;
-
-    private TreeEx filterTree;
+    private TitledTreePanel treePanel;
 
     private ShelfFilterModel treeModel;
 
@@ -129,7 +129,7 @@ public class MainFrame extends JFrame {
                         getMainPanel().removeAll();
                         try {
                             if (this.get() != null) {
-                                getMainPanel().add(getLeftSplitPane(), BorderLayout.CENTER);
+                                getMainPanel().add(this.get(), BorderLayout.CENTER);
                             }
                         } catch (final Throwable th) {
                             th.printStackTrace();
@@ -180,7 +180,7 @@ public class MainFrame extends JFrame {
     private JSplitPane getLeftSplitPane() {
         if (leftSplitPane == null) {
             leftSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-            leftSplitPane.setLeftComponent(getTreeScrollPane());
+            leftSplitPane.setLeftComponent(getTreePanel());
             leftSplitPane.setRightComponent(getBookTableScrollPane());
             leftSplitPane.setResizeWeight(0.25);
             leftSplitPane.setDividerLocation(0.25);
@@ -188,34 +188,30 @@ public class MainFrame extends JFrame {
         return leftSplitPane;
     }
 
-    private JScrollPane getTreeScrollPane() {
-        if (treeScrollPane == null) {
-            treeScrollPane = new JScrollPane(getFilterTree());
-            treeScrollPane.setName("treeScrollPane");
+    private TitledTreePanel getTreePanel() {
+        if (treePanel == null) {
+            treePanel = new TitledTreePanel(new FilterField());
+            treePanel.setName("treePane");
+            treePanel.setTitle("Book shelf");
+
+            TreeEx tree = treePanel.getInner();
+            FilterTreeDecorator.decorate(tree);
+            tree.setModel(getTreeModel());
+            tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+
+            final TreeListener x = new TreeListener();
+            tree.getSelectionModel().addTreeSelectionListener(x);
+            tree.addTreeExpansionListener(x);
+            tree.addTreeWillExpandListener(x);
         }
-        return treeScrollPane;
+        return treePanel;
     }
 
     private TreeEx getFilterTree() {
-        if (filterTree == null) {
-            filterTree = new TreeEx();
-            filterTree.setName("filterTree");
-
-            FilterTreeDecorator.decorate(filterTree);
-
-            filterTree.setModel(getTreeModel());
-            filterTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-
-            final TreeListener x = new TreeListener();
-            filterTree.getSelectionModel().addTreeSelectionListener(x);
-            filterTree.addTreeExpansionListener(x);
-            filterTree.addTreeWillExpandListener(x);
-        }
-
-        return filterTree;
+        return getTreePanel().getInner();
     }
 
-    private JDialog createDialog(final AbstractTreeNode<?> node) {
+    private JDialog createSelectionDialog(final AbstractTreeNode<?> node) {
         if (selectedDlg == null) {
             selectedDlg = new JDialog(MainFrame.this);
             selectedDlg.setTitle("Please wait...");
@@ -228,7 +224,15 @@ public class MainFrame extends JFrame {
             selectedDlg.getContentPane().add(getSelectionLabel(), c);
         }
 
-        final JLabel label = getSelectionLabel();
+        getSelectionLabel().setText(getSelectionDescription(node));
+
+        selectedDlg.pack();
+        selectedDlg.setLocationRelativeTo(this);
+
+        return selectedDlg;
+    }
+
+    private String getSelectionDescription(final AbstractTreeNode<?> node) {
         final HtmlBuilder buf = new HtmlBuilder().start();
         buf.start(HTML.Tag.DIV).text("Selected ");
 
@@ -242,16 +246,13 @@ public class MainFrame extends JFrame {
                 buf.start(HTML.Tag.LI).text(path[i].toString()).end();
             }
         }
-        label.setText(buf.finish());
-        selectedDlg.pack();
-        selectedDlg.setLocationRelativeTo(this);
-        return selectedDlg;
+        return buf.finish();
     }
 
     private JLabel getSelectionLabel() {
         if (selectionLabel == null) {
             selectionLabel = new JLabel();
-            selectionLabel.setName("label");
+            selectionLabel.setName("selectionLabel");
         }
         return selectionLabel;
     }
@@ -308,7 +309,7 @@ public class MainFrame extends JFrame {
 
                 MSG_SELECTION.log(node);
 
-                final JDialog dlg = createDialog(node);
+                final JDialog dlg = createSelectionDialog(node);
 
                 MSG_DLG_CREATED.log();
 
@@ -360,7 +361,7 @@ public class MainFrame extends JFrame {
         }
 
         private AbstractBooksNode<?> getFilterNode() {
-            final AbstractTreeNode<?> selectedNode = filterTree.getSelectedNode();
+            final AbstractTreeNode<?> selectedNode = treePanel.getInner().getSelectedNode();
             if (selectedNode instanceof RootFilterNode) {
                 return null;
             }
