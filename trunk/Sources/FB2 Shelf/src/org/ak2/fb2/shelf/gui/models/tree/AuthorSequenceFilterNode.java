@@ -5,6 +5,7 @@ import java.util.List;
 import org.ak2.fb2.library.book.BookAuthor;
 import org.ak2.fb2.shelf.catalog.BookInfo;
 import org.ak2.gui.models.tree.AbstractTreeModel;
+import org.ak2.gui.models.tree.SearchTreeModel;
 
 public class AuthorSequenceFilterNode extends SequenceFilterNode {
 
@@ -27,5 +28,13 @@ public class AuthorSequenceFilterNode extends SequenceFilterNode {
             return false;
         }
         return sequence.equals(seq);
+    }
+
+    @Override
+    public boolean containsText(String expected) {
+        if (super.containsText(expected)) {
+            return true;
+        }
+        return SearchTreeModel.containsText(author.getName(), expected);
     }
 }

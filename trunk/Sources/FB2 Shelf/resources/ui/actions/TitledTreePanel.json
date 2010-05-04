@@ -1,0 +1,7 @@
+{
+	actions=[
+		{id="expand", desc="Expand all", icon="/ui/tree/expand.png"},
+		{id="collapse", desc="Collapse all", icon="/ui/tree/collapse.png"},
+		{id="resize", desc="Resize panel", icon="/ui/tree/resize.gif"}
+	]
+}
