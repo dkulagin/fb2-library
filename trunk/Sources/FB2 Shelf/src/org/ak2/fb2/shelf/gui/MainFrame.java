@@ -4,6 +4,7 @@
 package org.ak2.fb2.shelf.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -11,19 +12,18 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.event.TreeExpansionEvent;
@@ -65,8 +65,6 @@ public class MainFrame extends JFrame {
 
     private static final JLogMessage MSG_SELECTION = new JLogMessage(JLogLevel.DEBUG, "Filter node selected: {0}");
 
-    private static final JLogMessage MSG_DLG_CREATED = new JLogMessage(JLogLevel.DEBUG, "Info dialog created.");
-
     private static final JLogMessage MSG_WORKER_STARTED = new JLogMessage(JLogLevel.DEBUG, "Worker started.");
 
     private static final JLogMessage MSG_WORKER_FINISHED = new JLogMessage(JLogLevel.DEBUG, "Worker finished.");
@@ -95,7 +93,7 @@ public class MainFrame extends JFrame {
 
     private JSplitPane leftSplitPane;
 
-    private JDialog waitDlg;
+    private JPanel waitPanel;
 
     private JLabel waitLabel;
 
@@ -103,6 +101,10 @@ public class MainFrame extends JFrame {
         super("FB2 Shelf");
         setName("MainFrame");
         setPreferredSize(new Dimension(800, 600));
+
+        setGlassPane(getWaitPanel());
+
+        showWaitMessage("Loading book shelf...");
 
         final Container contentPane = getContentPane();
         contentPane.setLayout(new BorderLayout());
@@ -114,23 +116,20 @@ public class MainFrame extends JFrame {
                 final SwingWorker<JComponent, String> task = new SwingWorker<JComponent, String>() {
                     @Override
                     protected JComponent doInBackground() {
-                        try {
-                            return getLeftSplitPane();
-                        } catch (final Throwable th) {
-                            th.printStackTrace();
-                        }
-                        return null;
+                        return getLeftSplitPane();
                     }
 
                     @Override
                     protected void done() {
-                        getMainPanel().removeAll();
                         try {
-                            if (this.get() != null) {
-                                getMainPanel().add(this.get(), BorderLayout.CENTER);
+                            JComponent jComponent = this.get();
+                            if (jComponent != null) {
+                                getMainPanel().add(jComponent, BorderLayout.CENTER);
                             }
                         } catch (final Throwable th) {
                             th.printStackTrace();
+                        } finally {
+                            hideWaitMessage();
                         }
                         pack();
                     }
@@ -170,7 +169,6 @@ public class MainFrame extends JFrame {
             mainPanel = new JPanel();
             mainPanel.setName("mainPanel");
             mainPanel.setLayout(new BorderLayout());
-            mainPanel.add(new JLabel("Loading book shelf...", SwingConstants.CENTER), BorderLayout.SOUTH);
         }
         return mainPanel;
     }
@@ -210,48 +208,66 @@ public class MainFrame extends JFrame {
         return getTreePanel().getInner();
     }
 
-    private JDialog getWaitDialog() {
-        if (waitDlg == null) {
-            waitDlg = new JDialog(MainFrame.this);
-            waitDlg.setTitle("Please wait...");
-            waitDlg.setModal(true);
-            waitDlg.setUndecorated(true);
-            waitDlg.getContentPane().setLayout(new GridBagLayout());
+    private void showWaitMessage(String text) {
+        getWaitLabel().setText(text);
+        getWaitPanel().setVisible(true);
+    }
 
-            final GridBagConstraints c = new GridBagConstraints();
-            c.insets = new Insets(8, 16, 8, 16);
-            waitDlg.getContentPane().add(getWaitLabel(), c);
+    private void hideWaitMessage() {
+        getWaitPanel().setVisible(false);
+    }
+
+    private JPanel getWaitPanel() {
+        if (waitPanel == null) {
+            waitPanel = new JPanel();
+            waitPanel.setName("waitPanel");
+            waitPanel.setBackground(new Color(waitPanel.getBackground().getRGB() & 0x3FFFFFFF, true));
+            waitPanel.setLayout(new GridBagLayout());
+            waitPanel.add(getWaitLabel(), new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0,
+                    0), 0, 0));
+
+            waitPanel.addMouseListener(new MouseListener() {
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                    e.consume();
+                }
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    e.consume();
+                }
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    e.consume();
+                }
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    e.consume();
+                }
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    e.consume();
+                }
+            });
         }
-        return waitDlg;
+        return waitPanel;
     }
 
     private JLabel getWaitLabel() {
         if (waitLabel == null) {
             waitLabel = new JLabel();
             waitLabel.setName("waitLabel");
+            waitLabel.setOpaque(true);
+            waitLabel.setBackground(new Color(waitLabel.getBackground().getRGB() & 0xBFFFFFFF, true));
         }
         return waitLabel;
     }
 
-    private JDialog createSelectionDialog(final AbstractTreeNode<?> node) {
-        getWaitLabel().setText(getSelectionDescription(node));
-        final JDialog waitDialog = getWaitDialog();
-        waitDialog.pack();
-        waitDialog.setLocationRelativeTo(this);
-        return waitDialog;
-    }
-
-    private JDialog createFilterDialog(final String text) {
+    private String getFilterDescription(final String text) {
         if (LengthUtils.isEmpty(text)) {
-            getWaitLabel().setText("Remote filter");
+            return "Remote filter";
         } else {
-            getWaitLabel().setText("Search for " + text);
+            return "Search for " + text;
         }
-
-        final JDialog waitDialog = getWaitDialog();
-        waitDialog.pack();
-        waitDialog.setLocationRelativeTo(this);
-        return waitDialog;
     }
 
     private String getSelectionDescription(final AbstractTreeNode<?> node) {
@@ -335,10 +351,6 @@ public class MainFrame extends JFrame {
 
                 MSG_SELECTION.log(node);
 
-                final JDialog dlg = createSelectionDialog(node);
-
-                MSG_DLG_CREATED.log();
-
                 final long startTime = System.currentTimeMillis();
 
                 final SwingWorker<ITableModel<BookInfo, ?>, String> task = new SwingWorker<ITableModel<BookInfo, ?>, String>() {
@@ -370,7 +382,7 @@ public class MainFrame extends JFrame {
                             tablePanel.setTitle(getTableTitle(node));
 
                             getFilterTree().setEnabled(true);
-                            dlg.setVisible(false);
+                            hideWaitMessage();
 
                         } catch (final Exception ex) {
                             ex.printStackTrace();
@@ -382,7 +394,7 @@ public class MainFrame extends JFrame {
 
                 MSG_DLG_SHOWING.log();
                 getFilterTree().setEnabled(false);
-                dlg.setVisible(true);
+                showWaitMessage(getSelectionDescription(node));
 
             } catch (final Exception ex) {
                 ex.printStackTrace();
@@ -426,13 +438,12 @@ public class MainFrame extends JFrame {
 
         @Override
         public void startFiltering(final String text) {
-            final JDialog filterDlg = createFilterDialog(text);
-            filterDlg.setVisible(true);
+            showWaitMessage(getFilterDescription(text));
         }
 
         @Override
         public void finishFiltering(final String text) {
-            getWaitDialog().setVisible(false);
+            hideWaitMessage();
         }
 
     }
