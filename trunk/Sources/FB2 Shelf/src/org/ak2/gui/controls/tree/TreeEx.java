@@ -45,7 +45,7 @@ public class TreeEx extends JTree implements ITreeTransactionListener {
     public TreeEx() {
         super((TreeModel) null);
         m_selectionModel = new ProxySelectionModel(getSelectionModel());
-        setSelectionModel(m_selectionModel);
+        super.setSelectionModel(m_selectionModel);
         addTreeSelectionListener(new TreeListener());
     }
 
@@ -216,11 +216,9 @@ public class TreeEx extends JTree implements ITreeTransactionListener {
     /**
      * @return last selected path containing node user objects
      */
-    public Object[] getLastSelectedObjectPath()
-    {
+    public Object[] getLastSelectedObjectPath() {
         return m_lastSelectedPath;
     }
-
 
     /**
      * Retrieves node showing in the given row.
@@ -258,8 +256,10 @@ public class TreeEx extends JTree implements ITreeTransactionListener {
             final TreeState state = m_transactionState.getAndSet(null);
             if (state != null) {
                 state.restore(this);
+                m_selectionModel.release();
+            } else {
+                m_selectionModel.finishTransaction();
             }
-            m_selectionModel.finishTransaction();
         }
     }
 
@@ -288,26 +288,24 @@ public class TreeEx extends JTree implements ITreeTransactionListener {
     /**
      * Class TreeListener
      */
-    public final class TreeListener implements TreeSelectionListener
-    {
+    public final class TreeListener implements TreeSelectionListener {
         /**
          * Called whenever the value of the selection changes.
          *
-         * @param e the event that characterizes the change.
+         * @param e
+         *            the event that characterizes the change.
          * @see TreeSelectionListener#valueChanged(TreeSelectionEvent)
          */
-        public void valueChanged(final TreeSelectionEvent e)
-        {
+        public void valueChanged(final TreeSelectionEvent e) {
             final AbstractTreeNode<?> selectedNode = getSelectedNode();
-            if (selectedNode != null)
-            {
+            if (selectedNode != null) {
                 m_lastSelectedPath = selectedNode.getUserObjectPath();
             }
         }
-	}
+    }
 
     static enum SelectionEventType {
-        ADD, REMOVE, SET;
+        ADD, REMOVE, SET, CLEAR;
     }
 
     static class SelectionEvent {
@@ -343,6 +341,11 @@ public class TreeEx extends JTree implements ITreeTransactionListener {
             }
         }
 
+        public void release() {
+            setEvent = null;
+            otherEvents.clear();
+        }
+
         void execute(final SelectionEvent event) {
             switch (event.type) {
             case ADD:
@@ -353,6 +356,9 @@ public class TreeEx extends JTree implements ITreeTransactionListener {
                 return;
             case SET:
                 setSelectionPaths(event.paths);
+                return;
+            case CLEAR:
+                clearSelection();
                 return;
             }
         }
@@ -426,7 +432,11 @@ public class TreeEx extends JTree implements ITreeTransactionListener {
 
         @Override
         public void clearSelection() {
-            model.clearSelection();
+            if (inTransaction()) {
+                otherEvents.add(new SelectionEvent(SelectionEventType.CLEAR, null));
+            } else {
+                model.clearSelection();
+            }
         }
 
         @Override
