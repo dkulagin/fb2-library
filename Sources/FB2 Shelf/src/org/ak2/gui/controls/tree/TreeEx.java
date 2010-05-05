@@ -3,12 +3,15 @@ package org.ak2.gui.controls.tree;
 import java.beans.PropertyChangeListener;
 import java.util.Enumeration;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.RowMapper;
@@ -38,6 +41,8 @@ public class TreeEx extends JTree implements ITreeTransactionListener {
     private final AtomicReference<TreeState> m_transactionState = new AtomicReference<TreeState>(null);
 
     private ProxySelectionModel m_selectionModel;
+
+    private final List<ITreeFilterListener> m_filterListeners = new LinkedList<ITreeFilterListener>();
 
     /**
      * Constructor
@@ -91,19 +96,75 @@ public class TreeEx extends JTree implements ITreeTransactionListener {
      * @param text
      *            text of filter
      */
-    public void filter(final String text) {
+    public void filter(final String text, final boolean parallel) {
         startTransaction(true);
+        if (parallel) {
+            final CountDownLatch sem = new CountDownLatch(1);
+            final SwingWorker<AbstractTreeModel, String> task = new SwingWorker<AbstractTreeModel, String>() {
+                @Override
+                protected AbstractTreeModel doInBackground() throws Exception {
+                    sem.await();
+                    return filterPhase1(text);
+                }
 
+                @Override
+                protected void done() {
+                    try {
+                        filterPhase2(text, this.get());
+                    } catch (final Throwable th) {
+                        th.printStackTrace();
+                    } finally {
+                        filterPhase3(text);
+                    }
+                }
+            };
+
+            task.execute();
+
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    sem.countDown();
+                    filterPhase0(text);
+                }
+            });
+        } else {
+            filterPhase0(text);
+            filterPhase2(text, filterPhase1(text));
+            filterPhase3(text);
+        }
+    }
+
+    protected void filterPhase0(final String text) {
+        for (final ITreeFilterListener l : m_filterListeners) {
+            l.startFiltering(text);
+        }
+    }
+
+    protected AbstractTreeModel filterPhase1(final String text) {
         final AbstractTreeModel original = getOriginalModel();
         AbstractTreeModel actualModel = original;
         if (LengthUtils.isNotEmpty(text)) {
             actualModel = original.filter(text);
         }
+        return actualModel;
+    }
 
+    protected void filterPhase2(final String text, final AbstractTreeModel actualModel) {
         setTreeModel(actualModel);
         firePropertyChange("actualModel", null, actualModel);
 
+        final TreePath selectionPath = TreeEx.this.getSelectionPath();
+        if (selectionPath != null) {
+            TreeEx.this.scrollPathToVisible(selectionPath);
+        }
+    }
+
+    protected void filterPhase3(final String text) {
         finishTransaction();
+        for (final ITreeFilterListener l : m_filterListeners) {
+            l.finishFiltering(text);
+        }
     }
 
     /**
@@ -283,6 +344,16 @@ public class TreeEx extends JTree implements ITreeTransactionListener {
      */
     public void finish(final AbstractTreeModel model) {
         finishTransaction();
+    }
+
+    public void addTreeFilterListener(final ITreeFilterListener l) {
+        if (!m_filterListeners.contains(l)) {
+            m_filterListeners.add(l);
+        }
+    }
+
+    public void removeTreeFilterListener(final ITreeFilterListener l) {
+        m_filterListeners.remove(l);
     }
 
     /**

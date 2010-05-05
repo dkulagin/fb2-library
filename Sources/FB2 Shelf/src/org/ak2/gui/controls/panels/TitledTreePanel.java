@@ -13,6 +13,8 @@ import org.ak2.gui.controls.tree.TreeEx;
 public class TitledTreePanel extends TitledComponentPanel<TreeEx> {
     private static final long serialVersionUID = 1577150182197771296L;
 
+    private boolean m_parallelFilter;
+
     /**
      * Constructor
      *
@@ -70,13 +72,21 @@ public class TitledTreePanel extends TitledComponentPanel<TreeEx> {
         if (filterField != null) {
             filterField.addPropertyChangeListener(FilterField.TEXT_PROPERTY, new PropertyChangeListener() {
                 @Override
-                public void propertyChange(PropertyChangeEvent evt) {
-                    String filter = (String) evt.getNewValue();
-                    treeEx.filter(filter);
+                public void propertyChange(final PropertyChangeEvent evt) {
+                    final String filter = (String) evt.getNewValue();
+                    treeEx.filter(filter, m_parallelFilter);
                 }
             });
         }
         return treeEx;
+    }
+
+    public boolean isParallelFilter() {
+        return m_parallelFilter;
+    }
+
+    public void setParallelFilter(final boolean parallelFilter) {
+        m_parallelFilter = parallelFilter;
     }
 
     /**

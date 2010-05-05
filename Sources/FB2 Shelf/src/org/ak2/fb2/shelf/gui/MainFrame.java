@@ -27,7 +27,6 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.event.TreeExpansionEvent;
-import javax.swing.event.TreeExpansionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeWillExpandListener;
@@ -51,6 +50,7 @@ import org.ak2.gui.controls.panels.TitledTablePanel;
 import org.ak2.gui.controls.panels.TitledTreePanel;
 import org.ak2.gui.controls.table.TableEx;
 import org.ak2.gui.controls.table.policies.WeightResizePolicy;
+import org.ak2.gui.controls.tree.ITreeFilterListener;
 import org.ak2.gui.controls.tree.TreeEx;
 import org.ak2.gui.models.table.ITableModel;
 import org.ak2.gui.models.tree.AbstractTreeNode;
@@ -95,9 +95,9 @@ public class MainFrame extends JFrame {
 
     private JSplitPane leftSplitPane;
 
-    private JDialog selectedDlg;
+    private JDialog waitDlg;
 
-    private JLabel selectionLabel;
+    private JLabel waitLabel;
 
     public MainFrame() {
         super("FB2 Shelf");
@@ -191,16 +191,17 @@ public class MainFrame extends JFrame {
             treePanel = new TitledTreePanel(new FilterField());
             treePanel.setName("treePane");
             treePanel.setTitle("Book shelf");
+            treePanel.setParallelFilter(true);
 
-            TreeEx tree = treePanel.getInner();
+            final TreeEx tree = treePanel.getInner();
             FilterTreeDecorator.decorate(tree);
             tree.setModel(getTreeModel());
             tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 
             final TreeListener x = new TreeListener();
             tree.getSelectionModel().addTreeSelectionListener(x);
-            tree.addTreeExpansionListener(x);
             tree.addTreeWillExpandListener(x);
+            tree.addTreeFilterListener(x);
         }
         return treePanel;
     }
@@ -209,25 +210,48 @@ public class MainFrame extends JFrame {
         return getTreePanel().getInner();
     }
 
-    private JDialog createSelectionDialog(final AbstractTreeNode<?> node) {
-        if (selectedDlg == null) {
-            selectedDlg = new JDialog(MainFrame.this);
-            selectedDlg.setTitle("Please wait...");
-            selectedDlg.setModal(true);
-            selectedDlg.setUndecorated(true);
-            selectedDlg.getContentPane().setLayout(new GridBagLayout());
+    private JDialog getWaitDialog() {
+        if (waitDlg == null) {
+            waitDlg = new JDialog(MainFrame.this);
+            waitDlg.setTitle("Please wait...");
+            waitDlg.setModal(true);
+            waitDlg.setUndecorated(true);
+            waitDlg.getContentPane().setLayout(new GridBagLayout());
 
             final GridBagConstraints c = new GridBagConstraints();
             c.insets = new Insets(8, 16, 8, 16);
-            selectedDlg.getContentPane().add(getSelectionLabel(), c);
+            waitDlg.getContentPane().add(getWaitLabel(), c);
+        }
+        return waitDlg;
+    }
+
+    private JLabel getWaitLabel() {
+        if (waitLabel == null) {
+            waitLabel = new JLabel();
+            waitLabel.setName("waitLabel");
+        }
+        return waitLabel;
+    }
+
+    private JDialog createSelectionDialog(final AbstractTreeNode<?> node) {
+        getWaitLabel().setText(getSelectionDescription(node));
+        final JDialog waitDialog = getWaitDialog();
+        waitDialog.pack();
+        waitDialog.setLocationRelativeTo(this);
+        return waitDialog;
+    }
+
+    private JDialog createFilterDialog(final String text) {
+        if (LengthUtils.isEmpty(text)) {
+            getWaitLabel().setText("Remote filter");
+        } else {
+            getWaitLabel().setText("Search for " + text);
         }
 
-        getSelectionLabel().setText(getSelectionDescription(node));
-
-        selectedDlg.pack();
-        selectedDlg.setLocationRelativeTo(this);
-
-        return selectedDlg;
+        final JDialog waitDialog = getWaitDialog();
+        waitDialog.pack();
+        waitDialog.setLocationRelativeTo(this);
+        return waitDialog;
     }
 
     private String getSelectionDescription(final AbstractTreeNode<?> node) {
@@ -252,7 +276,7 @@ public class MainFrame extends JFrame {
         if (path.length == 1) {
             return path[0].toString();
         }
-        StringBuilder buf = new StringBuilder();
+        final StringBuilder buf = new StringBuilder();
         for (int i = 1; i < path.length; i++) {
             if (i > 1) {
                 buf.append(" :: ");
@@ -260,14 +284,6 @@ public class MainFrame extends JFrame {
             buf.append(path[i].toString());
         }
         return buf.toString();
-    }
-
-    private JLabel getSelectionLabel() {
-        if (selectionLabel == null) {
-            selectionLabel = new JLabel();
-            selectionLabel.setName("selectionLabel");
-        }
-        return selectionLabel;
     }
 
     private ShelfFilterModel getTreeModel() {
@@ -283,7 +299,7 @@ public class MainFrame extends JFrame {
             tablePanel.setName("bookTableScrollPane");
             tablePanel.setTitle(getTableTitle(null));
 
-            TableEx bookTable = tablePanel.getInner();
+            final TableEx bookTable = tablePanel.getInner();
             bookTable.setResizePolicy(new WeightResizePolicy(30, 10, 60));
             bookTable.setModel(getTableModel());
             bookTable.addMouseListener(new TableListener());
@@ -309,7 +325,7 @@ public class MainFrame extends JFrame {
         return m_catalog;
     }
 
-    private final class TreeListener implements TreeSelectionListener, TreeExpansionListener, TreeWillExpandListener {
+    private final class TreeListener implements TreeSelectionListener, TreeWillExpandListener, ITreeFilterListener {
         @Override
         public void valueChanged(final TreeSelectionEvent e) {
             MSG_TREE_EVENT.log(e);
@@ -386,7 +402,7 @@ public class MainFrame extends JFrame {
 
         @Override
         public void treeWillCollapse(final TreeExpansionEvent event) throws ExpandVetoException {
-            MSG_TREE_EVENT.log(event);
+            // MSG_TREE_EVENT.log(event);
 
             final TreePath collapsingPath = event.getPath();
             final Object[] path = collapsingPath.getPath();
@@ -405,17 +421,20 @@ public class MainFrame extends JFrame {
         }
 
         @Override
-        public void treeCollapsed(final TreeExpansionEvent event) {
-            MSG_TREE_EVENT.log(event);
-        }
-
-        @Override
         public void treeWillExpand(final TreeExpansionEvent event) throws ExpandVetoException {
         }
 
         @Override
-        public void treeExpanded(final TreeExpansionEvent event) {
+        public void startFiltering(final String text) {
+            final JDialog filterDlg = createFilterDialog(text);
+            filterDlg.setVisible(true);
         }
+
+        @Override
+        public void finishFiltering(final String text) {
+            getWaitDialog().setVisible(false);
+        }
+
     }
 
     private final class TableListener extends MouseAdapter {
