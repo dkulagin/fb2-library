@@ -10,6 +10,7 @@ import javax.swing.KeyStroke;
 import org.ak2.gui.resources.ResourceManager;
 import org.ak2.utils.LengthUtils;
 import org.ak2.utils.StreamUtils;
+import org.ak2.utils.jlog.JLogMessage;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -27,6 +28,10 @@ public class ActionController {
         String path = "/ui/actions/" + name + ".json";
         try {
             InputStream resource = ResourceManager.getInstance().getResource(path);
+            if (resource == null) {
+                new JLogMessage("No resource found: {0}").log(path);
+                return;
+            }
             StringBuilder text = StreamUtils.loadText(resource, "UTF8");
             JSONObject root = new JSONObject(text.toString());
             JSONArray actions = root.optJSONArray("actions");
