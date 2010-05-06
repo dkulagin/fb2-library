@@ -9,19 +9,28 @@ import org.ak2.utils.LengthUtils;
 
 public class SequenceFilterNode extends AbstractBooksNode<String> {
 
-    private final String fullName;
+    private final String shortName;
 
     public SequenceFilterNode(final AbstractTreeModel model, final String fullName, final String shortName, final List<BookInfo> books) {
-        super(model, LengthUtils.safeString(shortName, fullName), books);
-        this.fullName = fullName;
+        super(model, fullName, books);
+        this.shortName = shortName;
     }
 
     public String getFullName() {
-        return fullName;
+        return getObject();
+    }
+
+    public String getShortName() {
+        return shortName;
+    }
+
+    @Override
+    public String toString() {
+        return LengthUtils.safeString(getShortName(), getFullName());
     }
 
     @Override
     public boolean containsText(final String expected) {
-        return SearchTreeModel.containsText(fullName, expected);
+        return SearchTreeModel.containsText(getFullName(), expected);
     }
 }

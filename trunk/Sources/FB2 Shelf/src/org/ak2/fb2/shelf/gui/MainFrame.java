@@ -17,6 +17,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.Enumeration;
 
 import javax.swing.Action;
 import javax.swing.JComponent;
@@ -50,12 +51,14 @@ import org.ak2.fb2.shelf.gui.models.tree.ShelfFilterModel;
 import org.ak2.fb2.shelf.gui.renderers.FilterTreeDecorator;
 import org.ak2.gui.actions.ActionEx;
 import org.ak2.gui.actions.ActionMethod;
+import org.ak2.gui.controls.panels.FilterField;
 import org.ak2.gui.controls.panels.TitledTablePanel;
 import org.ak2.gui.controls.table.TableEx;
 import org.ak2.gui.controls.table.policies.WeightResizePolicy;
 import org.ak2.gui.controls.tree.ITreeFilterListener;
 import org.ak2.gui.controls.tree.TreeEx;
 import org.ak2.gui.models.table.ITableModel;
+import org.ak2.gui.models.tree.AbstractTreeModel;
 import org.ak2.gui.models.tree.AbstractTreeNode;
 import org.ak2.utils.LengthUtils;
 import org.ak2.utils.html.HtmlBuilder;
@@ -176,7 +179,7 @@ public class MainFrame extends JFrame {
             if (seq != null) {
                 seq.putValue(Action.SELECTED_KEY, Boolean.FALSE);
             }
-            getFilterTree().setModel(getAuthorsModel());
+            changeTreeModel(getAuthorsModel(), getSelectedBook(true));
         }
     }
 
@@ -187,8 +190,55 @@ public class MainFrame extends JFrame {
             if (aut != null) {
                 aut.putValue(Action.SELECTED_KEY, Boolean.FALSE);
             }
-            getFilterTree().setModel(getSequencesModel());
+            changeTreeModel(getSequencesModel(), getSelectedBook(true));
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected BookInfo getSelectedBook(final boolean useFirst) {
+        int selectedRow = getBookTable().getSelectedRow();
+        if (selectedRow == -1) {
+            if (useFirst && getBookTable().getRowCount() > 0) {
+                selectedRow = 0;
+            } else {
+                return null;
+            }
+        }
+        final ITableModel<BookInfo, ?> tableModel = (ITableModel<BookInfo, ?>) getBookTable().getModel();
+        return tableModel.getEntity(selectedRow);
+    }
+
+    protected void changeTreeModel(final AbstractTreeModel model, final BookInfo selected) {
+        final TreeEx tree = getFilterTree();
+        tree.startTransaction(false);
+        tree.setModel(model);
+        FilterField filterField = getTreePanel().getFilterField();
+        String filter = filterField.getText();
+        if (LengthUtils.isNotEmpty(filter)) {
+            tree.filter(filter, false);
+        }
+
+        AbstractTreeNode<?> nodeToSelect = null;
+        if (selected != null) {
+            AbstractTreeNode<?> root = (AbstractTreeNode<?>) tree.getModel().getRoot();
+            Enumeration<AbstractTreeNode<?>> en = root.depthFirstEnumeration();
+            while (en.hasMoreElements()) {
+                AbstractTreeNode<?> next = en.nextElement();
+                if (next instanceof AbstractBooksNode<?>) {
+                    AbstractBooksNode<?> node = (AbstractBooksNode<?>) next;
+                    if (node.containsBook(selected)) {
+                        nodeToSelect = node;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (nodeToSelect != null) {
+            tree.setSelectedNode(nodeToSelect);
+        }
+
+        tree.finishTransaction();
     }
 
     private JPanel getMainPanel() {
