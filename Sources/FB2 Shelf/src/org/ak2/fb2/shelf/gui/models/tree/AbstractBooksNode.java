@@ -28,6 +28,10 @@ public abstract class AbstractBooksNode<T> extends AbstractTreeNode<T> {
         m_books = books;
     }
 
+    public boolean containsBook(BookInfo book) {
+        return LengthUtils.isNotEmpty(m_books) ? m_books.contains(book) : false;
+    }
+
     public ITableModel<BookInfo, ?> getBooksModel() {
         if (SwingUtilities.isEventDispatchThread()) {
             throw new IllegalThreadStateException("This method cannot be called from Swing event thread");
