@@ -18,6 +18,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 
+import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -40,14 +41,16 @@ import org.ak2.fb2.shelf.catalog.BookInfo;
 import org.ak2.fb2.shelf.catalog.FileInfo;
 import org.ak2.fb2.shelf.catalog.ShelfCatalog;
 import org.ak2.fb2.shelf.catalog.ShelfCatalogProvider;
+import org.ak2.fb2.shelf.gui.components.FilterTreePanel;
 import org.ak2.fb2.shelf.gui.models.catalog.ShelfCatalogModel;
 import org.ak2.fb2.shelf.gui.models.tree.AbstractBooksNode;
 import org.ak2.fb2.shelf.gui.models.tree.RootFilterNode;
+import org.ak2.fb2.shelf.gui.models.tree.SequenceFilterModel;
 import org.ak2.fb2.shelf.gui.models.tree.ShelfFilterModel;
 import org.ak2.fb2.shelf.gui.renderers.FilterTreeDecorator;
-import org.ak2.gui.controls.panels.FilterField;
+import org.ak2.gui.actions.ActionEx;
+import org.ak2.gui.actions.ActionMethod;
 import org.ak2.gui.controls.panels.TitledTablePanel;
-import org.ak2.gui.controls.panels.TitledTreePanel;
 import org.ak2.gui.controls.table.TableEx;
 import org.ak2.gui.controls.table.policies.WeightResizePolicy;
 import org.ak2.gui.controls.tree.ITreeFilterListener;
@@ -87,9 +90,11 @@ public class MainFrame extends JFrame {
 
     private ShelfCatalog m_catalog;
 
-    private TitledTreePanel treePanel;
+    private FilterTreePanel treePanel;
 
-    private ShelfFilterModel treeModel;
+    private ShelfFilterModel authorsModel;
+
+    private SequenceFilterModel sequencesModel;
 
     private JSplitPane leftSplitPane;
 
@@ -122,7 +127,7 @@ public class MainFrame extends JFrame {
                     @Override
                     protected void done() {
                         try {
-                            JComponent jComponent = this.get();
+                            final JComponent jComponent = this.get();
                             if (jComponent != null) {
                                 getMainPanel().add(jComponent, BorderLayout.CENTER);
                             }
@@ -164,6 +169,28 @@ public class MainFrame extends JFrame {
         }
     }
 
+    @ActionMethod(ids = FilterTreePanel.ACT_AUTHORS)
+    public void showAuthors(final ActionEx action) {
+        if (action.isSourceSelected()) {
+            final ActionEx seq = action.getController().getAction(FilterTreePanel.ACT_SEQUENCES);
+            if (seq != null) {
+                seq.putValue(Action.SELECTED_KEY, Boolean.FALSE);
+            }
+            getFilterTree().setModel(getAuthorsModel());
+        }
+    }
+
+    @ActionMethod(ids = FilterTreePanel.ACT_SEQUENCES)
+    public void showSequences(final ActionEx action) {
+        if (action.isSourceSelected()) {
+            final ActionEx aut = action.getController().getAction(FilterTreePanel.ACT_AUTHORS);
+            if (aut != null) {
+                aut.putValue(Action.SELECTED_KEY, Boolean.FALSE);
+            }
+            getFilterTree().setModel(getSequencesModel());
+        }
+    }
+
     private JPanel getMainPanel() {
         if (mainPanel == null) {
             mainPanel = new JPanel();
@@ -184,16 +211,16 @@ public class MainFrame extends JFrame {
         return leftSplitPane;
     }
 
-    private TitledTreePanel getTreePanel() {
+    private FilterTreePanel getTreePanel() {
         if (treePanel == null) {
-            treePanel = new TitledTreePanel(new FilterField());
+            treePanel = new FilterTreePanel();
             treePanel.setName("treePane");
             treePanel.setTitle("Book shelf");
             treePanel.setParallelFilter(true);
 
             final TreeEx tree = treePanel.getInner();
             FilterTreeDecorator.decorate(tree);
-            tree.setModel(getTreeModel());
+            tree.setModel(getAuthorsModel());
             tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 
             final TreeListener x = new TreeListener();
@@ -208,7 +235,7 @@ public class MainFrame extends JFrame {
         return getTreePanel().getInner();
     }
 
-    private void showWaitMessage(String text) {
+    private void showWaitMessage(final String text) {
         getWaitLabel().setText(text);
         getWaitPanel().setVisible(true);
     }
@@ -228,23 +255,27 @@ public class MainFrame extends JFrame {
 
             waitPanel.addMouseListener(new MouseListener() {
                 @Override
-                public void mouseReleased(MouseEvent e) {
+                public void mouseReleased(final MouseEvent e) {
                     e.consume();
                 }
+
                 @Override
-                public void mousePressed(MouseEvent e) {
+                public void mousePressed(final MouseEvent e) {
                     e.consume();
                 }
+
                 @Override
-                public void mouseExited(MouseEvent e) {
+                public void mouseExited(final MouseEvent e) {
                     e.consume();
                 }
+
                 @Override
-                public void mouseEntered(MouseEvent e) {
+                public void mouseEntered(final MouseEvent e) {
                     e.consume();
                 }
+
                 @Override
-                public void mouseClicked(MouseEvent e) {
+                public void mouseClicked(final MouseEvent e) {
                     e.consume();
                 }
             });
@@ -288,7 +319,7 @@ public class MainFrame extends JFrame {
     }
 
     private String getTableTitle(final AbstractTreeNode<?> node) {
-        final Object[] path = (node != null ? node : getTreeModel().getRootNode()).getUserObjectPath();
+        final Object[] path = (node != null ? node : getAuthorsModel().getRootNode()).getUserObjectPath();
         if (path.length == 1) {
             return path[0].toString();
         }
@@ -302,11 +333,18 @@ public class MainFrame extends JFrame {
         return buf.toString();
     }
 
-    private ShelfFilterModel getTreeModel() {
-        if (treeModel == null) {
-            treeModel = new ShelfFilterModel(getCatalog());
+    private ShelfFilterModel getAuthorsModel() {
+        if (authorsModel == null) {
+            authorsModel = new ShelfFilterModel(getCatalog());
         }
-        return treeModel;
+        return authorsModel;
+    }
+
+    private SequenceFilterModel getSequencesModel() {
+        if (sequencesModel == null) {
+            sequencesModel = new SequenceFilterModel(getCatalog());
+        }
+        return sequencesModel;
     }
 
     private TitledTablePanel getTablePanel() {

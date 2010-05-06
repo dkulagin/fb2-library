@@ -3,6 +3,7 @@ package org.ak2.gui.actions;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.swing.AbstractAction;
@@ -30,13 +31,15 @@ public class ActionEx extends AbstractAction {
 
     private static final String MNEMONIC_DELIMER = "&";
 
-    private String m_id;
+    private final String m_id;
 
     private String m_text;
 
     private ActionEvent m_originalEvent;
 
-    private HashMap<String, IActionParameter> m_actionParameters = new HashMap<String, IActionParameter>();
+    private final ActionController m_controller;
+
+    private final Map<String, IActionParameter> m_actionParameters = new HashMap<String, IActionParameter>();
 
     /**
      * Constructor
@@ -48,8 +51,9 @@ public class ActionEx extends AbstractAction {
      * @param id
      *            action id
      */
-    public ActionEx(final String id) {
+    ActionEx(final String id, ActionController controller) {
         m_id = id;
+        m_controller = controller;
     }
 
     /**
@@ -59,6 +63,15 @@ public class ActionEx extends AbstractAction {
      */
     public String getId() {
         return m_id;
+    }
+
+    /**
+     * Gets the controller.
+     *
+     * @return the controller
+     */
+    public ActionController getController() {
+        return m_controller;
     }
 
     /**

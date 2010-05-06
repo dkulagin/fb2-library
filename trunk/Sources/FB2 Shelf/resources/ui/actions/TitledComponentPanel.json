@@ -1,0 +1,5 @@
+{
+	actions=[
+		{id="popup", desc="Settings", icon="/ui/tree/popup.gif"}
+	]
+}

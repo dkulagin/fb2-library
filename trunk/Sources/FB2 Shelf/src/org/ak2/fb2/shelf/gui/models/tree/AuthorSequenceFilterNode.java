@@ -6,24 +6,25 @@ import org.ak2.fb2.library.book.BookAuthor;
 import org.ak2.fb2.shelf.catalog.BookInfo;
 import org.ak2.gui.models.tree.AbstractTreeModel;
 import org.ak2.gui.models.tree.SearchTreeModel;
+import org.ak2.utils.LengthUtils;
 
-public class AuthorSequenceFilterNode extends SequenceFilterNode {
+public class AuthorSequenceFilterNode extends AbstractFilterNode<String> {
 
     private final BookAuthor author;
 
-    public AuthorSequenceFilterNode(AbstractTreeModel model, BookAuthor author, String sequence, List<BookInfo> books) {
-        super(model, sequence, books);
+    public AuthorSequenceFilterNode(final AbstractTreeModel model, final BookAuthor author, final String sequence, final List<BookInfo> books) {
+        super(model, LengthUtils.safeString(sequence), books);
         this.author = author;
     }
 
     @Override
-    protected boolean accept(BookInfo entity, String sequence) {
+    protected boolean accept(final BookInfo entity, final String sequence) {
         if (this.author != null) {
             if (!author.equals(entity.getAuthor())) {
                 return false;
             }
         }
-        String seq = entity.getSequence();
+        final String seq = entity.getSequence();
         if (seq == null) {
             return false;
         }
@@ -31,7 +32,7 @@ public class AuthorSequenceFilterNode extends SequenceFilterNode {
     }
 
     @Override
-    public boolean containsText(String expected) {
+    public boolean containsText(final String expected) {
         if (super.containsText(expected)) {
             return true;
         }

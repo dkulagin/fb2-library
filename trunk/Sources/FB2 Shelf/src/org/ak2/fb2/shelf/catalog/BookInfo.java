@@ -11,7 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.w3c.dom.Node;
 
-public class BookInfo implements Comparable<BookInfo> {
+public class BookInfo {
 
     /**
      * Escaped symbols
@@ -128,54 +128,6 @@ public class BookInfo implements Comparable<BookInfo> {
     }
 
     @Override
-    public int compareTo(final BookInfo that) {
-        if (this == that) {
-            return 0;
-        }
-
-        int result = this.getAuthor().compareTo(that.getAuthor());
-        if (result == 0) {
-            final String s1 = LengthUtils.safeString(this.getSequence());
-            final String s2 = LengthUtils.safeString(that.getSequence());
-            result = s1.compareTo(s2);
-
-            if (result == 0) {
-                final Integer no1 = this.getIntSequenceNo();
-                final Integer no2 = that.getIntSequenceNo();
-
-                if (no1 == null && no2 == null) {
-                    result = 0;
-                } else if (no1 != null && no2 != null) {
-                    result = no1.compareTo(no2);
-                } else if (no1 != null) {
-                    result = 1;
-                } else /* if (no2 != null) */{
-                    result = -1;
-                }
-            }
-
-            if (result == 0) {
-                final String n1 = LengthUtils.safeString(this.getBookName());
-                final String n2 = LengthUtils.safeString(that.getBookName());
-                result = n1.compareTo(n2);
-            }
-        }
-
-        return result < 0 ? -1 : result > 0 ? 1 : 0;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof BookInfo) {
-            return 0 == compareTo((BookInfo) obj);
-        }
-        return false;
-    }
-
-    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
@@ -191,7 +143,7 @@ public class BookInfo implements Comparable<BookInfo> {
         return "BookInfo [m_author=" + m_author + ", m_sequence=" + m_sequence + ", m_seqNo=" + m_seqNo + ", m_bookName=" + m_bookName + "]";
     }
 
-    public static String normalize(String text) {
+    public static String normalize(final String text) {
         final Matcher m = ESCAPED.matcher(text);
         final StringBuffer buf = new StringBuffer();
         while (m.find()) {

@@ -1,6 +1,6 @@
 package org.ak2.gui.actions;
 
-import java.awt.Container;
+import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.lang.reflect.Method;
@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.JComponent;
+import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 
 import org.ak2.utils.LengthUtils;
@@ -26,32 +27,27 @@ public class ActionDispatcher {
         final ActionEvent originalEvent = action.getOriginalEvent();
         if (originalEvent != null) {
             final Object source = originalEvent.getSource();
-            if (source instanceof JComponent) {
-                JComponent comp = (JComponent) source;
+            if (source instanceof Component) {
+                Component comp = (Component) source;
                 do {
-                    final Object controller = ActionController.getController(comp);
-                    if (controller != null) {
-                        if (dispatch(controller, action)) {
-                            return true;
+                    if (comp instanceof JComponent) {
+                        final Object controller = ActionController.getController((JComponent)comp);
+                        if (controller != null) {
+                            if (dispatch(controller, action)) {
+                                return true;
+                            }
                         }
                     }
                     if (dispatch(comp, action)) {
                         return true;
                     }
-                    final Container parent = comp.getParent();
-                    comp = (JComponent) (parent instanceof JComponent ? parent : null);
+                    comp = comp instanceof JPopupMenu ? ((JPopupMenu) comp).getInvoker() : comp.getParent();
                 } while (comp != null);
             } else {
                 return dispatch(source, action);
             }
         }
         return false;
-    }
-
-    public static boolean dispatch(final Object controller, final String actionId, final Object... parameters) {
-        final ActionEx action = new ActionEx(actionId);
-        action.putValue(PARAMETERS, parameters);
-        return dispatch(controller, action);
     }
 
     public static boolean dispatch(final Object controller, final ActionEx action) {

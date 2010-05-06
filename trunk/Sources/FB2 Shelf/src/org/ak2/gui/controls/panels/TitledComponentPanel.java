@@ -73,7 +73,7 @@ public abstract class TitledComponentPanel<Inner extends JComponent> extends JPa
      *            filter field
      */
     public TitledComponentPanel(final FilterField filterField) {
-        m_controller = new ActionController(this.getClass().getSimpleName());
+        m_controller = new ActionController(this.getClass());
         ActionController.setController(this, m_controller);
         jFilterField = filterField;
         initialize();

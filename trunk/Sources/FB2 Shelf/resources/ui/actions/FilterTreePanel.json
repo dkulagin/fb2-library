@@ -1,0 +1,6 @@
+{
+	actions=[
+		{id="authors", text="Show authors", desc="Show books by authors"},
+		{id="sequences", text="Show sequences", desc="Show books by sequences"}
+	]
+}
