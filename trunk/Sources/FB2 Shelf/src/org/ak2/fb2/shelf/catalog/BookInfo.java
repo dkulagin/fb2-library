@@ -141,9 +141,23 @@ public class BookInfo implements Comparable<BookInfo> {
 
             if (result == 0) {
                 final Integer no1 = this.getIntSequenceNo();
-                final Integer no2 = this.getIntSequenceNo();
+                final Integer no2 = that.getIntSequenceNo();
 
-                result = no1 == null ? (no2 != null ? -1 : 0) : (no2 == null ? 1 : no1.compareTo(no2));
+                if (no1 == null && no2 == null) {
+                    result = 0;
+                } else if (no1 != null && no2 != null) {
+                    result = no1.compareTo(no2);
+                } else if (no1 != null) {
+                    result = 1;
+                } else /* if (no2 != null) */{
+                    result = -1;
+                }
+            }
+
+            if (result == 0) {
+                final String n1 = LengthUtils.safeString(this.getBookName());
+                final String n2 = LengthUtils.safeString(that.getBookName());
+                result = n1.compareTo(n2);
             }
         }
 

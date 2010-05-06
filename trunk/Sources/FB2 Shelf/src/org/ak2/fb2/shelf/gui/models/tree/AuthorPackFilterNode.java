@@ -22,4 +22,9 @@ public class AuthorPackFilterNode extends AbstractBooksNode<String> {
             this.setObject(first.getName());
         }
     }
+
+    @Override
+    public boolean containsText(String expected) {
+        return false;
+    }
 }
