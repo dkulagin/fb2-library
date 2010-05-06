@@ -75,6 +75,10 @@ public class ShelfCatalog implements Iterable<BookInfo> {
 
             Collections.sort(m_books);
 
+            for (List<BookInfo> books : m_authors.values()) {
+                Collections.sort(books);
+            }
+
             if (MSG_LOAD_FINISH.isEnabled()) {
                 MSG_LOAD_FINISH.log(m_original.getName());
             }

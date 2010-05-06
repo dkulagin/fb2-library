@@ -264,7 +264,7 @@ public class MainFrame extends JFrame {
 
     private String getFilterDescription(final String text) {
         if (LengthUtils.isEmpty(text)) {
-            return "Remote filter";
+            return "Remove filter";
         } else {
             return "Search for " + text;
         }
