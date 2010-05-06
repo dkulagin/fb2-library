@@ -12,6 +12,7 @@ import javax.swing.tree.TreePath;
 
 import org.ak2.fb2.shelf.gui.models.tree.AuthorFilterNode;
 import org.ak2.fb2.shelf.gui.models.tree.AuthorPackFilterNode;
+import org.ak2.fb2.shelf.gui.models.tree.AuthorSequenceFilterNode;
 import org.ak2.fb2.shelf.gui.models.tree.RootFilterNode;
 import org.ak2.fb2.shelf.gui.models.tree.SequenceFilterNode;
 import org.ak2.gui.controls.tree.TreeEx;
@@ -134,6 +135,9 @@ public class FilterTreeDecorator extends DefaultTreeCellRenderer {
         if (userObject instanceof SequenceFilterNode) {
             return "Book sequence";
         }
+        if (userObject instanceof AuthorSequenceFilterNode) {
+            return "Book sequence";
+        }
         if (userObject instanceof TreePath) {
             final TreePath path = (TreePath) userObject;
             final Object[] nodes = path.getPath();
@@ -170,6 +174,9 @@ public class FilterTreeDecorator extends DefaultTreeCellRenderer {
             return icon("ui/tree/author.png");
         }
         if (userObject instanceof SequenceFilterNode) {
+            return icon("ui/tree/seq.png");
+        }
+        if (userObject instanceof AuthorSequenceFilterNode) {
             return icon("ui/tree/seq.png");
         }
         if (userObject instanceof TreePath) {

@@ -2,6 +2,8 @@ package org.ak2.gui.actions;
 
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
@@ -24,6 +26,20 @@ public class ActionController {
         init(name);
     }
 
+    public ActionController(Class<? extends JComponent> component) {
+        List<String> names = new LinkedList<String>();
+        for (Class<?> c = component; c != null; c = c.getSuperclass()) {
+            if (c.getPackage().getName().startsWith("javax.swing")) {
+                break;
+            }
+            names.add(0, c.getSimpleName());
+        }
+
+        for (String name : names) {
+            init(name);
+        }
+    }
+
     protected void init(String name) {
         String path = "/ui/actions/" + name + ".json";
         try {
@@ -39,7 +55,12 @@ public class ActionController {
                 for (int i = 0, n = actions.length(); i < n; i++) {
                     JSONObject object = actions.getJSONObject(i);
                     ActionEx action = createAction(object);
-                    m_actions.put(action.getId(), action);
+                    ActionEx oldAction = m_actions.get(action.getId());
+                    if (oldAction == null) {
+                        m_actions.put(action.getId(), action);
+                    } else {
+                        update(oldAction, action);
+                    }
                 }
             }
         } catch (Throwable th) {
@@ -53,7 +74,7 @@ public class ActionController {
 
     protected ActionEx createAction(JSONObject object) throws JSONException {
         String id = object.getString("id");
-        ActionEx action = new ActionEx(id);
+        ActionEx action = new ActionEx(id, this);
 
         action.setText(object.optString("text", action.getText()));
         action.setDescription(object.optString("desc", action.getDescription()));
@@ -72,6 +93,13 @@ public class ActionController {
             }
         }
         return action;
+    }
+
+    protected void update(ActionEx oldAction, ActionEx newAction) {
+        oldAction.setText(LengthUtils.safeString(newAction.getText(), oldAction.getText()));
+        oldAction.setDescription(LengthUtils.safeString(newAction.getDescription(), oldAction.getDescription()));
+        oldAction.setIcon(newAction.getIcon());
+        oldAction.setAccelerator(newAction.getAccelerator());
     }
 
     public static void setController(final JComponent comp, Object controller) {

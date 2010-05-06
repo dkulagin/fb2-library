@@ -48,6 +48,13 @@ public class ShelfCatalog implements Iterable<BookInfo> {
         }
     });
 
+    private final Map<String, List<BookInfo>> m_globalSequences = new SafeSortedMap<String, List<BookInfo>>(new IMapValueFactory<String, List<BookInfo>>() {
+        @Override
+        public List<BookInfo> create(final String key) {
+            return new LinkedList<BookInfo>();
+        }
+    });
+
     public ShelfCatalog(final File xmlCatalog) {
         m_original = xmlCatalog;
         if (MSG_LOAD_START.isEnabled()) {
@@ -73,10 +80,14 @@ public class ShelfCatalog implements Iterable<BookInfo> {
             MSG_LOAD_ERROR.log(ex, m_original.getName());
         } finally {
 
-            Collections.sort(m_books);
+            Collections.sort(m_books, BookInfoComparators.DEFAULT);
 
-            for (List<BookInfo> books : m_authors.values()) {
-                Collections.sort(books);
+            for (final List<BookInfo> books : m_authors.values()) {
+                Collections.sort(books, BookInfoComparators.DEFAULT);
+            }
+
+            for (final List<BookInfo> books : m_globalSequences.values()) {
+                Collections.sort(books, BookInfoComparators.SEQUENCE);
             }
 
             if (MSG_LOAD_FINISH.isEnabled()) {
@@ -93,6 +104,7 @@ public class ShelfCatalog implements Iterable<BookInfo> {
 
         if (LengthUtils.isNotEmpty(sequence)) {
             m_sequences.get(author).add(sequence);
+            m_globalSequences.get(sequence).add(book);
         }
 
         m_books.add(book);
@@ -112,6 +124,14 @@ public class ShelfCatalog implements Iterable<BookInfo> {
 
     public Set<String> getSequences(final BookAuthor author) {
         return m_sequences.get(author);
+    }
+
+    public Collection<String> getSequences() {
+        return m_globalSequences.keySet();
+    }
+
+    public List<BookInfo> getBooks(final String sequence) {
+        return m_globalSequences.get(sequence);
     }
 
     @Override
