@@ -1,7 +1,8 @@
 package org.ak2.gui.models.tree;
 
 import java.util.Enumeration;
-import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.Map;
 
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreeNode;
@@ -11,7 +12,7 @@ import org.ak2.utils.LengthUtils;
 public class SearchTreeModel extends AbstractTreeModel {
     private static final long serialVersionUID = 8078565145638245032L;
 
-    private final HashMap<AbstractTreeNode<?>, AbstractTreeNode<?>> m_map = new HashMap<AbstractTreeNode<?>, AbstractTreeNode<?>>();
+    private final Map<AbstractTreeNode<?>, AbstractTreeNode<?>> m_map = new IdentityHashMap<AbstractTreeNode<?>, AbstractTreeNode<?>>();
 
     private String m_lastText;
 

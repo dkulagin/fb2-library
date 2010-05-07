@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.swing.AbstractAction;
-import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.Icon;
@@ -25,8 +24,6 @@ public class ActionEx extends AbstractAction {
 
     private static final long serialVersionUID = -8393542555460785906L;
 
-    private static final String PARAMETER_SOURCE_SELECTED = "SourceSelected";
-
     private static final String PARAMETER_ITEM_SELECTED = "ItemSelected";
 
     private static final String MNEMONIC_DELIMER = "&";
@@ -41,6 +38,8 @@ public class ActionEx extends AbstractAction {
 
     private final Map<String, IActionParameter> m_actionParameters = new HashMap<String, IActionParameter>();
 
+    private ActionGroup m_actionGroup;
+
     /**
      * Constructor
      *
@@ -51,7 +50,7 @@ public class ActionEx extends AbstractAction {
      * @param id
      *            action id
      */
-    ActionEx(final String id, ActionController controller) {
+    ActionEx(final String id, final ActionController controller) {
         m_id = id;
         m_controller = controller;
     }
@@ -183,19 +182,14 @@ public class ActionEx extends AbstractAction {
     void setOriginalEvent(final ActionEvent originalEvent) {
         m_originalEvent = originalEvent;
 
-        Boolean sourceSelected = null;
         Object selectedItem = null;
 
         if (m_originalEvent != null) {
             final Object source = m_originalEvent.getSource();
-            if (source instanceof AbstractButton) {
-                sourceSelected = ((AbstractButton) source).isSelected();
-            } else if (source instanceof JComboBox) {
+            if (source instanceof JComboBox) {
                 selectedItem = ((JComboBox) source).getSelectedItem();
             }
         }
-
-        this.putValue(PARAMETER_SOURCE_SELECTED, sourceSelected);
         this.putValue(PARAMETER_ITEM_SELECTED, selectedItem);
     }
 
@@ -207,6 +201,18 @@ public class ActionEx extends AbstractAction {
      */
     void setOriginalEvent(final Component source) {
         setOriginalEvent(new ActionEvent(source, ActionEvent.ACTION_PERFORMED, getId()));
+    }
+
+    public void setActionGroup(final ActionGroup group) {
+        if (m_actionGroup != group) {
+            if (m_actionGroup != null) {
+                m_actionGroup.remove(this);
+            }
+            m_actionGroup = group;
+            if (m_actionGroup != null) {
+                m_actionGroup.add(this);
+            }
+        }
     }
 
     /**
@@ -252,7 +258,7 @@ public class ActionEx extends AbstractAction {
      */
     @SuppressWarnings("unchecked")
     public <T> T getParameter(final String key, final T defaultValue) {
-        Object value = getParameter(key);
+        final Object value = getParameter(key);
         return (T) (value != null ? value : defaultValue);
     }
 
@@ -262,7 +268,11 @@ public class ActionEx extends AbstractAction {
      * @return {@link Boolean#TRUE} if button is selected, {@link Boolean#FALSE} if not and <code>null</code> if original event was not produced by button.
      */
     public Boolean isSourceSelected() {
-        return getParameter(PARAMETER_SOURCE_SELECTED);
+        return getParameter(SELECTED_KEY, false);
+    }
+
+    public void setSourceSelected(final boolean value) {
+        putValue(SELECTED_KEY, value);
     }
 
     /**
@@ -343,7 +353,7 @@ public class ActionEx extends AbstractAction {
             setParameters();
             // ProgressMonitor.getInstance().begin(this);
             ActionDispatcher.dispatch(this);
-        } catch (Throwable th) {
+        } catch (final Throwable th) {
             th.printStackTrace();
         } finally {
             // ProgressMonitor.getInstance().end(this);
@@ -360,19 +370,19 @@ public class ActionEx extends AbstractAction {
      *            an array of additional accelerators
      */
     public void installAction(final JComponent c, final KeyStroke... additionalAccelerators) {
-        Object nameValue = this.getValue(Action.NAME);
-        String name = nameValue != null ? nameValue.toString() : this.toString();
-        ActionMap map = c.getActionMap();
+        final Object nameValue = this.getValue(Action.NAME);
+        final String name = nameValue != null ? nameValue.toString() : this.toString();
+        final ActionMap map = c.getActionMap();
         map.put(name, this);
 
-        InputMap imap = getInputMap(c);
-        KeyStroke mainAccelerator = this.getAccelerator();
+        final InputMap imap = getInputMap(c);
+        final KeyStroke mainAccelerator = this.getAccelerator();
         if (mainAccelerator != null) {
             imap.put(mainAccelerator, name);
         }
 
         if (LengthUtils.isNotEmpty(additionalAccelerators)) {
-            for (KeyStroke additional : additionalAccelerators) {
+            for (final KeyStroke additional : additionalAccelerators) {
                 imap.put(additional, name);
             }
         }
@@ -385,15 +395,15 @@ public class ActionEx extends AbstractAction {
      *            the target component
      */
     public void uninstallAction(final JComponent c) {
-        Object nameValue = this.getValue(Action.NAME);
-        String name = nameValue != null ? nameValue.toString() : this.toString();
-        ActionMap map = c.getActionMap();
+        final Object nameValue = this.getValue(Action.NAME);
+        final String name = nameValue != null ? nameValue.toString() : this.toString();
+        final ActionMap map = c.getActionMap();
 
         if (map.get(name) == this) {
             map.remove(name);
 
-            InputMap imap = getInputMap(c);
-            KeyStroke[] ks = imap.allKeys();
+            final InputMap imap = getInputMap(c);
+            final KeyStroke[] ks = imap.allKeys();
 
             for (int i = 0; i < ks.length; i++) {
                 if (name.equals(imap.get(ks[i]))) {
@@ -409,7 +419,7 @@ public class ActionEx extends AbstractAction {
      * @return an instance of the {@link JMenuItem} object
      */
     public JMenuItem createMenuItem() {
-        JMenuItem mi = new JMenuItem(this);
+        final JMenuItem mi = new JMenuItem(this);
         mi.setName(this.getId() + "MenuItem");
         return mi;
     }
@@ -420,9 +430,23 @@ public class ActionEx extends AbstractAction {
      * @return an instance of the {@link JCheckBoxMenuItem} object
      */
     public JCheckBoxMenuItem createCheckMenuItem() {
-        JCheckBoxMenuItem mi = new JCheckBoxMenuItem(this);
+        final JCheckBoxMenuItem mi = new JCheckBoxMenuItem(this);
         mi.setName(this.getId() + "CheckBoxMenuItem");
         return mi;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder buf = new StringBuilder(this.getClass().getSimpleName());
+        buf.append("[");
+        buf.append("id").append("=").append(m_id);
+        Object[] keys = this.getKeys();
+        for (Object key : keys) {
+            buf.append(", ");
+            buf.append(key).append("=").append(getParameter(LengthUtils.toString(key)));
+        }
+        buf.append("]");
+        return buf.toString();
     }
 
     /**
@@ -444,7 +468,7 @@ public class ActionEx extends AbstractAction {
      * Sets parameter values to the action
      */
     private void setParameters() {
-        for (Entry<String, IActionParameter> entry : m_actionParameters.entrySet()) {
+        for (final Entry<String, IActionParameter> entry : m_actionParameters.entrySet()) {
             putValue(entry.getKey(), entry.getValue().getValue());
         }
     }
@@ -457,7 +481,7 @@ public class ActionEx extends AbstractAction {
      * @return action's name
      */
     private static String parseName(final String text) {
-        int place = text.indexOf(ActionEx.MNEMONIC_DELIMER);
+        final int place = text.indexOf(ActionEx.MNEMONIC_DELIMER);
 
         if (place > -1) {
             return text.substring(0, place) + text.substring(place + 1, text.length());
@@ -474,7 +498,7 @@ public class ActionEx extends AbstractAction {
      * @return action's mnemonic
      */
     private static Integer parseMenumonic(final String text) {
-        int place = text.indexOf(ActionEx.MNEMONIC_DELIMER);
+        final int place = text.indexOf(ActionEx.MNEMONIC_DELIMER);
 
         if ((place > -1) && ((place + 1) < text.length())) {
             String upper = text.substring(place + 1, place + 2);

@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
 
-import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -175,10 +174,6 @@ public class MainFrame extends JFrame {
     @ActionMethod(ids = FilterTreePanel.ACT_AUTHORS)
     public void showAuthors(final ActionEx action) {
         if (action.isSourceSelected()) {
-            final ActionEx seq = action.getController().getAction(FilterTreePanel.ACT_SEQUENCES);
-            if (seq != null) {
-                seq.putValue(Action.SELECTED_KEY, Boolean.FALSE);
-            }
             changeTreeModel(getAuthorsModel(), getSelectedBook(true));
         }
     }
@@ -186,10 +181,6 @@ public class MainFrame extends JFrame {
     @ActionMethod(ids = FilterTreePanel.ACT_SEQUENCES)
     public void showSequences(final ActionEx action) {
         if (action.isSourceSelected()) {
-            final ActionEx aut = action.getController().getAction(FilterTreePanel.ACT_AUTHORS);
-            if (aut != null) {
-                aut.putValue(Action.SELECTED_KEY, Boolean.FALSE);
-            }
             changeTreeModel(getSequencesModel(), getSelectedBook(true));
         }
     }
@@ -211,9 +202,9 @@ public class MainFrame extends JFrame {
     protected void changeTreeModel(final AbstractTreeModel model, final BookInfo selected) {
         final TreeEx tree = getFilterTree();
         tree.startTransaction(false);
-        tree.setModel(model);
         FilterField filterField = getTreePanel().getFilterField();
         String filter = filterField.getText();
+        tree.setModel(model);
         if (LengthUtils.isNotEmpty(filter)) {
             tree.filter(filter, false);
         }
