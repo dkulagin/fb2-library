@@ -4,6 +4,7 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JPopupMenu;
 
 import org.ak2.gui.actions.ActionEx;
+import org.ak2.gui.actions.ActionGroup;
 import org.ak2.gui.controls.panels.FilterField;
 import org.ak2.gui.controls.panels.TitledTreePanel;
 
@@ -30,13 +31,15 @@ public class FilterTreePanel extends TitledTreePanel {
         final ActionEx showSequences = getController().getAction(ACT_SEQUENCES);
 
         if (showAuthors != null && showSequences != null) {
+            new ActionGroup(showAuthors, showSequences);
+
             final JPopupMenu menu = new JPopupMenu();
             menu.setInvoker(this);
 
             final JCheckBoxMenuItem item1 = showAuthors.createCheckMenuItem();
             final JCheckBoxMenuItem item2 = showSequences.createCheckMenuItem();
 
-            item1.setSelected(true);
+            showAuthors.setSourceSelected(true);
 
             menu.add(item1);
             menu.add(item2);

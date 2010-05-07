@@ -153,15 +153,16 @@ public class TreeEx extends JTree implements ITreeTransactionListener {
     protected void filterPhase2(final String text, final AbstractTreeModel actualModel) {
         setTreeModel(actualModel);
         firePropertyChange("actualModel", null, actualModel);
+    }
+
+    protected void filterPhase3(final String text) {
+        finishTransaction();
 
         final TreePath selectionPath = TreeEx.this.getSelectionPath();
         if (selectionPath != null) {
             TreeEx.this.scrollPathToVisible(selectionPath);
         }
-    }
 
-    protected void filterPhase3(final String text) {
-        finishTransaction();
         for (final ITreeFilterListener l : m_filterListeners) {
             l.finishFiltering(text);
         }
