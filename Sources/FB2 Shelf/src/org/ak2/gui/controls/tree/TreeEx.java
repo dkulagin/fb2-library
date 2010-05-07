@@ -158,11 +158,6 @@ public class TreeEx extends JTree implements ITreeTransactionListener {
     protected void filterPhase3(final String text) {
         finishTransaction();
 
-        final TreePath selectionPath = TreeEx.this.getSelectionPath();
-        if (selectionPath != null) {
-            TreeEx.this.scrollPathToVisible(selectionPath);
-        }
-
         for (final ITreeFilterListener l : m_filterListeners) {
             l.finishFiltering(text);
         }
@@ -321,6 +316,11 @@ public class TreeEx extends JTree implements ITreeTransactionListener {
                 m_selectionModel.release();
             } else {
                 m_selectionModel.finishTransaction();
+            }
+
+            final TreePath selectionPath = getSelectionPath();
+            if (selectionPath != null) {
+                scrollPathToVisible(selectionPath);
             }
         }
     }
