@@ -26,6 +26,7 @@ public class ActionGroup implements PropertyChangeListener {
 
     public void remove(final ActionEx action) {
         if (action != null && m_actions.remove(action)) {
+            action.setActionGroup(null);
             action.removePropertyChangeListener(this);
         }
     }
