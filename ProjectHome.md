@@ -1,0 +1,1 @@
+Small utility working with FB2 files.
